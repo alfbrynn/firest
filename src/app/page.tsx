@@ -1,8 +1,10 @@
 import DashboardPanel from "@/src/components/dashboard/DashboardPanel";
 import PixiCanvas from "@/src/components/game/PixiCanvas";
 import { Bell, Settings, Leaf } from "lucide-react";
+import { useAppStore } from "@/src/store/useAppStore";
 
 export default function Home() {
+  const { xp, level } = useAppStore();
   return (
     <main className="flex flex-col h-screen w-full overflow-hidden bg-white">
       {/* Navbar */}

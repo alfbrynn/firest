@@ -6,13 +6,14 @@ import TransactionTab from "./TransactionTab";
 import BudgetTab from "./BudgetTab";
 import GoalsTab from "./GoalsTab";
 import InsightTab from "./InsightTab";
+import { useAppStore } from "@/src/store/useAppStore";
 
 export default function DashboardPanel() {
   const [activeTab, setActiveTab] = useState("transaksi");
 
   return (
     <div className="w-full h-full bg-[#f2f6f3] flex flex-col p-8 overflow-y-auto">
-      
+
       {/* Top Navigation Tabs */}
       <nav className="flex w-full space-x-2 mb-8 shrink-0">
         {[
@@ -24,11 +25,10 @@ export default function DashboardPanel() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold rounded-lg transition-all ${
-              activeTab === tab.id
-                ? "bg-[#c9e8d8] text-[#24634b]"
-                : "text-gray-500 hover:bg-white/60"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-[13px] font-semibold rounded-lg transition-all ${activeTab === tab.id
+              ? "bg-[#c9e8d8] text-[#24634b]"
+              : "text-gray-500 hover:bg-white/60"
+              }`}
           >
             {activeTab === tab.id && tab.icon}
             {tab.label}
