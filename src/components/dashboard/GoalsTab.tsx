@@ -137,7 +137,7 @@ export default function GoalsTab() {
         /* Render Tombol Tambah Goal jika showForm bernilai FALSE */
         <div
           onClick={() => setShowForm(true)}
-          className="bg-transparent border-[2px] border-dashed border-[#c8e6c9] rounded-[24px] cursor-pointer hover:bg-white hover:shadow-sm transition-all group"
+          className="bg-transparent border-2 border-dashed border-[#c8e6c9] rounded-[24px] cursor-pointer hover:bg-white hover:shadow-sm transition-all group"
         >
           <div className="text-center py-6 text-gray-400 group-hover:text-[#2A6A55] flex flex-col items-center">
             <div className="w-10 h-10 rounded-full bg-[#f2f6f3] group-hover:bg-[#e8f4ec] flex items-center justify-center mb-2 transition-colors">

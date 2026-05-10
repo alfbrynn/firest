@@ -60,7 +60,7 @@ export default function InsightTab() {
       <button
         onClick={handleGenerateAI}
         disabled={isGenerating}
-        className="w-full bg-gradient-to-r from-[#2A6A55] to-[#1e4d3e] text-white py-3.5 rounded-[20px] font-medium hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+        className="w-full bg-linear-to-r from-[#2A6A55] to-[#1e4d3e] text-white py-3.5 rounded-[20px] font-medium hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70"
       >
         {isGenerating ? (
           <Loader2 className="w-5 h-5 animate-spin" />
