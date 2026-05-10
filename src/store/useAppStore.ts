@@ -29,7 +29,7 @@ const calculateLevel = (xp: number) => {
 
 export const useAppStore = create<AppState>((set) => ({
   xp: 1240, // Base awal sesuai desain mockup
-  level: 'Sapling',
+  level: 'Rainforest',
   forestHealth: 72,
   transactions: [],
 
