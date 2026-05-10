@@ -1,3 +1,5 @@
+"use client";
+
 import DashboardPanel from "@/src/components/dashboard/DashboardPanel";
 import PixiCanvas from "@/src/components/game/PixiCanvas";
 import { Bell, Settings, Leaf } from "lucide-react";
