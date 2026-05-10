@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 
-// Definisi tipe data agar kode kita rapi (TypeScript)
 interface Transaction {
   id?: string;
   title: string;
@@ -11,34 +10,38 @@ interface Transaction {
 }
 
 interface AppState {
-  // State Gamifikasi
   xp: number;
   level: string;
   forestHealth: number;
-  
-  // State Transaksi
   transactions: Transaction[];
-  
-  // Actions (Fungsi untuk mengubah state)
   addTransaction: (tx: Transaction) => void;
-  updateXP: (points: number) => void;
-  setForestHealth: (health: number) => void;
 }
 
+// Fungsi cerdas untuk menentukan Level berdasarkan XP
+const calculateLevel = (xp: number) => {
+  if (xp >= 3000) return 'Ecosystem';   // Level Maksimal!
+  if (xp >= 2000) return 'Rainforest';
+  if (xp >= 1500) return 'Forest';
+  if (xp >= 1000) return 'Sapling';     // Start awal kita (1.240 XP)
+  if (xp >= 500) return 'Sprout';
+  return 'Seedling';
+};
+
 export const useAppStore = create<AppState>((set) => ({
-  // Data Awal (Initial State) sesuai PNG Mockup Anda
-  xp: 1240,
+  xp: 1240, // Base awal sesuai desain mockup
   level: 'Sapling',
   forestHealth: 72,
   transactions: [],
 
-  // Fungsi menambah transaksi & otomatis menambah XP
-  addTransaction: (tx) => set((state) => ({ 
-    transactions: [tx, ...state.transactions],
-    xp: state.xp + 10 // Setiap catat transaksi dapat 10 XP!
-  })),
-
-  updateXP: (points) => set((state) => ({ xp: state.xp + points })),
-  
-  setForestHealth: (health) => set({ forestHealth: health }),
+  addTransaction: (tx) => set((state) => {
+    // Beri +150 XP per transaksi untuk memudahkan testing fitur evolusi
+    const newXp = state.xp + 150; 
+    const newLevel = calculateLevel(newXp);
+    
+    return { 
+      transactions: [tx, ...state.transactions],
+      xp: newXp,
+      level: newLevel // Level otomatis ter-update!
+    };
+  }),
 }));
