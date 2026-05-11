@@ -14,27 +14,14 @@ const t4 = { src: '/assets/tree_4.png', scale: 0.8 };  // Forest
 const t5 = { src: '/assets/tree_5.png', scale: 1.0 };  // Rainforest
 const t6 = { src: '/assets/tree_6.png', scale: 1.3 };  // Ecosystem
 
-// 2. LOGIKA PERTUMBUHAN BERTAHAP
-const getLevelConfig = (level: string) => {
-    switch (level.toLowerCase()) {
-        case 'seedling':
-            return { gridSize: 1, globalScale: 0.25, trees: [t1] };
-        case 'sprout':
-            return { gridSize: 1, globalScale: 0.25, trees: [t2] };
-        case 'sapling':
-            return { gridSize: 1, globalScale: 0.25, trees: [t3] };
-        case 'forest':
-            // Grid 2x2 (4 pulau): 1 Besar, 1 Bibit Baru, 2 Kosong
-            return { gridSize: 2, globalScale: 0.18, trees: [t4, t1, null, null] };
-        case 'rainforest':
-            // Grid 2x2 (4 pulau): 1 Sangat Besar, 1 Sedang, 1 Bibit, 1 Kosong
-            return { gridSize: 2, globalScale: 0.15, trees: [t5, t3, t1, null] };
-        case 'ecosystem':
-            // Grid 3x3 (9 pulau): Pertumbuhan berjenjang dari paling besar ke kecil
-            return { gridSize: 3, globalScale: 0.12, trees: [t6, t5, t4, t3, t2, t1, null, null, null] };
-        default:
-            return { gridSize: 1, globalScale: 0.25, trees: [t3] };
-    }
+// 2. MAP ITEM TYPE KE ASSET POHON
+const treeAssetMap: Record<string, any> = {
+    'tree_1': t1,
+    'tree_2': t2,
+    'tree_3': t3,
+    'tree_4': t4,
+    'tree_5': t5,
+    'tree_6': t6,
 };
 
 const getNextLevelXp = (currentXp: number) => {
@@ -48,7 +35,7 @@ const getNextLevelXp = (currentXp: number) => {
 
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { level, xp, forestHealth } = useAppStore();
+    const { level, xp, forestHealth, forestGrid } = useAppStore();
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
@@ -61,10 +48,9 @@ export default function PixiCanvas() {
     }, []);
 
     useEffect(() => {
-        if (typeof window === "undefined" || !canvasRef.current) return;
+        if (typeof window === "undefined" || !canvasRef.current || forestGrid.length === 0) return;
 
         const app = new PIXI.Application();
-        const config = getLevelConfig(level);
         let isDestroyed = false;
 
         const initPixi = async () => {
@@ -111,12 +97,22 @@ export default function PixiCanvas() {
                     underflow: 'center'
                 });
 
-            const uniqueTreeSrcs = [...new Set(config.trees.filter(t => t !== null).map(t => t.src))];
+            // Cari semua asset unik yang perlu di-load dari grid aktif
+            const uniqueTreeSrcs = [
+                ...new Set(
+                    forestGrid
+                        .map(tile => treeAssetMap[tile.item_type])
+                        .filter(Boolean)
+                        .map(t => t.src)
+                )
+            ];
 
             const [bgTexture, ...treeTextures] = await Promise.all([
                 PIXI.Assets.load('/assets/land.png').catch(() => null),
                 ...uniqueTreeSrcs.map(src => PIXI.Assets.load(src).catch(() => null))
             ]);
+
+            if (isDestroyed) return;
 
             const textureMap: Record<string, any> = {};
             uniqueTreeSrcs.forEach((src, index) => {
@@ -129,30 +125,39 @@ export default function PixiCanvas() {
             const gapX = 400;
             const gapY = 200;
 
-            for (let row = 0; row < config.gridSize; row++) {
-                for (let col = 0; col < config.gridSize; col++) {
-                    const islandGroup = new PIXI.Container();
+            // Render dinamis setiap pulau dari Supabase (Sort berdasarkan kedalaman isometrik)
+            const sortedGrid = [...forestGrid].sort((a, b) => {
+                const depthA = a.grid_x + a.grid_y;
+                const depthB = b.grid_x + b.grid_y;
+                if (depthA === depthB) {
+                    return a.grid_x - b.grid_x;
+                }
+                return depthA - depthB;
+            });
 
-                    islandGroup.x = (col - row) * gapX;
-                    islandGroup.y = (col + row) * gapY;
+            sortedGrid.forEach((tile) => {
+                const islandGroup = new PIXI.Container();
 
-                    if (bgTexture) {
-                        const island = new PIXI.Sprite(bgTexture);
-                        island.anchor.set(0.5);
-                        islandGroup.addChild(island);
-                    }
+                islandGroup.x = (tile.grid_x - tile.grid_y) * gapX;
+                islandGroup.y = (tile.grid_x + tile.grid_y) * gapY;
 
-                    const index = row * config.gridSize + col;
-                    const treeData = config.trees[index];
+                if (bgTexture) {
+                    const island = new PIXI.Sprite(bgTexture);
+                    island.anchor.set(0.5);
+                    islandGroup.addChild(island);
+                }
 
-                    if (treeData && textureMap[treeData.src]) {
-                        const tree = new PIXI.Sprite(textureMap[treeData.src]);
-                        tree.anchor.set(0.5, 1);
-                        tree.y = 20;
-                        tree.scale.set(treeData.scale);
-                        islandGroup.addChild(tree);
+                const treeData = treeAssetMap[tile.item_type];
 
-                        let elapsed = Math.random() * 10;
+                if (treeData && textureMap[treeData.src]) {
+                    const tree = new PIXI.Sprite(textureMap[treeData.src]);
+                    tree.anchor.set(0.5, 1);
+                    tree.y = 20;
+                    tree.scale.set(treeData.scale);
+                    islandGroup.addChild(tree);
+
+                    let elapsed = Math.random() * 10;
+                    if (app.ticker) {
                         app.ticker.add((ticker) => {
                             elapsed += ticker.deltaTime;
                             tree.skew.x = Math.sin(elapsed * 0.04) * 0.02;
@@ -160,13 +165,18 @@ export default function PixiCanvas() {
                             tree.scale.set(treeData.scale * breath);
                         });
                     }
-
-                    mainContainer.addChild(islandGroup);
                 }
-            }
 
-            mainContainer.scale.set(config.globalScale);
-            // Center vertikal dengan pas (tidak terlalu ke bawah-kiri)
+                mainContainer.addChild(islandGroup);
+            });
+
+            // Skala dinamis bergantung jumlah grid
+            const coordList = forestGrid.map(f => Math.max(Math.abs(f.grid_x), Math.abs(f.grid_y)));
+            const maxCoordVal = coordList.length > 0 ? Math.max(...coordList) : 0;
+            const maxCoords = maxCoordVal + 1;
+            const globalScale = maxCoords >= 3 ? 0.12 : maxCoords >= 2 ? 0.16 : 0.25;
+
+            mainContainer.scale.set(globalScale);
             mainContainer.x = app.screen.width / 2;
             mainContainer.y = app.screen.height / 2;
         };
@@ -183,7 +193,7 @@ export default function PixiCanvas() {
                 }
             }
         };
-    }, [level]);
+    }, [forestGrid]);
 
     return (
         <div className="w-full h-full relative bg-gradient-to-b from-background to-[#dcece3] dark:to-slate-950/20 group cursor-grab active:cursor-grabbing overflow-hidden">

@@ -1,8 +1,7 @@
-"use client";
-
-import { useState } from "react";
-import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus } from "lucide-react";
+import { useState, useMemo } from "react";
+import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
+import { createClient } from "@/src/utils/supabase/client";
 
 // Fungsi bantuan untuk memilih ikon berdasarkan kategori
 const getCategoryIcon = (category: string) => {
@@ -10,6 +9,7 @@ const getCategoryIcon = (category: string) => {
     case 'Makanan': return <Utensils className="w-5 h-5" />;
     case 'Transport': return <Car className="w-5 h-5" />;
     case 'Belanja': return <ShoppingBag className="w-5 h-5" />;
+    case 'Tagihan': return <Landmark className="w-5 h-5" />;
     default: return <Plus className="w-5 h-5" />;
   }
 };
@@ -18,39 +18,46 @@ export default function TransactionTab() {
   const [txType, setTxType] = useState("keluar");
   const [txCat, setTxCat] = useState('Makanan');
 
-  // State baru untuk input form
   const [txTitle, setTxTitle] = useState("");
   const [txAmount, setTxAmount] = useState("");
 
-  // Ambil fungsi dan data dari Zustand
-  const { addTransaction, transactions } = useAppStore();
+  const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Fungsi menyimpan transaksi
+  const { addTransaction, transactions, isDemo } = useAppStore();
+
+  // Ambil user ID untuk simpan transaksi di database
+  useState(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserId(session.user.id);
+      }
+    };
+    fetchUser();
+  });
+
   const handleAddTransaction = () => {
-    if (!txTitle || !txAmount) return; // Cegah simpan jika kosong
+    if (!txTitle || !txAmount || !userId) return;
 
-    // Bersihkan format input menjadi angka murni
     const cleanAmount = parseInt(txAmount.replace(/[^0-9]/g, ""));
     if (isNaN(cleanAmount)) return;
 
     const newTx = {
-      id: Math.random().toString(36).substr(2, 9),
       title: txTitle,
       amount: cleanAmount,
       category: txCat,
-      type: txType === "masuk" ? "income" : "expense" as "income" | "expense",
+      type: (txType === "masuk" ? "income" : "expense") as "income" | "expense" | "transfer",
       date: new Date().toISOString(),
     };
 
-    // Simpan ke Zustand
-    addTransaction(newTx);
-
-    // Reset form
+    addTransaction(newTx, userId);
     setTxTitle("");
     setTxAmount("");
   };
 
-  // Format angka saat mengetik nominal
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numericValue = e.target.value.replace(/[^0-9]/g, "");
     if (numericValue) {
@@ -60,60 +67,174 @@ export default function TransactionTab() {
     }
   };
 
+  const toggleMonth = (id: string) => {
+    setExpandedMonths(prev => 
+      prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
+    );
+  };
+
+  // 1. Grouping riwayat transaksi secara dinamis berdasarkan data dari database
+  const groupedHistory = useMemo(() => {
+    const filteredTxs = transactions.filter(tx => 
+      tx.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      tx.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const months: Record<string, typeof transactions> = {};
+    filteredTxs.forEach(tx => {
+      const d = new Date(tx.date);
+      const monthName = d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+      if (!months[monthName]) {
+        months[monthName] = [];
+      }
+      months[monthName].push(tx);
+    });
+
+    const result = Object.entries(months).map(([monthName, txList]) => {
+      const dayGroups: Record<string, typeof transactions> = {};
+      const todayStr = new Date().toDateString();
+      const yesterdayStr = new Date(Date.now() - 86400000).toDateString();
+
+      txList.forEach(tx => {
+        const d = new Date(tx.date);
+        let label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long' }).toUpperCase();
+        if (d.toDateString() === todayStr) {
+          label = "HARI INI";
+        } else if (d.toDateString() === yesterdayStr) {
+          label = "KEMARIN";
+        }
+
+        if (!dayGroups[label]) {
+          dayGroups[label] = [];
+        }
+        dayGroups[label].push(tx);
+      });
+
+      const totalExpense = txList
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const totalIncome = txList
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const id = monthName.toLowerCase().replace(/\s+/g, '-');
+
+      return {
+        id,
+        month: monthName,
+        totalCount: txList.length,
+        totalExpenseText: totalExpense > 0 ? `- Rp ${totalExpense.toLocaleString('id-ID')}` : 'Rp 0',
+        totalIncomeText: totalIncome > 0 ? `+ Rp ${totalIncome.toLocaleString('id-ID')}` : 'Rp 0',
+        groups: Object.entries(dayGroups).map(([label, items]) => ({
+          label,
+          items: items.map(t => ({
+            id: t.id || Math.random().toString(),
+            title: t.title,
+            amount: t.amount,
+            type: t.type,
+            category: t.category,
+            time: new Date(t.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            source: t.is_auto_sync ? 'Auto Sync' : 'Manual',
+            icon: getCategoryIcon(t.category)
+          }))
+        }))
+      };
+    });
+
+    // Urutkan grup bulan agar yang terbaru di atas
+    return result;
+  }, [transactions, searchQuery]);
+
+  // Set default bulan pertama ter-expand jika data ter-load
+  useState(() => {
+    if (groupedHistory.length > 0 && expandedMonths.length === 0) {
+      setExpandedMonths([groupedHistory[0].id]);
+    }
+  });
+
+  // 2. Hitung totals dinamis bulan berjalan
+  const currentMonthSummary = useMemo(() => {
+    const now = new Date();
+    const currM = now.getMonth();
+    const currY = now.getFullYear();
+
+    const currentMonthTxs = transactions.filter(tx => {
+      const d = new Date(tx.date);
+      return d.getMonth() === currM && d.getFullYear() === currY;
+    });
+
+    const expense = currentMonthTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const income = currentMonthTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+
+    const formatShort = (num: number) => {
+      if (num >= 1000000) return `${(num / 1000000).toFixed(1)}jt`;
+      if (num >= 1000) return `${(num / 1000).toFixed(0)}rb`;
+      return num.toString();
+    };
+
+    const savingRate = income > 0 ? Math.round(((income - expense) / income) * 100) : 0;
+    const isRatePositive = savingRate > 0;
+
+    return {
+      expense: formatShort(expense),
+      income: formatShort(income),
+      savingRate: isRatePositive ? `${savingRate}%` : '0%',
+      progressRate: isRatePositive ? Math.min(savingRate, 100) : 0,
+      rawExpense: expense,
+      rawIncome: income
+    };
+  }, [transactions]);
+
   return (
     <div className="flex flex-col text-foreground font-sans">
-      {/* Row 1: Pemasukan & Pengeluaran — ukuran sama, info sekunder */}
+      {/* Row 1: Pemasukan & Pengeluaran */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-[16px] border border-gray-100 dark:border-gray-800 shadow-sm">
           <p className="text-[11px] font-semibold text-muted-foreground mb-1">Pemasukan</p>
-          <p className="text-[22px] font-semibold text-primary">4.5jt</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Mei 2026</p>
+          <p className="text-[22px] font-semibold text-primary">{currentMonthSummary.income}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Bulan ini</p>
         </div>
         <div className="bg-white dark:bg-gray-900 p-4 rounded-[16px] border border-gray-100 dark:border-gray-800 shadow-sm">
           <p className="text-[11px] font-semibold text-muted-foreground mb-1">Pengeluaran</p>
-          <p className="text-[22px] font-semibold text-red-500 dark:text-red-400">3.2jt</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">72% dari target</p>
+          <p className="text-[22px] font-semibold text-red-500 dark:text-red-400">{currentMonthSummary.expense}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Bulan ini</p>
         </div>
       </div>
 
-      {/* Row 2: Saving Rate — hero card full width, paling penting */}
+      {/* Row 2: Saving Rate */}
       <div className="bg-primary p-5 rounded-[20px] mb-3 shadow-md">
         <p className="text-[11px] font-medium text-emerald-100 dark:text-emerald-200 mb-1">Saving Rate bulan ini</p>
         <div className="flex items-end justify-between">
           <div className="flex items-center gap-2">
-            <p className="text-[40px] font-bold text-white leading-none">28%</p>
+            <p className="text-[40px] font-bold text-white leading-none">{currentMonthSummary.savingRate}</p>
             <TrendingUp className="w-5 h-5 text-emerald-300 mb-1" />
           </div>
           <span className="text-[11px] text-emerald-300 dark:text-emerald-200 bg-emerald-800/30 px-3 py-1 rounded-full">
             🌱 Taman tumbuh
           </span>
         </div>
-        {/* Progress bar menuju saving rate ideal 30% */}
         <div className="mt-3 h-1.5 bg-emerald-800/30 rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-300 rounded-full" style={{ width: '93%' }} />
-        </div>
-        <p className="text-[10px] text-emerald-300/70 mt-1">93% menuju target 30%</p>
-      </div>
-
-      {/* Row 3: Sisa Budget — actionable, medium emphasis */}
-      <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 p-4 rounded-[16px] mb-3 shadow-sm">
-        <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-400 mb-1">Sisa Budget</p>
-        <div className="flex items-center justify-between">
-          <p className="text-[26px] font-bold text-orange-600 dark:text-orange-400">800rb</p>
-          <span className="text-[11px] font-semibold text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/40 px-3 py-1 rounded-full">
-            ⏳ 6 hari tersisa
-          </span>
+          <div className="h-full bg-emerald-300 rounded-full" style={{ width: `${currentMonthSummary.progressRate}%` }} />
         </div>
       </div>
 
       {/* Add Transaction Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-[24px] p-6 shadow-sm border border-gray-50 dark:border-gray-800 mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-[24px] p-6 shadow-sm border border-gray-50 dark:border-gray-800 mb-6 relative">
+        {isDemo && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-[1px] z-10 rounded-[24px] flex items-center justify-center">
+            <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+              Input dinonaktifkan di mode Demo
+            </span>
+          </div>
+        )}
         <div className="text-[11px] font-bold text-muted-foreground mb-4 uppercase tracking-widest">Catat Transaksi</div>
         <div className="flex bg-slate-50 dark:bg-gray-800 p-1.5 rounded-xl mb-6">
           {['Keluar', 'Masuk', 'Transfer'].map((type) => (
             <button
               key={type}
               onClick={() => setTxType(type.toLowerCase())}
+              disabled={isDemo}
               className={`flex-1 py-2 text-[13px] font-semibold rounded-lg transition-all ${txType === type.toLowerCase()
                 ? "bg-white dark:bg-gray-900 text-primary shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -129,8 +250,9 @@ export default function TransactionTab() {
             type="text"
             value={txTitle}
             onChange={(e) => setTxTitle(e.target.value)}
+            disabled={isDemo}
             placeholder="Nama transaksi..."
-            className="flex-1 text-[16px] font-medium text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500"
+            className="flex-1 text-[16px] font-medium text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50"
           />
           <div className="flex items-center w-1/3">
             <span className="text-[24px] font-bold text-muted-foreground mr-1">Rp</span>
@@ -138,8 +260,9 @@ export default function TransactionTab() {
               type="text"
               value={txAmount}
               onChange={handleAmountChange}
+              disabled={isDemo}
               placeholder="0"
-              className="w-full text-[24px] text-left font-bold text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full text-[24px] text-left font-bold text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50"
             />
           </div>
         </div>
@@ -161,7 +284,7 @@ export default function TransactionTab() {
 
         <button
           onClick={handleAddTransaction}
-          className="w-full bg-primary text-white py-3.5 rounded-xl font-medium hover:bg-primary-hover transition-colors shadow-sm"
+          className="w-full bg-primary text-white py-3.5 rounded-xl font-medium hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
         >
           + Simpan Transaksi
         </button>
@@ -170,76 +293,104 @@ export default function TransactionTab() {
       {/* Gmail Sync Notification */}
       <div className="bg-[#e8f4ec] dark:bg-emerald-950/20 border border-[#b6dfc2] dark:border-emerald-900/30 rounded-[16px] p-4 mb-8 flex items-center gap-3">
         <div className="w-2 h-2 rounded-full bg-[#3ab564] shrink-0 shadow-[0_0_8px_rgba(58,181,100,0.6)]"></div>
-        <span className="text-[13px] font-medium text-primary flex-1">Gmail sync aktif · 3 transaksi baru terdeteksi</span>
-        <button className="text-[12px] font-semibold text-primary bg-[#c8ebd4] dark:bg-emerald-900/40 py-1 px-3.5 rounded-full hover:bg-[#b6dfc2] dark:hover:bg-emerald-800/40 transition-colors">
-          Review
-        </button>
+        <span className="text-[13px] font-medium text-primary flex-1">Gmail sync aktif</span>
       </div>
 
-      {/* Recent Transactions */}
-      <div>
-        <p className="text-[11px] font-bold text-muted-foreground tracking-widest mb-4">HARI INI</p>
-        <div className="space-y-3 mb-6">
-
-          {/* Loop Transaksi Baru dari Zustand */}
-          {transactions.map((tx) => (
-            <div key={tx.id} className="bg-white dark:bg-gray-900 p-4 rounded-[20px] flex items-center justify-between shadow-sm border border-gray-50 dark:border-gray-800 hover:border-emerald-500/20 transition-colors cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className={`w-11 h-11 rounded-[14px] flex items-center justify-center ${tx.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-500'
-                  }`}>
-                  {getCategoryIcon(tx.category)}
-                </div>
-                <div>
-                  <p className="text-[15px] font-bold text-foreground">{tx.title}</p>
-                  <p className="text-[12px] font-medium text-muted-foreground mt-0.5 flex items-center gap-2">
-                    Baru saja <span className={`px-2 py-0.5 rounded-md text-[10px] ${tx.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
-                      }`}>Manual</span>
-                  </p>
-                </div>
-              </div>
-              <p className={`text-[15px] font-bold ${tx.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
-                {tx.type === 'income' ? '+ ' : '- '} Rp {tx.amount.toLocaleString('id-ID')}
-              </p>
-            </div>
-          ))}
-
-          {/* Placeholder Transaksi Statis */}
-          <div className="bg-white dark:bg-gray-900 p-4 rounded-[20px] flex items-center justify-between shadow-sm border border-gray-50 dark:border-gray-800 hover:border-emerald-500/20 transition-colors cursor-pointer">
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-[14px] bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center text-orange-600">
-                <Mail className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[15px] font-bold text-foreground">GoPay – Grab Food</p>
-                <p className="text-[12px] font-medium text-muted-foreground mt-0.5 flex items-center gap-2">
-                  12:34 PM <span className="bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-md text-[10px]">Gmail auto</span>
-                </p>
-              </div>
-            </div>
-            <p className="text-[15px] font-bold text-red-500 dark:text-red-400">- Rp 48.000</p>
+      {/* Riwayat Transaksi (Grouped List) */}
+      <div className="mb-4">
+        {/* Search Bar & Filter */}
+        <div className="flex items-center gap-2 mb-6">
+          <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm focus-within:border-primary/50 transition-colors">
+            <Search className="w-4 h-4 text-muted-foreground" />
+            <input 
+              type="text"
+              placeholder="Cari transaksi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent text-[14px] outline-none text-foreground placeholder-gray-400"
+            />
           </div>
-
+          <button className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-3 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <Filter className="w-5 h-5 text-muted-foreground" />
+          </button>
         </div>
 
-        {/* Transaksi Kemarin dan 1 Mei */}
-        <p className="text-[11px] font-bold text-muted-foreground tracking-widest mb-4">KEMARIN</p>
-        <div className="space-y-3 mb-6">
-          <div className="bg-white dark:bg-gray-900 p-4 rounded-[20px] flex items-center justify-between shadow-sm border border-gray-50 dark:border-gray-800 hover:border-emerald-500/20 transition-colors cursor-pointer">
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-[14px] bg-pink-50 dark:bg-pink-950/30 flex items-center justify-center text-pink-600 dark:text-pink-400">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-[15px] font-bold text-foreground">Shopee – BCA</p>
-                <p className="text-[12px] font-medium text-muted-foreground mt-0.5 flex items-center gap-2">
-                  20:01 PM <span className="bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-md text-[10px]">Gmail auto</span>
-                </p>
-              </div>
+        {/* Mapped Month Groups */}
+        <div className="space-y-4">
+          {groupedHistory.length === 0 ? (
+            <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-6">
+              <p className="text-[14px] font-semibold text-foreground">Belum ada riwayat transaksi</p>
+              <p className="text-[12px] text-muted-foreground mt-1.5 leading-relaxed">Pencarian Anda tidak menemukan hasil, atau Anda belum mencatatkan transaksi bulan ini.</p>
             </div>
-            <p className="text-[15px] font-bold text-red-500 dark:text-red-400">- Rp 215.000</p>
-          </div>
-        </div>
+          ) : (
+            groupedHistory.map((monthData) => {
+              const isExpanded = expandedMonths.includes(monthData.id) || expandedMonths.length === 0;
 
+              return (
+                <div key={monthData.id} className="flex flex-col border border-gray-100/50 dark:border-gray-800/50 rounded-2xl bg-gray-50/30 dark:bg-gray-900/10 overflow-hidden transition-all">
+                  {/* Accordion Header */}
+                  <button 
+                    onClick={() => toggleMonth(monthData.id)}
+                    className="flex items-center justify-between p-4 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors w-full text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      {isExpanded ? (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                      )}
+                      <span className="text-[15px] font-bold text-foreground">{monthData.month}</span>
+                    </div>
+                    <span className="text-[13px] text-muted-foreground font-medium hidden sm:inline-block">
+                      {monthData.totalCount} transaksi · {monthData.totalExpenseText}
+                    </span>
+                    <span className="text-[13px] text-muted-foreground font-medium sm:hidden">
+                      {monthData.totalExpenseText}
+                    </span>
+                  </button>
+
+                  {/* Collapsible Content */}
+                  {isExpanded && (
+                    <div className="p-4 pt-1 bg-transparent">
+                      {monthData.groups.map((group, gIdx) => (
+                        <div key={gIdx} className="mb-5 last:mb-0">
+                          <p className="text-[11px] font-bold text-muted-foreground tracking-widest mb-3 px-2">{group.label}</p>
+                          <div className="space-y-2">
+                            {group.items.map((item) => (
+                              <div key={item.id} className="bg-white dark:bg-gray-900 p-3.5 sm:p-4 rounded-[16px] flex items-center justify-between shadow-sm border border-gray-50 dark:border-gray-800 hover:border-emerald-500/20 transition-colors cursor-pointer group">
+                                <div className="flex items-center gap-3.5">
+                                  <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0 ${item.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-500'}`}>
+                                    {item.icon}
+                                  </div>
+                                  <div>
+                                    <p className="text-[14px] font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                                    <p className="text-[11px] font-medium text-muted-foreground mt-0.5 flex items-center gap-2">
+                                      {item.time} <span className="bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-md text-[9px] uppercase font-bold">{item.source}</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                <p className={`text-[14px] font-bold shrink-0 ${item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
+                                  {item.type === 'income' ? '+ ' : '- '} Rp {item.amount.toLocaleString('id-ID')}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Lazy load / Tampilkan lebih banyak */}
+                      {monthData.groups.length > 0 && (
+                        <button className="w-full py-3 mt-2 text-[13px] font-bold text-primary hover:text-primary-hover bg-primary/5 dark:bg-primary/10 rounded-xl transition-colors cursor-pointer">
+                          Lihat lebih banyak ↓
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

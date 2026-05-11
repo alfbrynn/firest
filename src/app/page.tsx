@@ -44,7 +44,7 @@ export default function LandingPage() {
           </p>
 
           <Link
-            href="/login"
+            href="/demo"
             className="inline-flex items-center justify-center gap-3 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-primary-hover hover:shadow-lg hover:-translate-y-1 transition-all active:scale-95 mb-6 w-full sm:w-auto cursor-pointer"
           >
             Mulai Perjalananmu

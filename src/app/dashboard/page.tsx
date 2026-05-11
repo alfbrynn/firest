@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
-    const { xp, level } = useAppStore();
+    const { fetchUserData, isLoading } = useAppStore();
     const [user, setUser] = useState<any>(null);
     const [isChecking, setIsChecking] = useState(true); // Tambahkan state loading
     const router = useRouter();
@@ -42,6 +42,13 @@ export default function Home() {
             authListener.subscription.unsubscribe();
         };
     }, [router, supabase]);
+
+    // Ambil data gamifikasi dan transaksi dari Supabase ketika user terdeteksi
+    useEffect(() => {
+        if (user?.id) {
+            fetchUserData(user.id);
+        }
+    }, [user, fetchUserData]);
 
     // Hentikan rendering (tampilkan loading) selama proses pengecekan URL
     if (isChecking) {
