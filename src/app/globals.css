@@ -22,10 +22,38 @@
   }
 }
 
+/* Explicit class-based selectors */
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --muted-foreground: #cbd5e1;
+  --primary: #3db48f;
+  --primary-hover: #4ade80;
+  --gradient-start: #2A6A55;
+  --gradient-end: #0f2b20;
+}
+
+.light {
+  --background: #F7F9F7;
+  --foreground: #1f2937;
+  --muted-foreground: #6b7280;
+  --primary: #2A6A55;
+  --primary-hover: #1f4e3f;
+  --gradient-start: #2A6A55;
+  --gradient-end: #174031;
+}
+
+/* Custom variant selector mapping for Tailwind v4 dark: selector */
+@variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-gradient-start: var(--gradient-start);
+  --color-gradient-end: var(--gradient-end);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -179,26 +179,26 @@ export default function PixiCanvas() {
     }, [level]);
 
     return (
-        <div className="w-full h-full relative bg-gradient-to-b from-[#F7F9F7] to-[#dcece3] group cursor-grab active:cursor-grabbing overflow-hidden">
+        <div className="w-full h-full relative bg-gradient-to-b from-background to-[#dcece3] dark:to-slate-950/20 group cursor-grab active:cursor-grabbing overflow-hidden">
             <div ref={canvasRef} className="absolute inset-0 z-0" />
 
             {/* Hint Tooltip */}
-            <div className={`absolute top-6 left-1/2 -translate-x-1/2 z-10 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200/50 flex items-center gap-2 transition-opacity duration-1000 pointer-events-none ${showHint ? 'opacity-100' : 'opacity-0'}`}>
-                <Info className="w-4 h-4 text-[#2A6A55]" />
-                <span className="text-xs font-medium text-[#2A6A55]">Scroll untuk zoom, drag untuk pan area taman</span>
+            <div className={`absolute top-6 left-1/2 -translate-x-1/2 z-10 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200/50 dark:border-gray-800/50 flex items-center gap-2 transition-opacity duration-1000 pointer-events-none ${showHint ? 'opacity-100' : 'opacity-0'}`}>
+                <Info className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium text-primary">Scroll untuk zoom, drag untuk pan area taman</span>
             </div>
 
             {/* Status Card Overlay - Pindah ke bawah */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-fit transition-transform hover:scale-105 duration-300">
-                <div className="bg-white/70 backdrop-blur-md px-6 py-3.5 rounded-[20px] shadow-lg border border-white/50 flex items-center gap-6 pointer-events-auto">
+                <div className="bg-white/70 dark:bg-gray-900/75 backdrop-blur-md px-6 py-3.5 rounded-[20px] shadow-lg border border-white/50 dark:border-white/5 flex items-center gap-6 pointer-events-auto">
 
                     <div className="flex items-center gap-3 shrink-0">
-                        <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-[#e8f4ec] to-[#d1ebd9] flex items-center justify-center text-xl shadow-sm border border-white">
+                        <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-[#e8f4ec] to-[#d1ebd9] dark:from-emerald-950/40 dark:to-emerald-900/40 flex items-center justify-center text-xl shadow-sm border border-white dark:border-gray-800">
                             🌱
                         </div>
                         <div>
-                            <p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Status</p>
-                            <p className="text-[14px] font-black text-[#2A6A55] leading-none">{level}</p>
+                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold mb-0.5">Status</p>
+                            <p className="text-[14px] font-black text-primary leading-none">{level}</p>
                         </div>
                     </div>
 
@@ -206,15 +206,15 @@ export default function PixiCanvas() {
 
                     <div className="w-[160px] flex flex-col justify-center">
                         <div className="flex justify-between text-[10px] font-bold mb-1.5">
-                            <span className="text-gray-600 flex items-center gap-1">
+                            <span className="text-muted-foreground flex items-center gap-1">
                                 <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                                 Growth XP
                             </span>
-                            <span className="text-[#2A6A55]">{xp} / {nextXp}</span>
+                            <span className="text-primary">{xp} / {nextXp}</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-200/60 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-1.5 w-full bg-gray-200/60 dark:bg-gray-850 rounded-full overflow-hidden shadow-inner">
                             <div
-                                className="h-full bg-gradient-to-r from-emerald-400 to-[#2A6A55] rounded-full transition-all duration-700 ease-out"
+                                className="h-full bg-gradient-to-r from-emerald-400 to-primary rounded-full transition-all duration-700 ease-out"
                                 style={{ width: `${progressPercent}%` }}
                             ></div>
                         </div>
@@ -223,11 +223,11 @@ export default function PixiCanvas() {
                     <div className="w-[1px] h-8 bg-gray-300/40 shrink-0"></div>
 
                     <div className="flex flex-col gap-1.5 shrink-0">
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-foreground">
                             <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
                             Health {forestHealth}%
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-foreground">
                             <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
                             7 Hari Streak
                         </div>

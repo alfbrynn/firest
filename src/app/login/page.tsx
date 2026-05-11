@@ -1,8 +1,9 @@
 "use client";
 
-import { Leaf } from "lucide-react";
+import { Leaf, ArrowLeft } from "lucide-react";
 import { createClient } from "@/src/utils/supabase/client";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -33,21 +34,30 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#F7F9F7] flex items-center justify-center relative overflow-hidden">
+        <div className="min-h-screen w-full bg-background flex items-center justify-center relative overflow-hidden font-sans text-foreground">
+
+            {/* Back Button */}
+            <Link 
+                href="/" 
+                className="absolute top-6 left-6 z-20 bg-white/70 dark:bg-gray-800/70 hover:bg-white dark:hover:bg-gray-850 backdrop-blur-md p-3 rounded-full border border-gray-200/50 dark:border-gray-700/50 text-muted-foreground hover:text-foreground shadow-sm transition-all flex items-center gap-2 group"
+            >
+                <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                <span className="text-sm font-bold pr-1">Kembali</span>
+            </Link>
 
             {/* Background Ornaments */}
-            <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-100/50 rounded-full blur-3xl"></div>
+            <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-200/20 dark:bg-emerald-900/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-100/30 dark:bg-orange-950/10 rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="relative z-10 w-full max-w-[420px] p-8">
-                <div className="bg-white/80 backdrop-blur-xl p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-white flex flex-col items-center text-center">
+                <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-white/20 dark:border-white/5 flex flex-col items-center text-center">
 
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#2A6A55] to-[#174031] rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-gradient-end rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20 mb-6">
                         <Leaf className="w-8 h-8 text-white fill-white/20" />
                     </div>
 
-                    <h1 className="text-3xl font-black text-gray-800 tracking-tight mb-2">Firest</h1>
-                    <p className="text-sm font-medium text-gray-500 mb-10 leading-relaxed">
+                    <h1 className="text-3xl font-black text-foreground tracking-tight mb-2">Firest</h1>
+                    <p className="text-sm font-medium text-muted-foreground mb-10 leading-relaxed">
                         Tumbuhkan kebiasaan finansialmu. <br />
                         Satu transaksi, satu benih.
                     </p>
@@ -56,7 +66,7 @@ export default function LoginPage() {
                     <button
                         onClick={handleGoogleLogin}
                         disabled={isLoading}
-                        className={`w-full bg-white border border-gray-200 text-gray-700 font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 transition-all ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-50 hover:shadow-sm active:scale-[0.98]'
+                        className={`w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 transition-all ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-sm active:scale-[0.98]'
                             }`}
                     >
                         {isLoading ? (
@@ -72,8 +82,8 @@ export default function LoginPage() {
                         {isLoading ? "Menghubungkan..." : "Lanjutkan dengan Google"}
                     </button>
 
-                    <p className="text-[11px] text-gray-400 mt-6 font-medium">
-                        Dengan masuk, kamu menyetujui <span className="text-[#2A6A55] cursor-pointer hover:underline">Syarat & Ketentuan</span> kami.
+                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-6 font-medium">
+                        Dengan masuk, kamu menyetujui <span className="text-primary cursor-pointer hover:underline">Syarat & Ketentuan</span> kami.
                     </p>
 
                 </div>

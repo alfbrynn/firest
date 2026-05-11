@@ -46,9 +46,9 @@ export default function Home() {
     // Hentikan rendering (tampilkan loading) selama proses pengecekan URL
     if (isChecking) {
         return (
-            <div className="h-screen w-full bg-[#F7F9F7] flex flex-col items-center justify-center gap-4">
-                <div className="w-8 h-8 border-4 border-[#2A6A55] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-gray-500 font-medium animate-pulse">Menyiapkan taman Anda...</p>
+            <div className="h-screen w-full bg-background flex flex-col items-center justify-center gap-4 text-foreground">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-muted-foreground font-medium animate-pulse">Menyiapkan taman Anda...</p>
             </div>
         );
     }
@@ -62,29 +62,29 @@ export default function Home() {
     const userAvatar = metadata.avatar_url || metadata.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName)}&background=2A6A55&color=fff`;
 
     // Jangan render dashboard jika user belum di-load (mencegah kedipan UI)
-    if (!user) return <div className="h-screen w-full bg-[#F7F9F7] flex items-center justify-center">Memuat...</div>;
+    if (!user) return <div className="h-screen w-full bg-background flex items-center justify-center text-foreground">Memuat...</div>;
 
     return (
-        <main className="flex flex-col h-screen w-full overflow-hidden bg-white">
+        <main className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans">
             {/* Navbar */}
-            <header className="flex justify-between items-center px-8 py-4 z-10 relative bg-white border-b border-gray-100">
+            <header className="flex justify-between items-center px-8 py-4 z-10 relative bg-background border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-3">
-                    <div className="bg-[#a8e0cb] p-2 rounded-xl">
-                        <Leaf className="w-5 h-5 text-emerald-900 fill-emerald-900" />
+                    <div className="bg-[#a8e0cb] dark:bg-[#1a5c44] p-2 rounded-xl">
+                        <Leaf className="w-5 h-5 text-emerald-900 dark:text-emerald-100 fill-emerald-900 dark:fill-emerald-100" />
                     </div>
-                    <span className="text-2xl font-bold text-[#2A6A55]">Firest</span>
+                    <span className="text-2xl font-bold text-primary">Firest</span>
                 </div>
 
-                <div className="flex items-center gap-4 text-gray-600">
-                    <Bell className="w-5 h-5 cursor-pointer hover:text-gray-900 transition-colors" />
+                <div className="flex items-center gap-4 text-muted-foreground">
+                    <Bell className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors" />
                     
                     <Link href="/settings" title="Pengaturan">
-                        <Settings className="w-5 h-5 cursor-pointer hover:text-gray-900 transition-colors" />
+                        <Settings className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors" />
                     </Link>
 
                     {/* FOTO PROFIL & NAMA */}
-                    <div className="flex items-center gap-2 bg-gray-50 pr-4 pl-1.5 py-1.5 rounded-full border border-gray-100 shrink-0">
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-white shrink-0">
+                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 pr-4 pl-1.5 py-1.5 rounded-full border border-gray-100 dark:border-gray-700 shrink-0">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-white dark:bg-gray-700 shrink-0">
                             <img
                                 src={userAvatar}
                                 alt="User Avatar"
@@ -95,7 +95,7 @@ export default function Home() {
                             />
                         </div>
                         {/* Menampilkan nama depan user di sebelah foto */}
-                        <span className="text-sm font-bold text-gray-700 hidden sm:block">
+                        <span className="text-sm font-bold text-foreground hidden sm:block">
                             {fallbackName.split(' ')[0]}
                         </span>
                     </div>

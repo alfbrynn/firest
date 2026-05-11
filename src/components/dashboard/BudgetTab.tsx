@@ -84,48 +84,48 @@ export default function BudgetTab() {
   });
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col text-foreground font-sans">
       {/* Forest Health Indicator Dinamis */}
-      <div className="bg-[#e8f4ec] border border-[#b6dfc2] rounded-[24px] p-5 mb-8 flex items-center gap-5 shadow-sm">
-        <div className="text-4xl bg-white p-3 rounded-2xl shadow-sm">🌳</div>
+      <div className="bg-[#e8f4ec] dark:bg-emerald-950/20 border border-[#b6dfc2] dark:border-emerald-900/30 rounded-[24px] p-5 mb-8 flex items-center gap-5 shadow-sm">
+        <div className="text-4xl bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-sm">🌳</div>
         <div className="flex-1">
-          <div className="text-[14px] font-bold text-[#2A6A55] mb-2.5">Forest health · {forestHealth} / 100</div>
-          <div className="h-2.5 bg-[#c8ebd4] rounded-full overflow-hidden mb-2 shadow-inner">
-            <div className="h-full bg-[#2A6A55] rounded-full transition-all duration-500" style={{ width: `${forestHealth}%` }}></div>
+          <div className="text-[14px] font-bold text-primary mb-2.5">Forest health · {forestHealth} / 100</div>
+          <div className="h-2.5 bg-[#c8ebd4] dark:bg-emerald-900/40 rounded-full overflow-hidden mb-2 shadow-inner">
+            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${forestHealth}%` }}></div>
           </div>
-          <div className="text-[12px] font-medium text-[#2A6A55] opacity-80">+30 XP jika semua budget aman bulan ini</div>
+          <div className="text-[12px] font-medium text-primary opacity-80">+30 XP jika semua budget aman bulan ini</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-[24px] p-6 shadow-sm border border-gray-50 mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-[24px] p-6 shadow-sm border border-gray-50 dark:border-gray-800 mb-6">
         <div className="flex justify-between items-center mb-8">
-          <div className="text-[16px] font-bold text-gray-800">Budget Mei 2026</div>
-          <div className="text-[12px] font-medium text-gray-400 bg-gray-50 px-3 py-1 rounded-full">20 hari berlalu</div>
+          <div className="text-[16px] font-bold text-foreground">Budget Mei 2026</div>
+          <div className="text-[12px] font-medium text-muted-foreground bg-gray-50 dark:bg-gray-800 px-3 py-1 rounded-full">20 hari berlalu</div>
         </div>
 
         {/* Looping data budget yang sudah dihitung otomatis */}
         {budgetData.map((item) => (
           <div key={item.cat} className="mb-5 last:mb-0">
             <div className="flex justify-between items-center mb-2.5">
-              <div className="text-[14px] font-semibold text-gray-700 flex items-center gap-2.5">
-                <span className="text-gray-400">{item.icon}</span> {item.cat}
+              <div className="text-[14px] font-semibold text-foreground flex items-center gap-2.5">
+                <span className="text-muted-foreground">{item.icon}</span> {item.cat}
               </div>
-              <div className={`text-[13px] font-bold ${item.alert ? 'text-red-500' : 'text-gray-500'}`}>
+              <div className={`text-[13px] font-bold ${item.alert ? 'text-red-500' : 'text-muted-foreground'}`}>
                 {item.spentText} / <span className="font-medium">{item.limitText}</span>
               </div>
             </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
               <div className={`h-full rounded-full ${item.color} transition-all duration-500`} style={{ width: item.pctText }}></div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-[24px] p-6 shadow-sm border border-gray-50">
+      <div className="bg-white dark:bg-gray-900 rounded-[24px] p-6 shadow-sm border border-gray-50 dark:border-gray-800">
         <div className="flex justify-between items-center mb-3">
-          <div className="text-[15px] font-bold text-gray-800">Proyeksi Akhir Bulan</div>
+          <div className="text-[15px] font-bold text-foreground">Proyeksi Akhir Bulan</div>
         </div>
-        <div className="text-[13.5px] font-medium text-gray-500 leading-relaxed">
+        <div className="text-[13.5px] font-medium text-muted-foreground leading-relaxed">
           Dengan pola pengeluaran saat ini, kamu akan <strong className="text-red-500">over budget Rp 95.000</strong> di kategori makanan. Kurangi makan di luar 2x minggu ini untuk tetap aman.
         </div>
       </div>
