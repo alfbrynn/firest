@@ -1,43 +1,25 @@
-"use client";
+// src/app/page.tsx
+import Link from "next/link";
+import { Leaf } from "lucide-react";
 
-import DashboardPanel from "@/src/components/dashboard/DashboardPanel";
-import PixiCanvas from "@/src/components/game/PixiCanvas";
-import { Bell, Settings, Leaf } from "lucide-react";
-import { useAppStore } from "@/src/store/useAppStore";
-
-export default function Home() {
-  const { xp, level } = useAppStore();
+export default function LandingPage() {
   return (
-    <main className="flex flex-col h-screen w-full overflow-hidden bg-white">
-      {/* Navbar */}
-      <header className="flex justify-between items-center px-8 py-4 z-10 relative bg-white">
-        <div className="flex items-center gap-3">
-          <div className="bg-[#a8e0cb] p-2 rounded-xl">
-            <Leaf className="w-5 h-5 text-emerald-900 fill-emerald-900" />
-          </div>
-          <span className="text-2xl font-bold text-[#2A6A55]">Firest</span>
-        </div>
-        <div className="flex items-center gap-5 text-gray-600">
-          <Bell className="w-5 h-5 cursor-pointer hover:text-gray-900 transition-colors" />
-          <Settings className="w-5 h-5 cursor-pointer hover:text-gray-900 transition-colors" />
-          <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border border-gray-200">
-            <img src="https://ui-avatars.com/api/?name=U&background=2A6A55&color=fff" alt="User" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Side: Game / Visual Sanctuary (60%) */}
-        <section className="w-[60%] h-full relative">
-          <PixiCanvas />
-        </section>
-
-        {/* Right Side: Dashboard (40%) */}
-        <section className="w-[40%] h-full relative">
-          <DashboardPanel />
-        </section>
+    <div className="min-h-screen w-full bg-[#F7F9F7] flex flex-col items-center justify-center text-center p-6">
+      <div className="w-20 h-20 bg-gradient-to-br from-[#2A6A55] to-[#174031] rounded-3xl flex items-center justify-center shadow-xl mb-6">
+        <Leaf className="w-10 h-10 text-white fill-white/20" />
       </div>
-    </main>
+      <h1 className="text-5xl font-black text-gray-800 tracking-tight mb-4">
+        Selamat Datang di <span className="text-[#2A6A55]">Firest</span>
+      </h1>
+      <p className="text-lg text-gray-500 mb-10 max-w-md">
+        Gamifikasi finansial yang mengubah setiap transaksimu menjadi hutan virtual yang menenangkan.
+      </p>
+      <Link
+        href="/login"
+        className="bg-[#2A6A55] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#1f4e3f] hover:shadow-lg transition-all"
+      >
+        Mulai Perjalananmu
+      </Link>
+    </div>
   );
 }
