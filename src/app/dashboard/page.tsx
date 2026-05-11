@@ -64,14 +64,31 @@ export default function Home() {
     useEffect(() => {
         if (user?.id) {
             const runBackgroundSync = async () => {
+                // 1. Cek kapan terakhir kali kita melakukan sync
+                const lastSync = localStorage.getItem('last_gmail_sync');
+                const now = new Date().getTime();
+
+                // Set batas waktu cooldown (misal: 1 jam = 3600000 milidetik)
+                // Untuk masa testing, kita buat 15 menit saja (15 * 60 * 1000 = 900000)
+                const COOLDOWN_TIME = 15 * 60 * 1000;
+
+                if (lastSync && (now - parseInt(lastSync)) < COOLDOWN_TIME) {
+                    console.log("Menunggu cooldown. Sinkronisasi Gmail ditunda sementara.");
+                    return; // Hentikan proses, jangan panggil API
+                }
+
                 try {
                     console.log("Mengecek struk baru di Gmail...");
                     const response = await fetch("/api/sync-gmail", { method: "POST" });
 
                     if (response.ok) {
+                        // 2. Jika sukses, catat waktu sekarang di memori browser
+                        localStorage.setItem('last_gmail_sync', now.toString());
+
                         const data = await response.json();
                         console.log(data.message);
-                        // JIKA BERHASIL MENDAPAT TRANSAKSI BARU, REFRESH DATA DI LAYAR!
+
+                        // Jika ada transaksi masuk, update layar
                         if (data.message.includes("Berhasil sinkronisasi")) {
                             fetchUserData(user.id);
                         }

@@ -5,41 +5,45 @@ import { extractReceiptData } from "@/src/utils/ai/gemini";
 import { saveTransactionAndUpdateXP } from "@/src/utils/db/transactionService";
 
 export async function POST() {
-  // FIX ERROR 1 & 2: Tambahkan 'await' di sini
   const supabase = await createClient();
   
-  // 1. Ambil session untuk dapat Token Google
+  // 1. Verifikasi User secara Aman (Sesuai anjuran log)
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  // 2. Ambil Session secara terpisah untuk mendapatkan Provider Token
   const { data: { session } } = await supabase.auth.getSession();
   const providerToken = session?.provider_token;
 
+  // Cek Log di terminal VS Code untuk debug
+  if (!user) {
+    console.error("DEBUG: User tidak ditemukan dalam sesi.");
+    return NextResponse.json({ error: "Sesi habis, silakan login ulang." }, { status: 401 });
+  }
+
   if (!providerToken) {
-    return NextResponse.json({ error: "Token Google tidak ditemukan. Coba login ulang." }, { status: 401 });
+    console.error("DEBUG: Provider Token (Google) hilang. User harus login ulang dengan izin Gmail.");
+    return NextResponse.json({ error: "Izin Gmail hilang. Silakan Logout lalu Login lagi." }, { status: 401 });
   }
 
   try {
-    // 2. Tarik email yang sudah terfilter
-    const emails = await fetchLatestReceipts(providerToken);
-    
+    const emails = await fetchLatestReceipts(providerToken, user.created_at);
     let processedCount = 0;
 
     for (const email of emails) {
-      // FIX ERROR 3: Pastikan ID dan Body benar-benar ada (bukan undefined)
       if (!email.id || !email.body) continue;
 
-      // 3. Cek apakah email ID ini sudah pernah diproses? (Deduplication)
       const { data: existing } = await supabase
         .from('transactions')
         .select('id')
         .eq('gmail_message_id', email.id)
         .single();
 
-      if (existing) continue; // Skip kalau sudah ada
+      if (existing) continue;
 
-      // 4. Kirim ke Gemini (Otak AI) - sekarang TypeScript tahu email.body pasti string
       const parsedData = await extractReceiptData(email.body);
 
-      // 5. Simpan ke DB & Update XP
-      await saveTransactionAndUpdateXP(supabase, session.user.id, {
+      // Gunakan user.id dari getUser() yang lebih aman
+      await saveTransactionAndUpdateXP(supabase, user.id, {
         ...parsedData,
         gmail_message_id: email.id,
         is_auto_sync: true
@@ -51,7 +55,7 @@ export async function POST() {
     return NextResponse.json({ message: `Berhasil sinkronisasi ${processedCount} transaksi baru.` });
 
   } catch (error: any) {
-    console.error(error);
+    console.error("SYNC ERROR:", error);
     return NextResponse.json({ error: "Gagal sinkronisasi" }, { status: 500 });
   }
 }
