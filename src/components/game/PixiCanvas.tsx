@@ -57,6 +57,7 @@ export default function PixiCanvas() {
 
         const app = new PIXI.Application();
         const config = getLevelConfig(level);
+        let isDestroyed = false;
 
         const initPixi = async () => {
             await app.init({
@@ -65,6 +66,16 @@ export default function PixiCanvas() {
                 antialias: true,
                 resolution: window.devicePixelRatio || 1,
             });
+
+            // Jika komponen sudah unmount saat initPixi sedang berjalan
+            if (isDestroyed) {
+                try {
+                    app.destroy(true, { children: true });
+                } catch (e) {
+                    // Abaikan error _cancelResize dari Pixi v8
+                }
+                return;
+            }
 
             if (canvasRef.current) {
                 canvasRef.current.appendChild(app.canvas);
@@ -139,7 +150,15 @@ export default function PixiCanvas() {
         initPixi();
 
         return () => {
-            app.destroy(true, { children: true });
+            isDestroyed = true;
+            // Jika aplikasi Pixi sudah selesai diinisialisasi, destroy aman dipanggil
+            if (app.renderer) {
+                try {
+                    app.destroy(true, { children: true });
+                } catch (e) {
+                    console.warn("Pixi cleanup warning:", e);
+                }
+            }
         };
     }, [level]);
 
