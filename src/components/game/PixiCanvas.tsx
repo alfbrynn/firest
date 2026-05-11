@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as PIXI from "pixi.js";
+import { Viewport } from "pixi-viewport";
 import { useAppStore } from "@/src/store/useAppStore";
-import { Flame, Heart, Zap } from "lucide-react";
+import { Flame, Heart, Zap, Info } from "lucide-react";
 
 // 1. DAFTAR ASET POHON UNTUK DIGUNAKAN ULANG
 const t1 = { src: '/assets/tree_1.png', scale: 0.2 };  // Seedling
@@ -48,9 +49,16 @@ const getNextLevelXp = (currentXp: number) => {
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
     const { level, xp, forestHealth } = useAppStore();
+    const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
     const progressPercent = xp >= 3000 ? 100 : Math.round((xp / nextXp) * 100);
+
+    useEffect(() => {
+        // Hide hint after 5 seconds
+        const timer = setTimeout(() => setShowHint(false), 5000);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         if (typeof window === "undefined" || !canvasRef.current) return;
@@ -61,19 +69,16 @@ export default function PixiCanvas() {
 
         const initPixi = async () => {
             await app.init({
-                background: '#F7F9F7',
+                backgroundAlpha: 0, // Transparan agar gradient CSS terlihat
                 resizeTo: canvasRef.current!,
                 antialias: true,
                 resolution: window.devicePixelRatio || 1,
             });
 
-            // Jika komponen sudah unmount saat initPixi sedang berjalan
             if (isDestroyed) {
                 try {
                     app.destroy(true, { children: true });
-                } catch (e) {
-                    // Abaikan error _cancelResize dari Pixi v8
-                }
+                } catch (e) {}
                 return;
             }
 
@@ -81,7 +86,24 @@ export default function PixiCanvas() {
                 canvasRef.current.appendChild(app.canvas);
             }
 
-            // 3. LOAD ASET SECARA CERDAS (Hanya load gambar yang dibutuhkan di level ini)
+            // Inisialisasi Pixi-Viewport untuk Pan & Zoom
+            const viewport = new Viewport({
+                screenWidth: app.screen.width,
+                screenHeight: app.screen.height,
+                worldWidth: app.screen.width * 2,
+                worldHeight: app.screen.height * 2,
+                events: app.renderer.events,
+            });
+
+            app.stage.addChild(viewport);
+
+            viewport
+                .drag()
+                .pinch()
+                .wheel()
+                .decelerate()
+                .clampZoom({ minScale: 0.5, maxScale: 3 });
+
             const uniqueTreeSrcs = [...new Set(config.trees.filter(t => t !== null).map(t => t.src))];
 
             const [bgTexture, ...treeTextures] = await Promise.all([
@@ -89,16 +111,14 @@ export default function PixiCanvas() {
                 ...uniqueTreeSrcs.map(src => PIXI.Assets.load(src).catch(() => null))
             ]);
 
-            // Simpan texture pohon dalam dictionary agar mudah dipanggil
             const textureMap: Record<string, any> = {};
             uniqueTreeSrcs.forEach((src, index) => {
                 textureMap[src] = treeTextures[index];
             });
 
             const mainContainer = new PIXI.Container();
-            app.stage.addChild(mainContainer);
+            viewport.addChild(mainContainer);
 
-            // Jarak Antarpulau (Jika gambar Anda sudah di-resize ke ~800px, angka ini seharusnya pas)
             const gapX = 400;
             const gapY = 200;
 
@@ -106,22 +126,18 @@ export default function PixiCanvas() {
                 for (let col = 0; col < config.gridSize; col++) {
                     const islandGroup = new PIXI.Container();
 
-                    // Rumus posisi isometrik
                     islandGroup.x = (col - row) * gapX;
                     islandGroup.y = (col + row) * gapY;
 
-                    // Gambar Tanah
                     if (bgTexture) {
                         const island = new PIXI.Sprite(bgTexture);
                         island.anchor.set(0.5);
                         islandGroup.addChild(island);
                     }
 
-                    // Tentukan pohon mana yang tumbuh di pulau ini berdasarkan urutan
                     const index = row * config.gridSize + col;
                     const treeData = config.trees[index];
 
-                    // Gambar Pohon (Hanya jika ada datanya / tidak null)
                     if (treeData && textureMap[treeData.src]) {
                         const tree = new PIXI.Sprite(textureMap[treeData.src]);
                         tree.anchor.set(0.5, 1);
@@ -143,15 +159,15 @@ export default function PixiCanvas() {
             }
 
             mainContainer.scale.set(config.globalScale);
+            // Center vertikal dengan pas (tidak terlalu ke bawah-kiri)
             mainContainer.x = app.screen.width / 2;
-            mainContainer.y = (app.screen.height / 2) + 40;
+            mainContainer.y = app.screen.height / 2;
         };
 
         initPixi();
 
         return () => {
             isDestroyed = true;
-            // Jika aplikasi Pixi sudah selesai diinisialisasi, destroy aman dipanggil
             if (app.renderer) {
                 try {
                     app.destroy(true, { children: true });
@@ -163,11 +179,18 @@ export default function PixiCanvas() {
     }, [level]);
 
     return (
-        <div className="w-full h-full relative bg-[#F7F9F7]">
+        <div className="w-full h-full relative bg-gradient-to-b from-[#F7F9F7] to-[#dcece3] group cursor-grab active:cursor-grabbing overflow-hidden">
             <div ref={canvasRef} className="absolute inset-0 z-0" />
 
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-10 w-fit">
-                <div className="bg-white/85 backdrop-blur-xl px-6 py-3.5 rounded-[20px] shadow-sm border border-gray-100 flex items-center gap-6">
+            {/* Hint Tooltip */}
+            <div className={`absolute top-6 left-1/2 -translate-x-1/2 z-10 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200/50 flex items-center gap-2 transition-opacity duration-1000 pointer-events-none ${showHint ? 'opacity-100' : 'opacity-0'}`}>
+                <Info className="w-4 h-4 text-[#2A6A55]" />
+                <span className="text-xs font-medium text-[#2A6A55]">Scroll untuk zoom, drag untuk pan area taman</span>
+            </div>
+
+            {/* Status Card Overlay - Pindah ke bawah */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-fit transition-transform hover:scale-105 duration-300">
+                <div className="bg-white/70 backdrop-blur-md px-6 py-3.5 rounded-[20px] shadow-lg border border-white/50 flex items-center gap-6 pointer-events-auto">
 
                     <div className="flex items-center gap-3 shrink-0">
                         <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-[#e8f4ec] to-[#d1ebd9] flex items-center justify-center text-xl shadow-sm border border-white">
@@ -179,17 +202,17 @@ export default function PixiCanvas() {
                         </div>
                     </div>
 
-                    <div className="w-[1px] h-8 bg-gray-200/60 shrink-0"></div>
+                    <div className="w-[1px] h-8 bg-gray-300/40 shrink-0"></div>
 
                     <div className="w-[160px] flex flex-col justify-center">
                         <div className="flex justify-between text-[10px] font-bold mb-1.5">
-                            <span className="text-gray-500 flex items-center gap-1">
+                            <span className="text-gray-600 flex items-center gap-1">
                                 <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                                 Growth XP
                             </span>
                             <span className="text-[#2A6A55]">{xp} / {nextXp}</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-1.5 w-full bg-gray-200/60 rounded-full overflow-hidden shadow-inner">
                             <div
                                 className="h-full bg-gradient-to-r from-emerald-400 to-[#2A6A55] rounded-full transition-all duration-700 ease-out"
                                 style={{ width: `${progressPercent}%` }}
@@ -197,14 +220,14 @@ export default function PixiCanvas() {
                         </div>
                     </div>
 
-                    <div className="w-[1px] h-8 bg-gray-200/60 shrink-0"></div>
+                    <div className="w-[1px] h-8 bg-gray-300/40 shrink-0"></div>
 
                     <div className="flex flex-col gap-1.5 shrink-0">
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-gray-600">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
                             <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
                             Health {forestHealth}%
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-gray-600">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
                             <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
                             7 Hari Streak
                         </div>
