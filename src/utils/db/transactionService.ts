@@ -1,22 +1,24 @@
 // Hapus import createClient di sini
 
 export async function saveTransactionAndUpdateXP(supabase: any, userId: string, parsedData: any) {
-    // 1. Simpan Transaksi ke Supabase
+    // 1. Simpan Transaksi dengan Fallback (Jaring Pengaman)
     const { error: txError } = await supabase
         .from('transactions')
         .insert([{
             user_id: userId,
-            title: parsedData.title,
-            amount: parsedData.amount,
-            type: parsedData.type,
-            category: parsedData.category,
-            date: parsedData.date,
-            is_auto_sync: parsedData.is_auto_sync || false 
+            title: parsedData.title || "Transaksi Otomatis",
+            amount: parsedData.amount || 0,
+            // Pastikan type sesuai enum: expense, income, atau transfer
+            type: ['expense', 'income', 'transfer'].includes(parsedData.type) ? parsedData.type : 'expense',
+            category: parsedData.category || "Lainnya",
+            date: parsedData.date || new Date().toISOString().split('T')[0],
+            is_auto_sync: parsedData.is_auto_sync || false,
+            gmail_message_id: parsedData.gmail_message_id || null // PENTING: Untuk cegah duplikat
         }]);
 
     if (txError) {
         console.error("DB Error (Transactions):", txError);
-        throw new Error("Gagal menyimpan transaksi ke database.");
+        throw new Error("Gagal menyimpan transaksi.");
     }
 
     // 2. Ambil State Gamifikasi User Saat Ini

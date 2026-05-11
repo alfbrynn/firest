@@ -7,10 +7,14 @@ export async function extractReceiptData(receiptText: string) {
   try {
     // Ubah bagian ini
     const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash", // GANTI DARI 2.5-flash KE 1.5-flash
-    systemInstruction: "Kamu adalah asisten akuntan pintar...",
+    model: "gemini-2.5-flash-lite", 
+    systemInstruction: `Ekstrak data struk ke JSON. 
+    WAJIB: 
+    - "type": harus 'expense' (pengeluaran) atau 'income' (pemasukan).
+    - "amount": angka saja.
+    - "category": 'Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'.`,
     generationConfig: {
-        responseMimeType: "application/json",
+        responseMimeType: "application/json", // Memaksa model untuk berpikir dalam format JSON
         temperature: 0.1, 
     },
     });

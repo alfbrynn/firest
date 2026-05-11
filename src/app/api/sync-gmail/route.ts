@@ -7,55 +7,64 @@ import { saveTransactionAndUpdateXP } from "@/src/utils/db/transactionService";
 export async function POST() {
   const supabase = await createClient();
   
-  // 1. Verifikasi User secara Aman (Sesuai anjuran log)
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
-  // 2. Ambil Session secara terpisah untuk mendapatkan Provider Token
+  // 1. Ambil User & Session
+  const { data: { user } } = await supabase.auth.getUser();
   const { data: { session } } = await supabase.auth.getSession();
-  const providerToken = session?.provider_token;
 
-  // Cek Log di terminal VS Code untuk debug
-  if (!user) {
-    console.error("DEBUG: User tidak ditemukan dalam sesi.");
-    return NextResponse.json({ error: "Sesi habis, silakan login ulang." }, { status: 401 });
+  // Proteksi: Jika user atau token tidak ada, langsung stop
+  if (!user || !session?.provider_token) {
+    return NextResponse.json({ error: "Sesi tidak valid atau izin Gmail hilang." }, { status: 401 });
   }
 
-  if (!providerToken) {
-    console.error("DEBUG: Provider Token (Google) hilang. User harus login ulang dengan izin Gmail.");
-    return NextResponse.json({ error: "Izin Gmail hilang. Silakan Logout lalu Login lagi." }, { status: 401 });
-  }
+  // FIX: Inisialisasi processedCount di luar loop
+  let processedCount = 0;
 
   try {
-    const emails = await fetchLatestReceipts(providerToken, user.created_at);
-    let processedCount = 0;
-
+    // 2. Tarik email (Gunakan user.created_at karena user sudah dipastikan ada)
+    const emails = await fetchLatestReceipts(session.provider_token, user.created_at);
+    
     for (const email of emails) {
       if (!email.id || !email.body) continue;
 
-      const { data: existing } = await supabase
-        .from('transactions')
-        .select('id')
-        .eq('gmail_message_id', email.id)
-        .single();
+      try {
+        // 3. Cek Duplikat di DB agar tidak memproses email yang sama
+        const { data: existing } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('gmail_message_id', email.id)
+          .single();
 
-      if (existing) continue;
+        if (existing) continue;
 
-      const parsedData = await extractReceiptData(email.body);
+        // 4. Kirim ke Gemini (Otak AI)
+        const parsedData = await extractReceiptData(email.body);
 
-      // Gunakan user.id dari getUser() yang lebih aman
-      await saveTransactionAndUpdateXP(supabase, user.id, {
-        ...parsedData,
-        gmail_message_id: email.id,
-        is_auto_sync: true
-      });
+        // 5. Simpan ke DB & Update XP
+        await saveTransactionAndUpdateXP(supabase, user.id, {
+          ...parsedData,
+          gmail_message_id: email.id,
+          is_auto_sync: true
+        });
 
-      processedCount++;
+        processedCount++;
+
+      } catch (loopError: any) {
+        // Jika error duplikat (Postgres code 23505), abaikan dan lanjut email berikutnya
+        if (loopError.message?.includes('23505') || loopError.code === '23505') {
+          console.warn(`Email ${email.id} duplikat, skip.`);
+          continue;
+        }
+        // Jika error lain dalam loop, log tapi jangan hentikan loop-nya
+        console.error("Gagal memproses satu email:", loopError.message);
+      }
     }
 
-    return NextResponse.json({ message: `Berhasil sinkronisasi ${processedCount} transaksi baru.` });
+    return NextResponse.json({ 
+        message: `Berhasil sinkronisasi ${processedCount} transaksi baru.` 
+    });
 
   } catch (error: any) {
-    console.error("SYNC ERROR:", error);
-    return NextResponse.json({ error: "Gagal sinkronisasi" }, { status: 500 });
+    console.error("CRITICAL SYNC ERROR:", error);
+    return NextResponse.json({ error: "Gagal sinkronisasi global" }, { status: 500 });
   }
 }
