@@ -67,24 +67,24 @@ export default function Home() {
     return (
         <main className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans">
             {/* Navbar */}
-            <header className="flex justify-between items-center px-8 py-4 z-10 relative bg-background border-b border-gray-100 dark:border-gray-800">
-                <div className="flex items-center gap-3">
-                    <div className="bg-[#a8e0cb] dark:bg-[#1a5c44] p-2 rounded-xl">
+            <header className="flex justify-between items-center px-4 sm:px-8 py-4 z-20 relative bg-background border-b border-gray-100 dark:border-gray-800 shadow-sm lg:shadow-none">
+                <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="bg-[#a8e0cb] dark:bg-[#1a5c44] p-1.5 sm:p-2 rounded-xl">
                         <Leaf className="w-5 h-5 text-emerald-900 dark:text-emerald-100 fill-emerald-900 dark:fill-emerald-100" />
                     </div>
-                    <span className="text-2xl font-bold text-primary">Firest</span>
+                    <span className="text-xl sm:text-2xl font-bold text-primary">Firest</span>
                 </div>
 
-                <div className="flex items-center gap-4 text-muted-foreground">
-                    <Bell className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors" />
+                <div className="flex items-center gap-3 sm:gap-4 text-muted-foreground">
+                    <Bell className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors hidden sm:block" />
                     
                     <Link href="/settings" title="Pengaturan">
                         <Settings className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors" />
                     </Link>
 
                     {/* FOTO PROFIL & NAMA */}
-                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 pr-4 pl-1.5 py-1.5 rounded-full border border-gray-100 dark:border-gray-700 shrink-0">
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-white dark:bg-gray-700 shrink-0">
+                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 pr-1 sm:pr-4 pl-1 sm:pl-1.5 py-1 sm:py-1.5 rounded-full border border-gray-100 dark:border-gray-700 shrink-0">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-white dark:bg-gray-700 shrink-0">
                             <img
                                 src={userAvatar}
                                 alt="User Avatar"
@@ -103,14 +103,18 @@ export default function Home() {
             </header>
 
             {/* Main Content Area */}
-            <div className="flex flex-1 overflow-hidden">
-                <section className="w-[60%] h-full relative">
+            <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden relative">
+                
+                {/* Panel Kiri (Canvas) - Mobile: Sticky 60vh, Desktop: 60% width */}
+                <section className="w-full lg:w-[60%] h-[60vh] lg:h-full shrink-0 sticky lg:relative top-0 z-0">
                     <PixiCanvas />
                 </section>
 
-                <section className="w-[40%] h-full relative">
+                {/* Panel Kanan (Dashboard) - Mobile: overlaps canvas, Desktop: 40% width */}
+                <section className="w-full lg:w-[40%] min-h-[60vh] lg:h-full relative z-10 shrink-0 bg-slate-50 dark:bg-gray-950 shadow-[0_-15px_40px_rgba(0,0,0,0.1)] lg:shadow-none lg:border-l border-gray-100 dark:border-gray-800 rounded-t-[2.5rem] lg:rounded-none overflow-hidden">
                     <DashboardPanel />
                 </section>
+
             </div>
         </main>
     );

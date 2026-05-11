@@ -102,7 +102,14 @@ export default function PixiCanvas() {
                 .pinch()
                 .wheel()
                 .decelerate()
-                .clampZoom({ minScale: 0.5, maxScale: 3 });
+                .clampZoom({ minScale: 0.5, maxScale: 3 })
+                .clamp({
+                    left: -app.screen.width * 0.3,
+                    right: app.screen.width * 1.3,
+                    top: -app.screen.height * 0.3,
+                    bottom: app.screen.height * 1.3,
+                    underflow: 'center'
+                });
 
             const uniqueTreeSrcs = [...new Set(config.trees.filter(t => t !== null).map(t => t.src))];
 
