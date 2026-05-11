@@ -1,16 +1,12 @@
 "use client";
 
 import { Leaf } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/src/utils/supabase/client";
 import { useState } from "react";
-
-// Inisialisasi Supabase Client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
+    const supabase = createClient();
 
     const handleGoogleLogin = async () => {
         try {
@@ -21,8 +17,8 @@ export default function LoginPage() {
                 options: {
                     // SCOPE PENTING: Meminta izin untuk membaca Gmail (untuk auto-sync transaksi nanti)
                     scopes: 'https://www.googleapis.com/auth/gmail.readonly',
-                    // Setelah login berhasil, arahkan langsung ke dashboard
-                    redirectTo: `${window.location.origin}/dashboard`,
+                    // Setelah login berhasil, arahkan ke callback route untuk menukar code dengan session
+                    redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 }
             });
 
