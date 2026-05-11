@@ -62,36 +62,53 @@ export default function TransactionTab() {
 
   return (
     <div className="flex flex-col">
-      {/* Summary Cards Grid (Tetap sama) */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-[20px] shadow-sm border border-gray-50">
-          <p className="text-[12px] font-medium text-gray-500 mb-2">Pemasukan</p>
-          <p className="text-[28px] font-bold text-[#2A6A55]">4.5jt</p>
-          <p className="text-[11px] text-gray-400 mt-1">Mei 2026</p>
+      {/* Row 1: Pemasukan & Pengeluaran — ukuran sama, info sekunder */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="bg-white p-4 rounded-[16px] border border-gray-100">
+          <p className="text-[11px] font-semibold text-gray-500 mb-1">Pemasukan</p>
+          <p className="text-[22px] font-semibold text-[#2A6A55]">4.5jt</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Mei 2026</p>
         </div>
-        <div className="bg-white p-5 rounded-[20px] shadow-sm border border-gray-50">
-          <p className="text-[12px] font-medium text-gray-500 mb-2">Pengeluaran</p>
-          <p className="text-[28px] font-bold text-[#d44c4c]">3.2jt</p>
-          <p className="text-[11px] text-gray-400 mt-1">72% dari target</p>
+        <div className="bg-white p-4 rounded-[16px] border border-gray-100">
+          <p className="text-[11px] font-semibold text-gray-500 mb-1">Pengeluaran</p>
+          <p className="text-[22px] font-semibold text-[#d44c4c]">3.2jt</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">72% dari target</p>
         </div>
-        <div className="bg-white p-5 rounded-[20px] shadow-sm border border-gray-50">
-          <p className="text-[12px] font-medium text-gray-500 mb-2">Sisa Budget</p>
-          <p className="text-[28px] font-bold text-orange-600">800rb</p>
-          <p className="text-[11px] text-gray-400 mt-1">6 hari tersisa</p>
-        </div>
-        <div className="bg-[#a8e0cb] p-5 rounded-[20px] shadow-sm border border-[#9dd4c0]">
-          <p className="text-[12px] font-medium text-[#2A6A55] mb-2">Saving Rate</p>
+      </div>
+
+      {/* Row 2: Saving Rate — hero card full width, paling penting */}
+      <div className="bg-[#2A6A55] p-5 rounded-[20px] mb-3">
+        <p className="text-[11px] font-medium text-emerald-200 mb-1">Saving Rate bulan ini</p>
+        <div className="flex items-end justify-between">
           <div className="flex items-center gap-2">
-            <p className="text-[28px] font-bold text-[#2A6A55]">28%</p>
-            <TrendingUp className="w-5 h-5 text-[#2A6A55]" />
+            <p className="text-[40px] font-bold text-white leading-none">28%</p>
+            <TrendingUp className="w-5 h-5 text-emerald-300 mb-1" />
           </div>
-          <p className="text-[11px] text-[#2A6A55] mt-1 opacity-80">Taman tumbuh</p>
+          <span className="text-[11px] text-emerald-300 bg-emerald-800/30 px-3 py-1 rounded-full">
+            🌱 Taman tumbuh
+          </span>
+        </div>
+        {/* Progress bar menuju saving rate ideal 30% */}
+        <div className="mt-3 h-1.5 bg-emerald-800/30 rounded-full overflow-hidden">
+          <div className="h-full bg-emerald-300 rounded-full" style={{ width: '93%' }} />
+        </div>
+        <p className="text-[10px] text-emerald-300/70 mt-1">93% menuju target 30%</p>
+      </div>
+
+      {/* Row 3: Sisa Budget — actionable, medium emphasis */}
+      <div className="bg-orange-50 border border-orange-100 p-4 rounded-[16px] mb-3">
+        <p className="text-[11px] font-semibold text-orange-700 mb-1">Sisa Budget</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[26px] font-bold text-orange-600">800rb</p>
+          <span className="text-[11px] font-semibold text-orange-700 bg-orange-100 px-3 py-1 rounded-full">
+            ⏳ 6 hari tersisa
+          </span>
         </div>
       </div>
 
       {/* Add Transaction Section */}
       <div className="bg-white rounded-[24px] p-6 shadow-sm border border-gray-50 mb-6">
-        <div className="text-[11px] font-bold text-gray-400 mb-4 uppercase tracking-widest">Catat Transaksi</div>
+        <div className="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-widest">Catat Transaksi</div>
         <div className="flex bg-[#f2f6f3] p-1.5 rounded-xl mb-6">
           {['Keluar', 'Masuk', 'Transfer'].map((type) => (
             <button
@@ -116,13 +133,13 @@ export default function TransactionTab() {
             className="flex-1 text-[16px] font-medium text-gray-800 bg-transparent outline-none placeholder-gray-400"
           />
           <div className="flex items-center w-1/3">
-            <span className="text-[24px] font-bold text-gray-400 mr-1">Rp</span>
+            <span className="text-[24px] font-bold text-gray-500 mr-1">Rp</span>
             <input
               type="text"
               value={txAmount}
               onChange={handleAmountChange}
               placeholder="0"
-              className="w-full text-[24px] text-left font-bold text-gray-800 bg-transparent outline-none placeholder-gray-300"
+              className="w-full text-[24px] text-left font-bold text-gray-800 bg-transparent outline-none placeholder-gray-400"
             />
           </div>
         </div>
@@ -161,7 +178,7 @@ export default function TransactionTab() {
 
       {/* Recent Transactions */}
       <div>
-        <p className="text-[11px] font-bold text-gray-400 tracking-widest mb-4">HARI INI</p>
+        <p className="text-[11px] font-bold text-gray-500 tracking-widest mb-4">HARI INI</p>
         <div className="space-y-3 mb-6">
 
           {/* Loop Transaksi Baru dari Zustand */}
@@ -174,7 +191,7 @@ export default function TransactionTab() {
                 </div>
                 <div>
                   <p className="text-[15px] font-bold text-gray-800">{tx.title}</p>
-                  <p className="text-[12px] font-medium text-gray-400 mt-0.5 flex items-center gap-2">
+                  <p className="text-[12px] font-medium text-gray-500 mt-0.5 flex items-center gap-2">
                     Baru saja <span className={`px-2 py-0.5 rounded-md text-[10px] ${tx.type === 'income' ? 'bg-[#e8f4ec] text-[#2A6A55]' : 'bg-orange-50 text-orange-600'
                       }`}>Manual</span>
                   </p>
@@ -194,7 +211,7 @@ export default function TransactionTab() {
               </div>
               <div>
                 <p className="text-[15px] font-bold text-gray-800">GoPay – Grab Food</p>
-                <p className="text-[12px] font-medium text-gray-400 mt-0.5 flex items-center gap-2">
+                <p className="text-[12px] font-medium text-gray-500 mt-0.5 flex items-center gap-2">
                   12:34 PM <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-md text-[10px]">Gmail auto</span>
                 </p>
               </div>
@@ -205,7 +222,7 @@ export default function TransactionTab() {
         </div>
 
         {/* Transaksi Kemarin dan 1 Mei (Tetap sama, disingkat untuk fokus) */}
-        <p className="text-[11px] font-bold text-gray-400 tracking-widest mb-4">KEMARIN</p>
+        <p className="text-[11px] font-bold text-gray-500 tracking-widest mb-4">KEMARIN</p>
         <div className="space-y-3 mb-6">
           <div className="bg-white p-4 rounded-[20px] flex items-center justify-between shadow-sm border border-gray-50 hover:border-green-100 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
@@ -214,7 +231,7 @@ export default function TransactionTab() {
               </div>
               <div>
                 <p className="text-[15px] font-bold text-gray-800">Shopee – BCA</p>
-                <p className="text-[12px] font-medium text-gray-400 mt-0.5 flex items-center gap-2">
+                <p className="text-[12px] font-medium text-gray-500 mt-0.5 flex items-center gap-2">
                   20:01 PM <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded-md text-[10px]">Gmail auto</span>
                 </p>
               </div>
@@ -224,6 +241,6 @@ export default function TransactionTab() {
         </div>
 
       </div>
-    </div>
+    </div >
   );
 }
