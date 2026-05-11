@@ -16,6 +16,8 @@ export default function Home() {
     const router = useRouter();
     const supabase = createClient();
 
+
+
     useEffect(() => {
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             if (session?.user) {
@@ -49,6 +51,40 @@ export default function Home() {
             fetchUserData(user.id);
         }
     }, [user, fetchUserData]);
+
+    // Ambil data gamifikasi dan transaksi dari Supabase ketika user terdeteksi
+    useEffect(() => {
+        if (user?.id) {
+            fetchUserData(user.id);
+        }
+    }, [user, fetchUserData]);
+
+    // === TAMBAHKAN KODE INI DI SINI ===
+    // Auto-Sync Gmail di Latar Belakang
+    useEffect(() => {
+        if (user?.id) {
+            const runBackgroundSync = async () => {
+                try {
+                    console.log("Mengecek struk baru di Gmail...");
+                    const response = await fetch("/api/sync-gmail", { method: "POST" });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(data.message);
+                        // JIKA BERHASIL MENDAPAT TRANSAKSI BARU, REFRESH DATA DI LAYAR!
+                        if (data.message.includes("Berhasil sinkronisasi")) {
+                            fetchUserData(user.id);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Gagal auto-sync Gmail:", error);
+                }
+            };
+
+            runBackgroundSync();
+        }
+    }, [user?.id, fetchUserData]);
+    // ==================================
 
     // Hentikan rendering (tampilkan loading) selama proses pengecekan URL
     if (isChecking) {
@@ -84,7 +120,7 @@ export default function Home() {
 
                 <div className="flex items-center gap-3 sm:gap-4 text-muted-foreground">
                     <Bell className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors hidden sm:block" />
-                    
+
                     <Link href="/settings" title="Pengaturan">
                         <Settings className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors" />
                     </Link>
@@ -111,7 +147,7 @@ export default function Home() {
 
             {/* Main Content Area */}
             <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden relative">
-                
+
                 {/* Panel Kiri (Canvas) - Mobile: Sticky 60vh, Desktop: 60% width */}
                 <section className="w-full lg:w-[60%] h-[60vh] lg:h-full shrink-0 sticky lg:relative top-0 z-0">
                     <PixiCanvas />
