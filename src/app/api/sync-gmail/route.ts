@@ -28,15 +28,20 @@ export async function POST() {
 
       try {
         // 3. Cek Duplikat di DB agar tidak memproses email yang sama
-        const { data: existing } = await supabase
-          .from('transactions')
-          .select('id')
-          .eq('gmail_message_id', email.id)
-          .single();
-
+        // ... di dalam loop
+        const { data: existing } = await supabase.from('transactions').select('id').eq('gmail_message_id', email.id).single();
         if (existing) continue;
 
-        // 4. Kirim ke Gemini (Otak AI)
+        // === STRATEGI 1: PRE-FILTERING ===
+        // Cek apakah ada kata "Rp", "IDR", atau angka minimal ribuan (misal: 50.000)
+        const validReceiptRegex = /(Rp|IDR)\s*\.?\d+|\d{1,3}(?:\.\d{3})+/i;
+        if (!validReceiptRegex.test(email.body)) {
+            console.log(`Email ${email.id} bukan tagihan valid. Skip AI.`);
+            continue; // Lanjut ke email berikutnya tanpa memanggil Gemini
+        }
+        // =================================
+
+        // Baru kirim ke Gemini
         const parsedData = await extractReceiptData(email.body);
 
         if (!parsedData || !parsedData.amount || parsedData.amount === 0) {

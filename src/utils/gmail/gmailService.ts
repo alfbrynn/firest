@@ -24,20 +24,24 @@ export async function fetchLatestReceipts(accessToken: string, userCreatedAt: st
   auth.setCredentials({ access_token: accessToken });
   const gmail = google.gmail({ version: 'v1', auth });
 
-  // === FIX TANGGAL: Beri toleransi mundur 3 hari ===
-  const dateObj = new Date(userCreatedAt);
-  dateObj.setDate(dateObj.getDate() - 3); // Mundur 3 hari dari tanggal daftar
+  // 1. Ambil waktu 3 hari yang lalu dari HARI INI (bukan dari userCreatedAt)
+  const dateObj = new Date();
+  dateObj.setDate(dateObj.getDate() - 3); 
   
-  const dateStr = dateObj.toISOString().split('T')[0].replace(/-/g, '/');
-  // =================================================
+  // Format manual YYYY/MM/DD agar akurat
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  const dateStr = `${yyyy}/${mm}/${dd}`;
 
-  const domains = ['gopay.co.id', 'shopeepay.co.id', 'bca.co.id', 'bankmandiri.co.id', 'dana.id', 'ovo.id'];
+  const domains = ['gopay.co.id', 'shopeepay.co.id', 'bca.co.id', 'bankmandiri.co.id', 'dana.id', 'ovo.id', 'flip.id'];
   const fromQuery = domains.map(d => `from:${d}`).join(' OR ');
   
-  // Filter akan mencari email sejak 3 hari sebelum daftar
-  const q = `(${fromQuery}) (pembayaran OR berhasil OR transaksi) after:${dateStr}`;
+  // Tambahkan variasi kata kunci agar lebih tangguh
+  const q = `(${fromQuery}) (pembayaran OR berhasil OR transaksi OR mutasi OR receipt OR bukti) after:${dateStr}`;
 
-  const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 5 });
+  // 2. NAIKKAN LIMIT! Ubah maxResults menjadi 20 atau 30
+  const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 25 });
   const messages = res.data.messages || [];
   const receiptsData = [];
 

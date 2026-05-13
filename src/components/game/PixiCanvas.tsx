@@ -13,6 +13,7 @@ const t3 = { src: '/assets/tree_3.png', scale: 0.6 };  // Sapling
 const t4 = { src: '/assets/tree_4.png', scale: 0.8 };  // Forest
 const t5 = { src: '/assets/tree_5.png', scale: 1.0 };  // Rainforest
 const t6 = { src: '/assets/tree_6.png', scale: 1.3 };  // Ecosystem
+const tdry1 = { src: '/assets/tree_dry_1.png', scale: 0.25 }; // Dry Tree
 
 // 2. MAP ITEM TYPE KE ASSET POHON
 const treeAssetMap: Record<string, any> = {
@@ -22,24 +23,23 @@ const treeAssetMap: Record<string, any> = {
     'tree_4': t4,
     'tree_5': t5,
     'tree_6': t6,
+    'tree_dry_1': tdry1,
 };
 
 const getNextLevelXp = (currentXp: number) => {
-    if (currentXp < 500) return 500;
-    if (currentXp < 1000) return 1000;
-    if (currentXp < 1500) return 1500;
-    if (currentXp < 2000) return 2000;
-    if (currentXp < 3000) return 3000;
-    return currentXp;
+    // Tiap level butuh kelipatan 500
+    const currentLevelNum = Math.floor(currentXp / 500) + 1;
+    return currentLevelNum * 500;
 };
 
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { level, xp, forestHealth, currentStreak, forestGrid } = useAppStore();
+    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid } = useAppStore();
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
-    const progressPercent = xp >= 3000 ? 100 : Math.round((xp / nextXp) * 100);
+    // Jika max level (misal xp sangat besar), handle progress
+    const progressPercent = xp >= 6000 ? 100 : Math.round(((xp % 500) / 500) * 100);
 
     useEffect(() => {
         // Hide hint after 5 seconds
@@ -97,15 +97,14 @@ export default function PixiCanvas() {
                     underflow: 'center'
                 });
 
+            // Tentukan dynamic tree type berdasarkan level & health
+            const isOverbudget = forestHealth <= 50;
+            const computedTreeIndex = Math.min(6, Math.max(1, Math.ceil(levelNumber / 2)));
+            const dynamicTreeType = isOverbudget ? 'tree_dry_1' : `tree_${computedTreeIndex}`;
+
             // Cari semua asset unik yang perlu di-load dari grid aktif
-            const uniqueTreeSrcs = [
-                ...new Set(
-                    forestGrid
-                        .map(tile => treeAssetMap[tile.item_type])
-                        .filter(Boolean)
-                        .map(t => t.src)
-                )
-            ];
+            // Kita override tile.item_type dengan dynamicTreeType
+            const uniqueTreeSrcs = [treeAssetMap[dynamicTreeType].src];
 
             const [bgTexture, ...treeTextures] = await Promise.all([
                 PIXI.Assets.load('/assets/land.png').catch(() => null),
@@ -147,7 +146,7 @@ export default function PixiCanvas() {
                     islandGroup.addChild(island);
                 }
 
-                const treeData = treeAssetMap[tile.item_type];
+                const treeData = treeAssetMap[dynamicTreeType];
 
                 if (treeData && textureMap[treeData.src]) {
                     const tree = new PIXI.Sprite(textureMap[treeData.src]);

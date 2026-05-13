@@ -31,19 +31,15 @@ export async function saveTransactionAndUpdateXP(supabase: any, userId: string, 
     let currentXp = gameState?.xp || 0;
     let currentLevel = gameState?.level || 1;
 
-    // 3. Logika Gamifikasi: +50 XP per transaksi
-    const XP_REWARD = 50;
-    const XP_TO_LEVEL_UP = 200; 
+    // 3. Logika Gamifikasi: +5 XP untuk expense, +50 XP untuk income
+    const safeType = ['expense', 'income', 'transfer'].includes(parsedData.type) ? parsedData.type : 'expense';
+    const XP_REWARD = safeType === 'income' ? 50 : 5;
+    const XP_TO_LEVEL_UP = 500; // menyesuaikan dengan useAppStore (500 XP per level)
     
     let newXp = currentXp + XP_REWARD;
-    let newLevel = currentLevel;
-    let isLevelUp = false;
-
-    if (newXp >= XP_TO_LEVEL_UP) {
-        newLevel += Math.floor(newXp / XP_TO_LEVEL_UP);
-        newXp = newXp % XP_TO_LEVEL_UP; 
-        isLevelUp = true;
-    }
+    // Hitung level baru berdasarkan total XP
+    let newLevel = Math.min(12, Math.floor(newXp / 500) + 1);
+    let isLevelUp = newLevel > currentLevel;
 
     // 4. Update atau Insert Gamification State
     if (gameState) {
