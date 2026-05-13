@@ -51,11 +51,11 @@ export const calculateLevelFromXp = (xp: number) => {
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
-  xp: 1240,
-  levelNumber: 5,
-  level: 'Rainforest',
-  forestHealth: 72,
-  currentStreak: 7,
+  xp: 0,
+  levelNumber: 1,
+  level: 'Seedling',
+  forestHealth: 100,
+  currentStreak: 1,
   streakShield: 1,
   transactions: [],
   forestGrid: [],

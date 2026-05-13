@@ -39,6 +39,11 @@ export async function POST() {
         // 4. Kirim ke Gemini (Otak AI)
         const parsedData = await extractReceiptData(email.body);
 
+        if (!parsedData || !parsedData.amount || parsedData.amount === 0) {
+           console.log(`Email ${email.id} bukan struk valid (Rp 0). Diabaikan.`);
+           continue; 
+        }
+
         // 5. Simpan ke DB & Update XP
         await saveTransactionAndUpdateXP(supabase, user.id, {
           ...parsedData,

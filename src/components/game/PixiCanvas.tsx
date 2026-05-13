@@ -35,7 +35,7 @@ const getNextLevelXp = (currentXp: number) => {
 
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { level, xp, forestHealth, forestGrid } = useAppStore();
+    const { level, xp, forestHealth, currentStreak, forestGrid } = useAppStore();
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
@@ -246,7 +246,7 @@ export default function PixiCanvas() {
                         </div>
                         <div className="flex items-center gap-2 text-[11px] font-bold text-foreground">
                             <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-                            7 Hari Streak
+                            {currentStreak} Hari Streak
                         </div>
                     </div>
 
