@@ -9,9 +9,17 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data.user) {
+      // Jika login via Google, set flag is_gmail_connected
+      if (data.user.app_metadata?.provider === 'google' || data.user.app_metadata?.providers?.includes('google')) {
+        await supabase.auth.updateUser({
+          data: { is_gmail_connected: true }
+        });
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host')
+
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${next}`)

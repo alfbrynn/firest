@@ -68,15 +68,15 @@ export default function TransactionTab() {
   };
 
   const toggleMonth = (id: string) => {
-    setExpandedMonths(prev => 
+    setExpandedMonths(prev =>
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
     );
   };
 
   // 1. Grouping riwayat transaksi secara dinamis berdasarkan data dari database
   const groupedHistory = useMemo(() => {
-    const filteredTxs = transactions.filter(tx => 
-      tx.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredTxs = transactions.filter(tx =>
+      tx.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -248,6 +248,8 @@ export default function TransactionTab() {
         <div className="flex gap-4 mb-6 border-b border-gray-100 dark:border-gray-800 pb-3">
           <input
             type="text"
+            id="titleTransactions"
+            name="titleTransactions"
             value={txTitle}
             onChange={(e) => setTxTitle(e.target.value)}
             disabled={isDemo}
@@ -258,6 +260,8 @@ export default function TransactionTab() {
             <span className="text-[24px] font-bold text-muted-foreground mr-1">Rp</span>
             <input
               type="text"
+              id="amountTransactions"
+              name="amountTransactions"
               value={txAmount}
               onChange={handleAmountChange}
               disabled={isDemo}
@@ -302,8 +306,10 @@ export default function TransactionTab() {
         <div className="flex items-center gap-2 mb-6">
           <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm focus-within:border-primary/50 transition-colors">
             <Search className="w-4 h-4 text-muted-foreground" />
-            <input 
+            <input
               type="text"
+              id="transactionsSearch"
+              name="transactionsSearch"
               placeholder="Cari transaksi..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -329,7 +335,7 @@ export default function TransactionTab() {
               return (
                 <div key={monthData.id} className="flex flex-col border border-gray-100/50 dark:border-gray-800/50 rounded-2xl bg-gray-50/30 dark:bg-gray-900/10 overflow-hidden transition-all">
                   {/* Accordion Header */}
-                  <button 
+                  <button
                     onClick={() => toggleMonth(monthData.id)}
                     className="flex items-center justify-between p-4 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors w-full text-left"
                   >

@@ -39,23 +39,38 @@ interface AppState {
 }
 
 const LEVEL_NAMES = ['Seedling', 'Sprout', 'Sapling', 'Forest', 'Rainforest', 'Ecosystem'];
-export const getLevelName = (levelNum: number) => LEVEL_NAMES[Math.min(Math.max(levelNum - 1, 0), 5)];
+export const getLevelName = (levelNum: number) => {
+  const nameIndex = Math.min(Math.max(Math.ceil(levelNum / 2) - 1, 0), 5);
+  return LEVEL_NAMES[nameIndex];
+};
 
 export const calculateLevelFromXp = (xp: number) => {
-  if (xp >= 3000) return 6; // Ecosystem
-  if (xp >= 2000) return 5; // Rainforest
-  if (xp >= 1500) return 4; // Forest
-  if (xp >= 1000) return 3; // Sapling
-  if (xp >= 500) return 2;  // Sprout
-  return 1;                 // Seedling
+  // Every 500 XP is 1 level, up to level 12 max
+  return Math.min(12, Math.floor(xp / 500) + 1);
+};
+
+export const calculateHealthFromTransactions = (transactions: Transaction[]) => {
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const expensesThisMonth = transactions
+    .filter(t => t.type === 'expense')
+    .filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const monthlyBudget = 2250000; // default total budget 2.25M
+  return expensesThisMonth > monthlyBudget ? 50 : 100;
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
-  xp: 1240,
-  levelNumber: 5,
-  level: 'Rainforest',
-  forestHealth: 72,
-  currentStreak: 7,
+  xp: 0,
+  levelNumber: 1,
+  level: 'Seedling',
+  forestHealth: 100,
+  currentStreak: 1,
   streakShield: 1,
   transactions: [],
   forestGrid: [],
@@ -91,9 +106,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       isDemo: true,
       isLoading: false,
       xp: 4500,
-      levelNumber: 6,
-      level: 'Ecosystem',
-      forestHealth: 98,
+      levelNumber: 10,
+      level: 'Rainforest',
+      forestHealth: calculateHealthFromTransactions(demoTxs),
       currentStreak: 12,
       transactions: demoTxs,
       forestGrid: demoGrid
@@ -181,7 +196,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         xp: gameState.xp,
         levelNumber: gameState.level,
         level: getLevelName(gameState.level),
-        forestHealth: gameState.forest_health,
+        forestHealth: calculateHealthFromTransactions(mappedTxs),
         currentStreak: gameState.current_streak,
         streakShield: gameState.streak_shield,
         transactions: mappedTxs,
@@ -225,9 +240,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         is_auto_sync: insertedTx.is_auto_sync
       };
 
-      // 2. Beri bonus XP per transaksi (+150 XP) untuk evolusi
+      // 2. Beri bonus XP per transaksi
       const state = get();
-      const newXp = state.xp + 150;
+      const xpReward = mappedNewTx.type === 'income' ? 50 : 5;
+      const newXp = state.xp + xpReward;
       const newLevelNum = calculateLevelFromXp(newXp);
 
       // 3. Update state di DB Supabase
@@ -240,11 +256,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         .eq('user_id', userId);
 
       // 4. Update Zustand State lokal
+      const newTxs = [mappedNewTx, ...state.transactions];
       set({
-        transactions: [mappedNewTx, ...state.transactions],
+        transactions: newTxs,
         xp: newXp,
         levelNumber: newLevelNum,
-        level: getLevelName(newLevelNum)
+        level: getLevelName(newLevelNum),
+        forestHealth: calculateHealthFromTransactions(newTxs)
       });
 
     } catch (err) {
