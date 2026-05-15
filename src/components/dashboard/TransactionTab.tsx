@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter } from "lucide-react";
+import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
 import { createClient } from "@/src/utils/supabase/client";
 
@@ -25,7 +25,9 @@ export default function TransactionTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
 
-  const { addTransaction, transactions, isDemo } = useAppStore();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { addTransaction, transactions, isDemo, fetchUserData } = useAppStore();
 
   // Ambil user ID untuk simpan transaksi di database
   useState(() => {
@@ -38,6 +40,38 @@ export default function TransactionTab() {
     };
     fetchUser();
   });
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleSyncGmail = async () => {
+    if (!userId || isSyncing) return;
+    
+    try {
+      setIsSyncing(true);
+      const response = await fetch("/api/sync-gmail", { method: "POST" });
+      const data = await response.json();
+      
+      if (response.ok) {
+        if (data.message.includes("Sukses sync")) {
+          // Update data di store agar UI langsung berubah
+          await fetchUserData(userId);
+        }
+        showToast(data.message, "success");
+      } else {
+        throw new Error(data.error || "Gagal sinkronisasi");
+      }
+    } catch (error: any) {
+      console.error("Sync Error:", error);
+      showToast(error.message || "Gagal sinkronisasi Gmail.", "error");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+
 
   const handleAddTransaction = () => {
     if (!txTitle || !txAmount || !userId) return;
@@ -187,7 +221,23 @@ export default function TransactionTab() {
   }, [transactions]);
 
   return (
-    <div className="flex flex-col text-foreground font-sans">
+    <div className="flex flex-col text-foreground font-sans relative">
+      {/* Custom Toast Notification */}
+      {toast && (
+        <div className="fixed top-20 right-6 z-[100] animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-[20px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.1)] border backdrop-blur-xl ${
+            toast.type === "success" 
+            ? "bg-emerald-500/90 border-emerald-400 text-white" 
+            : "bg-rose-500/90 border-rose-400 text-white"
+          }`}>
+            {toast.type === "success" ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+            <span className="text-sm font-bold tracking-tight">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 hover:opacity-70 transition-opacity">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Row 1: Pemasukan & Pengeluaran */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-white dark:bg-gray-900 p-4 rounded-[16px] border border-gray-100 dark:border-gray-800 shadow-sm">
@@ -294,10 +344,33 @@ export default function TransactionTab() {
         </button>
       </div>
 
-      {/* Gmail Sync Notification */}
-      <div className="bg-[#e8f4ec] dark:bg-emerald-950/20 border border-[#b6dfc2] dark:border-emerald-900/30 rounded-[16px] p-4 mb-8 flex items-center gap-3">
-        <div className="w-2 h-2 rounded-full bg-[#3ab564] shrink-0 shadow-[0_0_8px_rgba(58,181,100,0.6)]"></div>
-        <span className="text-[13px] font-medium text-primary flex-1">Gmail sync aktif</span>
+      {/* Gmail Sync Section */}
+      <div className="bg-[#e8f4ec] dark:bg-emerald-950/20 border border-[#b6dfc2] dark:border-emerald-900/30 rounded-[20px] p-4 mb-8 flex items-center justify-between group">
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl bg-white dark:bg-emerald-900/40 flex items-center justify-center shadow-sm ${isSyncing ? 'animate-spin' : ''}`}>
+            <Mail className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-[13px] font-bold text-primary leading-tight">Sinkronisasi Gmail</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Tarik transaksi otomatis dari email</p>
+          </div>
+        </div>
+        
+        <button
+          onClick={handleSyncGmail}
+          disabled={isSyncing}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black transition-all ${
+            isSyncing 
+            ? "bg-gray-100 dark:bg-gray-800 text-gray-400" 
+            : "bg-primary text-white hover:bg-emerald-700 shadow-sm active:scale-[0.96]"
+          }`}
+        >
+          {isSyncing ? (
+            <>Memproses...</>
+          ) : (
+            <><RefreshCw className="w-3.5 h-3.5" /> Sinkronkan</>
+          )}
+        </button>
       </div>
 
       {/* Riwayat Transaksi (Grouped List) */}

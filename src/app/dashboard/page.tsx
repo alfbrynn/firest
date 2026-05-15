@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
-    const { fetchUserData, isLoading } = useAppStore();
+    const { fetchUserData, fullName, avatarUrl, isLoading } = useAppStore();
     const [user, setUser] = useState<any>(null);
     const [isChecking, setIsChecking] = useState(true); // Tambahkan state loading
     const router = useRouter();
@@ -52,59 +52,8 @@ export default function Home() {
         }
     }, [user, fetchUserData]);
 
-    // Ambil data gamifikasi dan transaksi dari Supabase ketika user terdeteksi
-    useEffect(() => {
-        if (user?.id) {
-            fetchUserData(user.id);
-        }
-    }, [user, fetchUserData]);
-
-    // === TAMBAHKAN KODE INI DI SINI ===
-    // Auto-Sync Gmail di Latar Belakang
-    useEffect(() => {
-        if (user?.id) {
-            const runBackgroundSync = async () => {
-                // 1. Cek kapan terakhir kali kita melakukan sync
-                const lastSync = localStorage.getItem('last_gmail_sync');
-                const now = new Date().getTime();
-
-                // Set batas waktu cooldown (misal: 1 jam = 3600000 milidetik)
-                // Untuk masa testing, kita buat 15 menit saja (15 * 60 * 1000 = 900000)
-                const COOLDOWN_TIME = 15 * 60 * 1000;
-
-                if (lastSync && (now - parseInt(lastSync)) < COOLDOWN_TIME) {
-                    console.log("Menunggu cooldown. Sinkronisasi Gmail ditunda sementara.");
-                    return; // Hentikan proses, jangan panggil API
-                }
-
-                try {
-                    console.log("Mengecek struk baru di Gmail...");
-                    const response = await fetch("/api/sync-gmail", { method: "POST" });
-
-                    if (response.ok) {
-                        // 2. Jika sukses, catat waktu sekarang di memori browser
-                        localStorage.setItem('last_gmail_sync', now.toString());
-
-                        const data = await response.json();
-                        console.log(data.message);
-
-                        // Jika ada transaksi masuk, update layar
-                        if (data.message.includes("Berhasil sinkronisasi")) {
-                            fetchUserData(user.id);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Gagal auto-sync Gmail:", error);
-                }
-            };
-
-            runBackgroundSync();
-        }
-    }, [user?.id, fetchUserData]);
-    // ==================================
-
-    // Hentikan rendering (tampilkan loading) selama proses pengecekan URL
-    if (isChecking) {
+    // Jangan render dashboard jika user belum di-load (mencegah kedipan UI)
+    if (!user || isChecking) {
         return (
             <div className="h-screen w-full bg-background flex flex-col items-center justify-center gap-4 text-foreground">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -112,17 +61,6 @@ export default function Home() {
             </div>
         );
     }
-
-
-
-    // Ekstrak data profil seaman mungkin
-    const metadata = user?.user_metadata || {};
-    // Fallback: full_name -> name -> email -> "User"
-    const fallbackName = metadata.full_name || metadata.name || user?.email || "User";
-    const userAvatar = metadata.avatar_url || metadata.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName)}&background=2A6A55&color=fff`;
-
-    // Jangan render dashboard jika user belum di-load (mencegah kedipan UI)
-    if (!user) return <div className="h-screen w-full bg-background flex items-center justify-center text-foreground">Memuat...</div>;
 
     return (
         <main className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans">
@@ -146,21 +84,22 @@ export default function Home() {
                     <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 pr-1 sm:pr-4 pl-1 sm:pl-1.5 py-1 sm:py-1.5 rounded-full border border-gray-100 dark:border-gray-700 shrink-0">
                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-white dark:bg-gray-700 shrink-0">
                             <img
-                                src={userAvatar}
+                                src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2A6A55&color=fff`}
                                 alt="User Avatar"
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackName)}&background=2A6A55&color=fff`;
+                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=2A6A55&color=fff`;
                                 }}
                             />
                         </div>
                         {/* Menampilkan nama depan user di sebelah foto */}
                         <span className="text-sm font-bold text-foreground hidden sm:block">
-                            {fallbackName.split(' ')[0]}
+                            {fullName.split(' ')[0]}
                         </span>
                     </div>
                 </div>
             </header>
+
 
             {/* Main Content Area */}
             <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden relative">

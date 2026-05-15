@@ -5,7 +5,7 @@ const PARSERS = [
     name: 'mandiri',
     // Deteksi: Pastikan email dari Livin' Mandiri dan adalah notifikasi pembayaran/transfer
     detect: /Livin'|<noreply\.livin@bankmandiri\.co\.id>|Pembayaran Berhasil/i,
-    extract: (text: string) => {
+    extract: (text: string, fallbackDate?: string) => {
       // Nominal: Cari "Nominal Transaksi Rp 10.000,00"
       const amountMatch = text.match(/Nominal Transaksi\s*Rp\s*([\d.,]+)/i);
       // Merchant/Penerima: Cari teks di bawah "Penerima" sebelum "Tanggal"
@@ -18,7 +18,7 @@ const PARSERS = [
           amount: parseInt(amountMatch[1].split(',')[0].replace(/\./g, ''), 10),
           type: 'expense',
           category: 'Lainnya',
-          date: new Date().toISOString().split('T')[0]
+          date: fallbackDate || new Date().toISOString()
         };
       }
       return null;
@@ -28,7 +28,7 @@ const PARSERS = [
     name: 'alfagift',
     // Deteksi: Email dari Alfagift tentang pesanan
     detect: /Alfagift|<noreply@alfagift\.id>|Pembayaran Pesanan/i,
-    extract: (text: string) => {
+    extract: (text: string, fallbackDate?: string) => {
       // Nominal: Ambil dari baris "Total Pembayaran Rp 109.500"
       const amountMatch = text.match(/Total Pembayaran\s*Rp\s*([\d.,]+)/i);
       
@@ -38,7 +38,7 @@ const PARSERS = [
           amount: parseInt(amountMatch[1].replace(/\./g, ''), 10),
           type: 'expense',
           category: 'Belanja',
-          date: new Date().toISOString().split('T')[0]
+          date: fallbackDate || new Date().toISOString()
         };
       }
       return null;
@@ -58,10 +58,10 @@ export class ParsingService {
   /**
    * Parse dengan regex hardcoded untuk kecepatan & hemat kuota
    */
-  static parseWithHardcodedRegex(text: string) {
+  static parseWithHardcodedRegex(text: string, fallbackDate?: string) {
     for (const parser of PARSERS) {
       if (parser.detect.test(text)) {
-        const result = parser.extract(text);
+        const result = parser.extract(text, fallbackDate);
         if (result) {
           console.log(`[ParsingService] Regex Match: ${parser.name}`);
           return result;
@@ -71,7 +71,7 @@ export class ParsingService {
     return null;
   }
 
-  static async parseEmailToTransaction(emailBody: string) {
+  static async parseEmailToTransaction(emailBody: string, fallbackDate?: string) {
     // 1. Cek Regex Nominal (Filter awal)
     if (!this.hasMoneyNominal(emailBody)) {
       console.log("[ParsingService] Skip: Bukan transaksi (tidak ada nominal).");
@@ -79,12 +79,18 @@ export class ParsingService {
     }
 
     // 2. Coba Hardcode Regex (Mandiri, Alfagift, dll)
-    const regexResult = this.parseWithHardcodedRegex(emailBody);
+    const regexResult = this.parseWithHardcodedRegex(emailBody, fallbackDate);
     if (regexResult) return regexResult;
 
     // 3. Fallback ke AI jika regex tidak ada yang cocok
     console.log("[ParsingService] Regex Gagal, Fallback ke AI...");
-    return await GeminiProvider.extractReceiptWithAI(emailBody);
+    const aiResult = await GeminiProvider.extractReceiptWithAI(emailBody);
+    
+    // Jika AI tidak mengembalikan tanggal, gunakan fallbackDate
+    if (aiResult && !aiResult.date && fallbackDate) {
+      aiResult.date = fallbackDate;
+    }
+    
+    return aiResult;
   }
 }
-

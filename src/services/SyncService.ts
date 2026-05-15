@@ -16,7 +16,8 @@ export class SyncService {
        if (await TransactionService.isExists(supabase, email.id)) continue;
 
        // 3. Parsing via ParsingService (Regex + Gemini)
-       const parsedData = await ParsingService.parseEmailToTransaction(email.body);
+       const parsedData = await ParsingService.parseEmailToTransaction(email.body, email.date);
+
        
        if (!parsedData || !parsedData.amount || parsedData.amount === 0) {
          continue;

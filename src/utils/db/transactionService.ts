@@ -20,7 +20,7 @@ export class TransactionService {
         amount: data.amount || 0,
         type: ['expense', 'income', 'transfer'].includes(data.type) ? data.type : 'expense',
         category: data.category || "Lainnya",
-        date: data.date || new Date().toISOString().split('T')[0],
+        date: data.date || new Date().toISOString(),
         is_auto_sync: true,
         gmail_message_id: data.gmail_message_id
       }]);

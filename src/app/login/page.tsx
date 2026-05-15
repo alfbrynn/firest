@@ -10,9 +10,10 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isRegister, setIsRegister] = useState(false);
     const [email, setEmail] = useState("");
+    const [fullName, setFullName] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-    
+
     const supabase = createClient();
     const router = useRouter();
 
@@ -54,11 +55,15 @@ export default function LoginPage() {
                     email,
                     password,
                     options: {
+                        data: {
+                            full_name: fullName || email.split('@')[0]
+                        },
                         emailRedirectTo: `${window.location.origin}/auth/callback`,
                     },
                 });
                 if (error) throw error;
-                alert("Silakan cek email Anda untuk verifikasi.");
+                alert("Registrasi berhasil! Silakan cek email Anda untuk verifikasi.");
+                setIsRegister(false); // Balik ke login setelah daftar
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,
@@ -99,8 +104,7 @@ export default function LoginPage() {
 
                     <h1 className="text-2xl font-black text-foreground tracking-tight mb-2">Firest</h1>
                     <p className="text-xs font-medium text-muted-foreground mb-8 leading-relaxed text-center">
-                        Tumbuhkan kebiasaan finansialmu. <br />
-                        Satu transaksi, satu benih.
+                        {isRegister ? "Buat akun baru untuk memulai perjalananmu." : "Tumbuhkan kebiasaan finansialmu. Satu transaksi, satu benih."}
                     </p>
 
                     {error && (
@@ -111,6 +115,20 @@ export default function LoginPage() {
 
                     {/* Email/Password Form */}
                     <form onSubmit={handleEmailAuth} className="w-full flex flex-col gap-4 mb-6">
+                        {isRegister && (
+                            <div className="relative group animate-in fade-in slide-in-from-top-2">
+                                <UserPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                                <input
+                                    type="text"
+                                    placeholder="Nama Lengkap"
+                                    required={isRegister}
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                                />
+                            </div>
+                        )}
+
                         <div className="relative group">
                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                             <input
@@ -179,6 +197,7 @@ export default function LoginPage() {
                         {isRegister ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar gratis"}
                     </button>
 
+
                     <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-8 font-medium">
                         Dengan masuk, kamu menyetujui <span className="text-primary cursor-pointer hover:underline">Syarat & Ketentuan</span> kami.
                     </p>
@@ -187,4 +206,4 @@ export default function LoginPage() {
             </div>
         </div>
     );
-}
+}

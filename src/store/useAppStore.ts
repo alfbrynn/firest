@@ -28,10 +28,13 @@ interface AppState {
   streakShield: number;
   transactions: Transaction[];
   forestGrid: ForestTile[];
+  fullName: string;
+  avatarUrl: string;
   isLoading: boolean;
   isDemo: boolean;
   
   fetchUserData: (userId: string) => Promise<void>;
+
   addTransaction: (tx: Omit<Transaction, 'id'>, userId: string) => Promise<void>;
   updateGamificationState: (userId: string, updates: Partial<{ xp: number; levelNumber: number; forestHealth: number; currentStreak: number; streakShield: number }>) => Promise<void>;
   syncForestTile: (tile: Omit<ForestTile, 'id'>, userId: string) => Promise<void>;
@@ -74,11 +77,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   streakShield: 1,
   transactions: [],
   forestGrid: [],
+  fullName: "User",
+  avatarUrl: "https://ui-avatars.com/api/?name=User&background=2A6A55&color=fff",
   isLoading: false,
   isDemo: false,
 
   loadDemoData: () => {
-    // Generate a rich 3x3 ecosystem grid
+    // ... (demo code tetap sama)
     const demoGrid: ForestTile[] = [
       { grid_x: 0, grid_y: 0, item_type: 'tree_6', status: 'healthy' },
       { grid_x: 1, grid_y: 0, item_type: 'tree_5', status: 'healthy' },
@@ -91,25 +96,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       { grid_x: -1, grid_y: 1, item_type: 'tree_3', status: 'healthy' },
     ];
 
-    // Generate rich transactions
-    const now = new Date();
     const demoTxs: Transaction[] = [
-      { id: '1', title: 'Gaji Bulanan', amount: 8500000, category: 'Lainnya', type: 'income', date: new Date(now.getTime() - 1000*60*60*2).toISOString(), is_auto_sync: true },
-      { id: '2', title: 'Makan Siang Resto', amount: 150000, category: 'Makanan', type: 'expense', date: new Date(now.getTime() - 1000*60*60*5).toISOString(), is_auto_sync: false },
-      { id: '3', title: 'Belanja Bulanan', amount: 800000, category: 'Belanja', type: 'expense', date: new Date(now.getTime() - 1000*60*60*24).toISOString(), is_auto_sync: true },
-      { id: '4', title: 'Tagihan Listrik', amount: 350000, category: 'Tagihan', type: 'expense', date: new Date(now.getTime() - 1000*60*60*48).toISOString(), is_auto_sync: true },
-      { id: '5', title: 'Bensin Kendaraan', amount: 200000, category: 'Transport', type: 'expense', date: new Date(now.getTime() - 1000*60*60*72).toISOString(), is_auto_sync: false },
-      { id: '6', title: 'Langganan Netflix', amount: 120000, category: 'Hiburan', type: 'expense', date: new Date(now.getTime() - 1000*60*60*120).toISOString(), is_auto_sync: true },
+      { id: '1', title: 'Gaji Bulanan', amount: 8500000, category: 'Lainnya', type: 'income', date: new Date().toISOString() },
     ];
 
     set({
       isDemo: true,
-      isLoading: false,
+      fullName: "Demo User",
+      avatarUrl: "https://ui-avatars.com/api/?name=Demo+User&background=2A6A55&color=fff",
       xp: 4500,
       levelNumber: 10,
       level: 'Rainforest',
-      forestHealth: calculateHealthFromTransactions(demoTxs),
+      forestHealth: 100,
       currentStreak: 12,
+
       transactions: demoTxs,
       forestGrid: demoGrid
     });
@@ -120,7 +120,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     const supabase = createClient();
 
     try {
-      // 1. Fetch Gamification State
+      // 1. Ambil data User dari Auth Session dulu untuk dapatkan Metadata Google
+      const { data: { user } } = await supabase.auth.getUser();
+      const metadata = user?.user_metadata || {};
+
+      // 2. Fetch Profile dari tabel DB
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      // Prioritas Nama: Tabel Profiles -> Metadata Google -> Email -> "User"
+      const name = profile?.full_name || metadata.full_name || metadata.name || user?.email?.split('@')[0] || "User";
+      
+      // Prioritas Avatar: Tabel Profiles -> Metadata Google -> UI-Avatars
+      const avatar = profile?.avatar_url || metadata.avatar_url || metadata.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2A6A55&color=fff`;
+
+      // 3. Fetch Gamification State
+
       let { data: gameState, error: gameError } = await supabase
         .from('gamification_state')
         .select('*')
@@ -128,7 +146,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         .single();
 
       if (gameError || !gameState) {
-        // Jika belum ada gamification state, buat baru (seed default)
         const defaultState = {
           user_id: userId,
           level: 1,
@@ -145,7 +162,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         gameState = insertedState || defaultState;
       }
 
-      // 2. Fetch Transactions
+      // 3. Fetch Transactions
       const { data: txs } = await supabase
         .from('transactions')
         .select('*')
@@ -162,14 +179,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         is_auto_sync: t.is_auto_sync
       }));
 
-      // 3. Fetch Forest Grid
+      // 4. Fetch Forest Grid
       let { data: grid } = await supabase
         .from('forest_grid')
         .select('*')
         .eq('user_id', userId);
 
       if (!grid || grid.length === 0) {
-        // Seed default 1 tree seedling untuk level 1
         const defaultTile = {
           user_id: userId,
           grid_x: 0,
@@ -193,6 +209,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       }));
 
       set({
+        fullName: name,
+        avatarUrl: avatar,
         xp: gameState.xp,
         levelNumber: gameState.level,
         level: getLevelName(gameState.level),
@@ -205,10 +223,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
 
     } catch (err) {
-      console.error("Error fetching user data from Supabase:", err);
+      console.error("Error fetching user data:", err);
       set({ isLoading: false });
     }
   },
+
 
   addTransaction: async (tx: Omit<Transaction, 'id'>, userId: string) => {
     const supabase = createClient();

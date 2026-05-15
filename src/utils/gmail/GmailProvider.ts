@@ -96,10 +96,13 @@ export class GmailProvider {
       
       const fullBody = extractEmailBody(details.data.payload);
       const textToProcess = fullBody || details.data.snippet || ""; 
+      const internalDate = details.data.internalDate ? new Date(parseInt(details.data.internalDate)).toISOString() : new Date().toISOString();
       const cleanedBody = cleanHtml(textToProcess);
       
-      emails.push({ id: msg.id!, body: cleanedBody });
+      emails.push({ id: msg.id!, body: cleanedBody, date: internalDate });
     }
+
+
     return emails;
   }
 }
