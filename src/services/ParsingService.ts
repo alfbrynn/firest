@@ -1,5 +1,51 @@
 import { GeminiProvider } from "@/src/utils/ai/GeminiProvider";
 
+const PARSERS = [
+  {
+    name: 'mandiri',
+    // Deteksi: Pastikan email dari Livin' Mandiri dan adalah notifikasi pembayaran/transfer
+    detect: /Livin'|<noreply\.livin@bankmandiri\.co\.id>|Pembayaran Berhasil/i,
+    extract: (text: string) => {
+      // Nominal: Cari "Nominal Transaksi Rp 10.000,00"
+      const amountMatch = text.match(/Nominal Transaksi\s*Rp\s*([\d.,]+)/i);
+      // Merchant/Penerima: Cari teks di bawah "Penerima" sebelum "Tanggal"
+      const titleMatch = text.match(/Penerima\s+([\s\S]+?)\s+Tanggal/i);
+
+      if (amountMatch) {
+        return {
+          title: titleMatch ? titleMatch[1].trim().replace(/\s+/g, ' ').substring(0, 30) : 'Transaksi Mandiri',
+          // Hapus titik ribuan dan koma desimal untuk mendapatkan angka bulat
+          amount: parseInt(amountMatch[1].split(',')[0].replace(/\./g, ''), 10),
+          type: 'expense',
+          category: 'Lainnya',
+          date: new Date().toISOString().split('T')[0]
+        };
+      }
+      return null;
+    }
+  },
+  {
+    name: 'alfagift',
+    // Deteksi: Email dari Alfagift tentang pesanan
+    detect: /Alfagift|<noreply@alfagift\.id>|Pembayaran Pesanan/i,
+    extract: (text: string) => {
+      // Nominal: Ambil dari baris "Total Pembayaran Rp 109.500"
+      const amountMatch = text.match(/Total Pembayaran\s*Rp\s*([\d.,]+)/i);
+      
+      if (amountMatch) {
+        return {
+          title: 'Belanja Alfagift',
+          amount: parseInt(amountMatch[1].replace(/\./g, ''), 10),
+          type: 'expense',
+          category: 'Belanja',
+          date: new Date().toISOString().split('T')[0]
+        };
+      }
+      return null;
+    }
+  }
+];
+
 export class ParsingService {
   /**
    * Filter awal: Cek apakah ada nominal uang dalam teks
@@ -10,28 +56,35 @@ export class ParsingService {
   }
 
   /**
-   * (Opsional) Parse dengan regex hardcoded untuk kecepatan & hemat kuota
+   * Parse dengan regex hardcoded untuk kecepatan & hemat kuota
    */
   static parseWithHardcodedRegex(text: string) {
-    // Contoh untuk GoPay (bisa dikembangkan nanti)
-    if (text.includes("GoPay") && text.includes("berhasil")) {
-       // Logika regex di sini...
+    for (const parser of PARSERS) {
+      if (parser.detect.test(text)) {
+        const result = parser.extract(text);
+        if (result) {
+          console.log(`[ParsingService] Regex Match: ${parser.name}`);
+          return result;
+        }
+      }
     }
-    return null; // Sementara return null agar lanjut ke Gemini
+    return null;
   }
 
   static async parseEmailToTransaction(emailBody: string) {
     // 1. Cek Regex Nominal (Filter awal)
     if (!this.hasMoneyNominal(emailBody)) {
-      console.log("[ParsingService] Skip: Tidak ada nominal uang.");
+      console.log("[ParsingService] Skip: Bukan transaksi (tidak ada nominal).");
       return null;
     }
 
-    // 2. Coba Hardcode Regex (BCA, GoPay, dll)
+    // 2. Coba Hardcode Regex (Mandiri, Alfagift, dll)
     const regexResult = this.parseWithHardcodedRegex(emailBody);
     if (regexResult) return regexResult;
 
     // 3. Fallback ke AI jika regex tidak ada yang cocok
+    console.log("[ParsingService] Regex Gagal, Fallback ke AI...");
     return await GeminiProvider.extractReceiptWithAI(emailBody);
   }
 }
+

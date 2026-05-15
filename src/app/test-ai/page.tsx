@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Leaf, Sparkles, Send } from "lucide-react";
-import { saveTransactionAndUpdateXP } from "@/src/utils/db/transactionService";
+import { TransactionService } from "@/src/utils/db/TransactionService";
+import { GamificationService } from "@/src/utils/db/GamificationService";
 import { createClient } from "@/src/utils/supabase/client";
 
 export default function TestAIPage() {
@@ -34,7 +35,14 @@ export default function TestAIPage() {
 
             if (!session?.user) throw new Error("Silakan login dulu.");
 
-            const dbResult = await saveTransactionAndUpdateXP(supabase, session.user.id, parsedData);
+            // Simpan transaksi
+            await TransactionService.saveTransaction(supabase, session.user.id, {
+                ...parsedData,
+                is_auto_sync: false // Ini manual/test
+            });
+
+            // Update gamifikasi
+            const dbResult = await GamificationService.addXpForTransaction(supabase, session.user.id, parsedData.type);
 
             // Gabungkan hasil AI dan hasil Database untuk ditampilkan di layar
             setResultJSON({
@@ -53,6 +61,7 @@ export default function TestAIPage() {
             setIsLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen bg-[#F7F9F7] p-8 font-sans">

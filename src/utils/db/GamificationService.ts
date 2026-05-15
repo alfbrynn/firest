@@ -14,6 +14,7 @@ export class GamificationService {
     
     // Hitung level baru (500 XP per level, max 12)
     const newLevel = Math.min(12, Math.floor(newXp / 500) + 1);
+    const isLevelUp = newLevel > (gameState?.level || 1);
 
     if (gameState) {
       await supabase
@@ -26,6 +27,7 @@ export class GamificationService {
         .insert([{ user_id: userId, xp: newXp, level: newLevel }]);
     }
 
-    return { addedXp: XP_REWARD, newXp, newLevel };
+    return { addedXp: XP_REWARD, newXp, newLevel, isLevelUp };
   }
 }
+
