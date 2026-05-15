@@ -1,59 +1,33 @@
-// Hapus import createClient di sini
+import { SupabaseClient } from "@supabase/supabase-js";
 
-export async function saveTransactionAndUpdateXP(supabase: any, userId: string, parsedData: any) {
-    // 1. Simpan Transaksi dengan Fallback (Jaring Pengaman)
-    const { error: txError } = await supabase
-        .from('transactions')
-        .insert([{
-            user_id: userId,
-            title: parsedData.title || "Transaksi Otomatis",
-            amount: parsedData.amount || 0,
-            // Pastikan type sesuai enum: expense, income, atau transfer
-            type: ['expense', 'income', 'transfer'].includes(parsedData.type) ? parsedData.type : 'expense',
-            category: parsedData.category || "Lainnya",
-            date: parsedData.date || new Date().toISOString().split('T')[0],
-            is_auto_sync: parsedData.is_auto_sync || false,
-            gmail_message_id: parsedData.gmail_message_id || null // PENTING: Untuk cegah duplikat
-        }]);
-
-    if (txError) {
-        console.error("DB Error (Transactions):", txError);
-        throw new Error("Gagal menyimpan transaksi.");
-    }
-
-    // 2. Ambil State Gamifikasi User Saat Ini
-    const { data: gameState, error: fetchError } = await supabase
-        .from('gamification_state')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-    let currentXp = gameState?.xp || 0;
-    let currentLevel = gameState?.level || 1;
-
-    // 3. Logika Gamifikasi: +5 XP untuk expense, +50 XP untuk income
-    const safeType = ['expense', 'income', 'transfer'].includes(parsedData.type) ? parsedData.type : 'expense';
-    const XP_REWARD = safeType === 'income' ? 50 : 5;
-    const XP_TO_LEVEL_UP = 500; // menyesuaikan dengan useAppStore (500 XP per level)
+export class TransactionService {
+  static async isExists(supabase: SupabaseClient, messageId: string) {
+    const { data } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('gmail_message_id', messageId)
+      .single();
     
-    let newXp = currentXp + XP_REWARD;
-    // Hitung level baru berdasarkan total XP
-    let newLevel = Math.min(12, Math.floor(newXp / 500) + 1);
-    let isLevelUp = newLevel > currentLevel;
+    return !!data;
+  }
 
-    // 4. Update atau Insert Gamification State
-    if (gameState) {
-        const { error: updateError } = await supabase
-            .from('gamification_state')
-            .update({ xp: newXp, level: newLevel })
-            .eq('user_id', userId);
-        if (updateError) throw new Error("Gagal mengupdate XP.");
-    } else {
-        const { error: insertError } = await supabase
-            .from('gamification_state')
-            .insert([{ user_id: userId, xp: newXp, level: newLevel }]);
-        if (insertError) throw new Error("Gagal membuat state awal XP.");
+  static async saveTransaction(supabase: SupabaseClient, userId: string, data: any) {
+    const { error } = await supabase
+      .from('transactions')
+      .insert([{
+        user_id: userId,
+        title: data.title || "Transaksi Otomatis",
+        amount: data.amount || 0,
+        type: ['expense', 'income', 'transfer'].includes(data.type) ? data.type : 'expense',
+        category: data.category || "Lainnya",
+        date: data.date || new Date().toISOString().split('T')[0],
+        is_auto_sync: true,
+        gmail_message_id: data.gmail_message_id
+      }]);
+
+    if (error) {
+      console.error("Error saving transaction:", error);
+      throw error;
     }
-
-    return { success: true, addedXp: XP_REWARD, newXp, newLevel, isLevelUp };
+  }
 }

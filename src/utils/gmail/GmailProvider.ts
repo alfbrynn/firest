@@ -69,40 +69,37 @@ function extractEmailBody(payload: any): string {
     return "";
 }
 
-export async function fetchLatestReceipts(accessToken: string, userCreatedAt: string) {
-  const auth = new google.auth.OAuth2();
-  auth.setCredentials({ access_token: accessToken });
-  const gmail = google.gmail({ version: 'v1', auth });
+export class GmailProvider {
+  static async fetchRecentEmails(accessToken: string, daysAgo: number = 3) {
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const gmail = google.gmail({ version: 'v1', auth });
 
-  // 1. Ambil waktu 3 hari yang lalu dari HARI INI (bukan dari userCreatedAt)
-  const dateObj = new Date();
-  dateObj.setDate(dateObj.getDate() - 3); 
-  
-  // Format manual YYYY/MM/DD agar akurat
-  const yyyy = dateObj.getFullYear();
-  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const dd = String(dateObj.getDate()).padStart(2, '0');
-  const dateStr = `${yyyy}/${mm}/${dd}`;
-
-  const domains = ['gopay.co.id', 'shopeepay.co.id', 'bca.co.id', 'bankmandiri.co.id', 'dana.id', 'ovo.id', 'flip.id'];
-  const fromQuery = domains.map(d => `from:${d}`).join(' OR ');
-  
-  // Tambahkan variasi kata kunci agar lebih tangguh
-  const q = `(${fromQuery}) (pembayaran OR berhasil OR transaksi OR mutasi OR receipt OR bukti) after:${dateStr}`;
-
-  // 2. NAIKKAN LIMIT! Ubah maxResults menjadi 20 atau 30
-  const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 25 });
-  const messages = res.data.messages || [];
-  const receiptsData = [];
-
-  for (const msg of messages) {
-    const details = await gmail.users.messages.get({ userId: 'me', id: msg.id!, format: 'full' });
+    const dateObj = new Date();
+    dateObj.setDate(dateObj.getDate() - daysAgo); 
     
-    const fullBody = extractEmailBody(details.data.payload);
-    const textToProcess = fullBody || details.data.snippet || ""; 
-    const cleanedBody = cleanHtml(textToProcess);
-    
-    receiptsData.push({ id: msg.id, body: cleanedBody });
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}/${mm}/${dd}`;
+
+    const domains = ['gopay.co.id', 'shopeepay.co.id', 'bca.co.id', 'bankmandiri.co.id', 'dana.id', 'ovo.id', 'flip.id'];
+    const fromQuery = domains.map(d => `from:${d}`).join(' OR ');
+    const q = `(${fromQuery}) (pembayaran OR berhasil OR transaksi OR mutasi OR receipt OR bukti) after:${dateStr}`;
+
+    const res = await gmail.users.messages.list({ userId: 'me', q, maxResults: 25 });
+    const messages = res.data.messages || [];
+    const emails = [];
+
+    for (const msg of messages) {
+      const details = await gmail.users.messages.get({ userId: 'me', id: msg.id!, format: 'full' });
+      
+      const fullBody = extractEmailBody(details.data.payload);
+      const textToProcess = fullBody || details.data.snippet || ""; 
+      const cleanedBody = cleanHtml(textToProcess);
+      
+      emails.push({ id: msg.id!, body: cleanedBody });
+    }
+    return emails;
   }
-  return receiptsData;
 }
