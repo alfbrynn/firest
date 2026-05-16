@@ -107,6 +107,8 @@ export default function TransactionTab() {
     );
   };
 
+  const [visibleLimits, setVisibleLimits] = useState<Record<string, number>>({});
+
   // 1. Grouping riwayat transaksi secara dinamis berdasarkan data dari database
   const groupedHistory = useMemo(() => {
     const filteredTxs = transactions.filter(tx =>
@@ -125,11 +127,17 @@ export default function TransactionTab() {
     });
 
     const result = Object.entries(months).map(([monthName, txList]) => {
+      const id = monthName.toLowerCase().replace(/\s+/g, '-');
+      const limit = visibleLimits[id] || 10;
+      
+      // Ambil transaksi sesuai limit untuk ditampilkan
+      const limitedTxList = txList.slice(0, limit);
+
       const dayGroups: Record<string, typeof transactions> = {};
       const todayStr = new Date().toDateString();
       const yesterdayStr = new Date(Date.now() - 86400000).toDateString();
 
-      txList.forEach(tx => {
+      limitedTxList.forEach(tx => {
         const d = new Date(tx.date);
         let label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long' }).toUpperCase();
         if (d.toDateString() === todayStr) {
@@ -152,12 +160,11 @@ export default function TransactionTab() {
         .filter(t => t.type === 'income')
         .reduce((sum, t) => sum + t.amount, 0);
 
-      const id = monthName.toLowerCase().replace(/\s+/g, '-');
-
       return {
         id,
         month: monthName,
         totalCount: txList.length,
+        hasMore: txList.length > limit,
         totalExpenseText: totalExpense > 0 ? `- Rp ${totalExpense.toLocaleString('id-ID')}` : 'Rp 0',
         totalIncomeText: totalIncome > 0 ? `+ Rp ${totalIncome.toLocaleString('id-ID')}` : 'Rp 0',
         groups: Object.entries(dayGroups).map(([label, items]) => ({
@@ -176,9 +183,15 @@ export default function TransactionTab() {
       };
     });
 
-    // Urutkan grup bulan agar yang terbaru di atas
     return result;
-  }, [transactions, searchQuery]);
+  }, [transactions, searchQuery, visibleLimits]);
+
+  const handleLoadMore = (monthId: string) => {
+    setVisibleLimits(prev => ({
+      ...prev,
+      [monthId]: (prev[monthId] || 10) + 10
+    }));
+  };
 
   // Set default bulan pertama ter-expand jika data ter-load
   useState(() => {
@@ -403,7 +416,7 @@ export default function TransactionTab() {
             </div>
           ) : (
             groupedHistory.map((monthData) => {
-              const isExpanded = expandedMonths.includes(monthData.id) || expandedMonths.length === 0;
+              const isExpanded = expandedMonths.includes(monthData.id);
 
               return (
                 <div key={monthData.id} className="flex flex-col border border-gray-100/50 dark:border-gray-800/50 rounded-2xl bg-gray-50/30 dark:bg-gray-900/10 overflow-hidden transition-all">
@@ -458,8 +471,11 @@ export default function TransactionTab() {
                       ))}
 
                       {/* Lazy load / Tampilkan lebih banyak */}
-                      {monthData.groups.length > 0 && (
-                        <button className="w-full py-3 mt-2 text-[13px] font-bold text-primary hover:text-primary-hover bg-primary/5 dark:bg-primary/10 rounded-xl transition-colors cursor-pointer">
+                      {monthData.hasMore && (
+                        <button 
+                          onClick={() => handleLoadMore(monthData.id)}
+                          className="w-full py-3 mt-2 text-[13px] font-bold text-primary hover:text-primary-hover bg-primary/5 dark:bg-primary/10 rounded-xl transition-colors cursor-pointer"
+                        >
                           Lihat lebih banyak ↓
                         </button>
                       )}
@@ -473,4 +489,4 @@ export default function TransactionTab() {
       </div>
     </div>
   );
-}
+}
