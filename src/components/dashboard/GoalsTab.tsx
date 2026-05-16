@@ -32,11 +32,7 @@ export default function GoalsTab() {
   const [newGoalPrice, setNewGoalPrice] = useState("");
   
   // Single Goal State (null jika belum set)
-  const [mainGoal, setMainGoal] = useState<{name: string, target: number, color: string} | null>({
-    name: 'Laptop MacBook Air',
-    target: 15000000,
-    color: 'bg-primary'
-  });
+  const [mainGoal, setMainGoal] = useState<{name: string, target: number, color: string} | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
