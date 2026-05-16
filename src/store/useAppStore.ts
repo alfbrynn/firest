@@ -34,9 +34,11 @@ interface AppState {
   isDemo: boolean;
   monthlyIncomeTarget: number;
   monthlySavingsTarget: number;
+  budgetResetDate: number; // 1-31
   
   fetchUserData: (userId: string) => Promise<void>;
-  updateMonthlyTargets: (userId: string, income: number, savings: number) => Promise<void>;
+  updateMonthlyTargets: (userId: string, income: number, savings: number, resetDate: number) => Promise<void>;
+  withdrawFromSavings: (userId: string, amount: number, reason: string) => Promise<void>;
   addTransaction: (tx: Omit<Transaction, 'id'>, userId: string) => Promise<void>;
   updateGamificationState: (userId: string, updates: Partial<{ xp: number; levelNumber: number; forestHealth: number; currentStreak: number; streakShield: number }>) => Promise<void>;
   syncForestTile: (tile: Omit<ForestTile, 'id'>, userId: string) => Promise<void>;
@@ -54,20 +56,29 @@ export const calculateLevelFromXp = (xp: number) => {
   return Math.min(12, Math.floor(xp / 500) + 1);
 };
 
-export const calculateHealthFromTransactions = (transactions: Transaction[]) => {
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
+export const calculateHealthFromTransactions = (transactions: Transaction[], resetDate: number = 1) => {
+  const now = new Date();
+  let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), resetDate);
   
-  const expensesThisMonth = transactions
+  if (now.getDate() < resetDate) {
+    // We are still in the period that started last month
+    startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+  }
+  
+  const endOfPeriod = new Date(startOfPeriod);
+  endOfPeriod.setMonth(endOfPeriod.getMonth() + 1);
+
+  const expensesThisPeriod = transactions
     .filter(t => t.type === 'expense')
     .filter(t => {
       const d = new Date(t.date);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      return d >= startOfPeriod && d < endOfPeriod;
     })
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const monthlyBudget = 2250000; // default total budget 2.25M
-  return expensesThisMonth > monthlyBudget ? 50 : 100;
+  // Fallback budget if targets not set
+  const monthlyBudget = 2250000; 
+  return expensesThisPeriod > monthlyBudget ? 50 : 100;
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -85,6 +96,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   isDemo: false,
   monthlyIncomeTarget: 0,
   monthlySavingsTarget: 0,
+  budgetResetDate: 1,
 
   loadDemoData: () => {
     // ... (demo code tetap sama)
@@ -115,6 +127,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       currentStreak: 12,
       monthlyIncomeTarget: 3000000,
       monthlySavingsTarget: 500000,
+      budgetResetDate: 25,
 
       transactions: demoTxs,
       forestGrid: demoGrid
@@ -126,24 +139,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     const supabase = createClient();
 
     try {
-      // 1. Ambil data User dari Auth Session dulu untuk dapatkan Metadata Google
       const { data: { user } } = await supabase.auth.getUser();
       const metadata = user?.user_metadata || {};
 
-      // 2. Fetch Profile dari tabel DB
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      // Prioritas Nama: Tabel Profiles -> Metadata Google -> Email -> "User"
       const name = profile?.full_name || metadata.full_name || metadata.name || user?.email?.split('@')[0] || "User";
-      
-      // Prioritas Avatar: Tabel Profiles -> Metadata Google -> UI-Avatars
       const avatar = profile?.avatar_url || metadata.avatar_url || metadata.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=2A6A55&color=fff`;
-
-      // 3. Fetch Gamification State
 
       let { data: gameState, error: gameError } = await supabase
         .from('gamification_state')
@@ -152,23 +158,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         .single();
 
       if (gameError || !gameState) {
-        const defaultState = {
-          user_id: userId,
-          level: 1,
-          xp: 0,
-          forest_health: 100,
-          current_streak: 1,
-          streak_shield: 1
-        };
-        const { data: insertedState } = await supabase
-          .from('gamification_state')
-          .insert(defaultState)
-          .select()
-          .single();
+        const defaultState = { user_id: userId, level: 1, xp: 0, forest_health: 100, current_streak: 1, streak_shield: 1 };
+        const { data: insertedState } = await supabase.from('gamification_state').insert(defaultState).select().single();
         gameState = insertedState || defaultState;
       }
 
-      // 3. Fetch Transactions
       const { data: txs } = await supabase
         .from('transactions')
         .select('*')
@@ -176,43 +170,21 @@ export const useAppStore = create<AppState>((set, get) => ({
         .order('date', { ascending: false });
 
       const mappedTxs: Transaction[] = (txs || []).map(t => ({
-        id: t.id,
-        title: t.title,
-        amount: Number(t.amount),
-        category: t.category,
-        type: t.type as 'income' | 'expense' | 'transfer',
-        date: t.date,
-        is_auto_sync: t.is_auto_sync
+        id: t.id, title: t.title, amount: Number(t.amount), category: t.category, type: t.type as any, date: t.date, is_auto_sync: t.is_auto_sync
       }));
 
-      // 4. Fetch Forest Grid
-      let { data: grid } = await supabase
-        .from('forest_grid')
-        .select('*')
-        .eq('user_id', userId);
-
+      let { data: grid } = await supabase.from('forest_grid').select('*').eq('user_id', userId);
       if (!grid || grid.length === 0) {
-        const defaultTile = {
-          user_id: userId,
-          grid_x: 0,
-          grid_y: 0,
-          item_type: 'tree_1',
-          status: 'healthy'
-        };
-        const { data: insertedTile } = await supabase
-          .from('forest_grid')
-          .insert(defaultTile)
-          .select();
+        const defaultTile = { user_id: userId, grid_x: 0, grid_y: 0, item_type: 'tree_1', status: 'healthy' };
+        const { data: insertedTile } = await supabase.from('forest_grid').insert(defaultTile).select();
         grid = insertedTile || [defaultTile];
       }
 
       const mappedGrid: ForestTile[] = (grid || []).map(tile => ({
-        id: tile.id,
-        grid_x: tile.grid_x,
-        grid_y: tile.grid_y,
-        item_type: tile.item_type,
-        status: tile.status
+        id: tile.id, grid_x: tile.grid_x, grid_y: tile.grid_y, item_type: tile.item_type, status: tile.status
       }));
+
+      const resetDate = profile?.budget_reset_date || 1;
 
       set({
         fullName: name,
@@ -220,39 +192,58 @@ export const useAppStore = create<AppState>((set, get) => ({
         xp: gameState.xp,
         levelNumber: gameState.level,
         level: getLevelName(gameState.level),
-        forestHealth: calculateHealthFromTransactions(mappedTxs),
+        forestHealth: calculateHealthFromTransactions(mappedTxs, resetDate),
         currentStreak: gameState.current_streak,
         streakShield: gameState.streak_shield,
         transactions: mappedTxs,
         forestGrid: mappedGrid,
         monthlyIncomeTarget: profile?.monthly_income_target || 0,
         monthlySavingsTarget: profile?.monthly_savings_target || 0,
+        budgetResetDate: resetDate,
         isLoading: false
       });
-
     } catch (err) {
       console.error("Error fetching user data:", err);
       set({ isLoading: false });
     }
   },
 
-  updateMonthlyTargets: async (userId: string, income: number, savings: number) => {
+  updateMonthlyTargets: async (userId: string, income: number, savings: number, resetDate: number) => {
     const supabase = createClient();
     try {
       await supabase
         .from('profiles')
         .update({
           monthly_income_target: income,
-          monthly_savings_target: savings
+          monthly_savings_target: savings,
+          budget_reset_date: resetDate
         })
         .eq('id', userId);
 
       set({
         monthlyIncomeTarget: income,
-        monthlySavingsTarget: savings
+        monthlySavingsTarget: savings,
+        budgetResetDate: resetDate
       });
     } catch (err) {
       console.error("Error updating monthly targets:", err);
+    }
+  },
+
+  withdrawFromSavings: async (userId: string, amount: number, reason: string) => {
+    const supabase = createClient();
+    try {
+      // Withdrawal is essentially an income transaction (money back to available cash)
+      // but flagged as withdrawal to avoid double counting "real" income
+      await get().addTransaction({
+        title: `Tarik Tabungan: ${reason || 'Kebutuhan'}`,
+        amount: amount,
+        category: 'Lainnya',
+        type: 'income',
+        date: new Date().toISOString(),
+      }, userId);
+    } catch (err) {
+      console.error("Error withdrawing from savings:", err);
     }
   },
 
