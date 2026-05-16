@@ -4,6 +4,7 @@ import { Leaf, ArrowLeft } from "lucide-react";
 import { createClient } from "@/src/utils/supabase/client";
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -39,12 +40,16 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
         }
     };
 
+    const searchParams = useSearchParams();
+    const from = searchParams.get('from');
+    const backHref = from === 'settings' ? '/settings' : '/';
+
     return (
         <div className="min-h-screen w-full bg-background flex items-center justify-center relative overflow-hidden font-sans text-foreground">
 
             {/* Back Button */}
             <Link
-                href="/"
+                href={backHref}
                 className="absolute top-6 left-6 z-20 bg-white/70 dark:bg-gray-800/70 hover:bg-white dark:hover:bg-gray-850 backdrop-blur-md p-3 rounded-full border border-gray-200/50 dark:border-gray-700/50 text-muted-foreground hover:text-foreground shadow-sm transition-all flex items-center gap-2 group"
             >
                 <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />

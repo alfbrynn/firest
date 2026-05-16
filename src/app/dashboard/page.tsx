@@ -74,7 +74,10 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-3 sm:gap-4 text-muted-foreground">
-                    <Bell className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors hidden sm:block" />
+                    <Link href="/notifications" className="relative group p-1.5 sm:p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all">
+                        <Bell className="w-5 h-5 cursor-pointer text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full border-2 border-background animate-pulse"></span>
+                    </Link>
 
                     <Link href="/settings" title="Pengaturan">
                         <Settings className="w-5 h-5 cursor-pointer hover:text-foreground transition-colors" />
