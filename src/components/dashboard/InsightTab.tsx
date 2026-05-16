@@ -73,22 +73,33 @@ export default function InsightTab() {
   return (
     <div className="flex flex-col space-y-5 text-foreground font-sans">
 
+      {/* Archive Header & Notice */}
+      <div className="bg-slate-50 dark:bg-gray-800/40 p-5 rounded-[24px] border border-gray-100 dark:border-gray-800 border-dashed mb-1">
+         <div className="flex items-center gap-3">
+            <BarChart3 className="w-5 h-5 text-muted-foreground" />
+            <div>
+               <p className="text-sm font-bold text-foreground">Arsip Analisis AI</p>
+               <p className="text-[11px] text-muted-foreground font-medium">Insight terbaru kini muncul otomatis saat kamu mencatat transaksi.</p>
+            </div>
+         </div>
+      </div>
+
       {/* Tombol Trigger Gemini AI */}
       <button
         onClick={handleGenerateAI}
         disabled={isGenerating}
-        className="w-full bg-gradient-to-r from-primary to-gradient-end text-white py-3.5 rounded-[20px] font-medium hover:shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
+        className="w-full bg-white dark:bg-gray-900 text-primary border-2 border-primary/20 py-3.5 rounded-[20px] font-bold hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer"
       >
         {isGenerating ? (
           <Loader2 className="w-5 h-5 animate-spin" />
         ) : (
-          <Sparkles className="w-5 h-5 text-yellow-300" />
+          <Sparkles className="w-5 h-5" />
         )}
-        {isGenerating ? "Menganalisis transaksi..." : "Dapatkan Insight AI Terbaru"}
+        {isGenerating ? "Menganalisis..." : "Generate Analisis Mendalam (Bulanan)"}
       </button>
 
       <div className="bg-white dark:bg-gray-900 rounded-[24px] p-6 shadow-sm border border-gray-50 dark:border-gray-800">
-        <div className="text-[11px] font-bold text-muted-foreground mb-5 uppercase tracking-widest">Pekan Ini</div>
+        <div className="text-[11px] font-bold text-muted-foreground mb-5 uppercase tracking-widest">Riwayat Insight Pekan Ini</div>
 
         {weeklyInsights.length === 0 ? (
           <div className="text-center py-6">

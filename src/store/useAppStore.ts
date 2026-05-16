@@ -32,9 +32,11 @@ interface AppState {
   avatarUrl: string;
   isLoading: boolean;
   isDemo: boolean;
+  monthlyIncomeTarget: number;
+  monthlySavingsTarget: number;
   
   fetchUserData: (userId: string) => Promise<void>;
-
+  updateMonthlyTargets: (userId: string, income: number, savings: number) => Promise<void>;
   addTransaction: (tx: Omit<Transaction, 'id'>, userId: string) => Promise<void>;
   updateGamificationState: (userId: string, updates: Partial<{ xp: number; levelNumber: number; forestHealth: number; currentStreak: number; streakShield: number }>) => Promise<void>;
   syncForestTile: (tile: Omit<ForestTile, 'id'>, userId: string) => Promise<void>;
@@ -81,6 +83,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   avatarUrl: "https://ui-avatars.com/api/?name=User&background=2A6A55&color=fff",
   isLoading: false,
   isDemo: false,
+  monthlyIncomeTarget: 0,
+  monthlySavingsTarget: 0,
 
   loadDemoData: () => {
     // ... (demo code tetap sama)
@@ -109,6 +113,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       level: 'Rainforest',
       forestHealth: 100,
       currentStreak: 12,
+      monthlyIncomeTarget: 3000000,
+      monthlySavingsTarget: 500000,
 
       transactions: demoTxs,
       forestGrid: demoGrid
@@ -219,12 +225,34 @@ export const useAppStore = create<AppState>((set, get) => ({
         streakShield: gameState.streak_shield,
         transactions: mappedTxs,
         forestGrid: mappedGrid,
+        monthlyIncomeTarget: profile?.monthly_income_target || 0,
+        monthlySavingsTarget: profile?.monthly_savings_target || 0,
         isLoading: false
       });
 
     } catch (err) {
       console.error("Error fetching user data:", err);
       set({ isLoading: false });
+    }
+  },
+
+  updateMonthlyTargets: async (userId: string, income: number, savings: number) => {
+    const supabase = createClient();
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          monthly_income_target: income,
+          monthly_savings_target: savings
+        })
+        .eq('id', userId);
+
+      set({
+        monthlyIncomeTarget: income,
+        monthlySavingsTarget: savings
+      });
+    } catch (err) {
+      console.error("Error updating monthly targets:", err);
     }
   },
 

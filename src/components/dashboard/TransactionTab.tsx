@@ -20,6 +20,7 @@ export default function TransactionTab() {
 
   const [txTitle, setTxTitle] = useState("");
   const [txAmount, setTxAmount] = useState("");
+  const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,7 +85,7 @@ export default function TransactionTab() {
       amount: cleanAmount,
       category: txCat,
       type: (txType === "masuk" ? "income" : "expense") as "income" | "expense" | "transfer",
-      date: new Date().toISOString(),
+      date: new Date(txDate).toISOString(),
     };
 
     addTransaction(newTx, userId);
@@ -347,6 +348,35 @@ export default function TransactionTab() {
               {tag}
             </button>
           ))}
+        </div>
+
+        {/* Date Selection */}
+        <div className="flex items-center gap-3 mb-6 bg-slate-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tanggal:</span>
+          <input 
+            type="date" 
+            value={txDate}
+            onChange={(e) => setTxDate(e.target.value)}
+            className="bg-transparent text-sm font-semibold text-foreground outline-none cursor-pointer focus:text-primary transition-colors"
+          />
+          <div className="flex gap-1 ml-auto">
+             <button 
+              onClick={() => setTxDate(new Date().toISOString().split('T')[0])}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${txDate === new Date().toISOString().split('T')[0] ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
+             >
+               Hari Ini
+             </button>
+             <button 
+              onClick={() => {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                setTxDate(yesterday.toISOString().split('T')[0]);
+              }}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${txDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
+             >
+               Kemarin
+             </button>
+          </div>
         </div>
 
         <button
