@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Target, Wallet, TrendingUp, Landmark, ArrowRight, Save, Coins, ArrowDownCircle, AlertCircle, Calendar, Edit2, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Target, Wallet, TrendingUp, Landmark, ArrowRight, Save, Coins, ArrowDownCircle, AlertCircle, Calendar, Edit2, Plus, Trash2, CheckCircle2, Sparkles } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
 import { createClient } from "@/src/utils/supabase/client";
 
@@ -226,7 +226,20 @@ export default function GoalsTab() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="relative">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-2 block">Pemasukan</label>
+                <div className="flex justify-between items-center mb-2 ml-1">
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest block">Pemasukan</label>
+                  <button 
+                    onClick={() => {
+                      const totalIncome = transactions
+                        .filter(t => t.type === 'income')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                      setIncome(totalIncome.toString());
+                    }}
+                    className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 px-2 py-1 rounded-lg transition-all"
+                  >
+                    <Sparkles className="w-3 h-3" /> Ambil dari Transaksi
+                  </button>
+                </div>
                 <div className="flex items-center gap-3 bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
                   <span className="font-bold text-muted-foreground">Rp</span>
                   <input 
