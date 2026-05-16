@@ -105,7 +105,7 @@ export default function SettingsPage() {
             <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-emerald-200/20 dark:bg-emerald-900/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-orange-100/25 dark:bg-orange-950/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="relative z-10 max-w-2xl mx-auto px-6 pt-6 pb-12 sm:pt-10">
+            <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-12 lg:px-16 xl:px-24 pt-6 pb-12 sm:pt-10">
                 <div className="flex items-center justify-between gap-4 mb-6 sm:mb-8">
                     <Link
                         href="/dashboard"
