@@ -35,7 +35,9 @@ interface AppState {
   monthlyIncomeTarget: number;
   monthlySavingsTarget: number;
   budgetResetDate: number; // 1-31
+  hasCompletedTutorial: boolean;
   
+  completeTutorial: () => void;
   fetchUserData: (userId: string) => Promise<void>;
   updateMonthlyTargets: (userId: string, income: number, savings: number, resetDate: number) => Promise<void>;
   withdrawFromSavings: (userId: string, amount: number, reason: string) => Promise<void>;
@@ -97,6 +99,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   monthlyIncomeTarget: 0,
   monthlySavingsTarget: 0,
   budgetResetDate: 1,
+  hasCompletedTutorial: false,
+
+  completeTutorial: () => set({ hasCompletedTutorial: true }),
 
   loadDemoData: () => {
     const demoGrid: ForestTile[] = [
@@ -202,6 +207,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         monthlyIncomeTarget: profile?.monthly_income_target || 0,
         monthlySavingsTarget: profile?.monthly_savings_target || 0,
         budgetResetDate: resetDate,
+        hasCompletedTutorial: profile?.has_completed_tutorial || false,
         isLoading: false
       });
     } catch (err) {
