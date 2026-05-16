@@ -175,18 +175,44 @@ export default function GoalsTab() {
       
       {/* Perencanaan Section */}
       {!isEditing ? (
-        <div className="bg-white dark:bg-gray-900 p-8 rounded-[32px] shadow-sm border border-gray-100 dark:border-gray-800 mb-8 flex justify-between items-center">
-          <div>
-             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Siklus Aktif</p>
-             <h3 className="text-xl font-black text-foreground">{new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
-             <p className="text-[11px] text-muted-foreground mt-1">Pemasukan Target: <span className="text-foreground font-bold">Rp {monthlyIncomeTarget.toLocaleString('id-ID')}</span></p>
+        <div className="bg-primary p-8 rounded-[32px] shadow-xl shadow-primary/20 mb-8 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 text-white/10 group-hover:rotate-12 transition-transform duration-500">
+            <Target className="w-32 h-32" />
           </div>
-          <button 
-            onClick={() => setIsEditing(true)}
-            className="w-12 h-12 bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 rounded-2xl flex items-center justify-center transition-all"
-          >
-            <Edit2 className="w-5 h-5 text-muted-foreground" />
-          </button>
+          <div className="relative z-10">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <p className="text-emerald-100/70 text-[10px] font-bold uppercase tracking-widest mb-1">Siklus Aktif</p>
+                <h3 className="text-white text-2xl font-black">Budget {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
+              </div>
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-md p-3 rounded-2xl text-white transition-all active:scale-95 flex items-center gap-2 text-xs font-bold"
+              >
+                <Edit2 className="w-4 h-4" /> Edit
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-6 mb-8">
+               <div>
+                  <p className="text-emerald-100/60 text-[9px] font-bold uppercase tracking-tighter mb-1">Pemasukan</p>
+                  <p className="text-white font-black">Rp {monthlyIncomeTarget.toLocaleString('id-ID')}</p>
+               </div>
+               <div>
+                  <p className="text-emerald-100/60 text-[9px] font-bold uppercase tracking-tighter mb-1">Tabungan</p>
+                  <p className="text-white font-black">Rp {monthlySavingsTarget.toLocaleString('id-ID')}</p>
+               </div>
+               <div>
+                  <p className="text-emerald-100/60 text-[9px] font-bold uppercase tracking-tighter mb-1">Budget Belanja</p>
+                  <p className="text-white font-black">Rp {(monthlyIncomeTarget - monthlySavingsTarget).toLocaleString('id-ID')}</p>
+               </div>
+            </div>
+
+            <div className="bg-emerald-950/20 rounded-2xl p-4 flex items-center gap-3 border border-white/5">
+              <Calendar className="w-4 h-4 text-emerald-300" />
+              <p className="text-[11px] text-emerald-100 font-medium">Reset pada tanggal <strong>{budgetResetDate}</strong> tiap bulan.</p>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-900 rounded-[32px] p-8 shadow-sm border border-gray-100 dark:border-gray-800 mb-8 animate-in slide-in-from-top-2 duration-300">

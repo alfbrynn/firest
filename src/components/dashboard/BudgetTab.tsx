@@ -140,17 +140,6 @@ export default function BudgetTab() {
          </div>
       </div>
 
-      {/* Forest Health Indicator */}
-      <div className="bg-[#e8f4ec] dark:bg-emerald-950/20 border border-[#b6dfc2] dark:border-emerald-900/30 rounded-[24px] p-5 mb-4 flex items-center gap-5 shadow-sm">
-        <div className="text-4xl bg-white dark:bg-gray-900 p-3 rounded-2xl shadow-sm select-none">🌳</div>
-        <div className="flex-1">
-          <div className="text-[14px] font-bold text-primary mb-2.5">Forest health · {forestHealth} / 100</div>
-          <div className="h-2.5 bg-[#c8ebd4] dark:bg-emerald-900/40 rounded-full overflow-hidden mb-2 shadow-inner">
-            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${forestHealth}%` }}></div>
-          </div>
-          <div className="text-[12px] font-medium text-primary opacity-80">Kesehatan pohon tergantung pada disiplin budgetmu.</div>
-        </div>
-      </div>
 
       {/* Categories Grid */}
       <div className="bg-white dark:bg-gray-900 rounded-[28px] p-8 shadow-sm border border-gray-50 dark:border-gray-800 mb-6">
