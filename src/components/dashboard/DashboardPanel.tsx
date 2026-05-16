@@ -20,7 +20,7 @@ export default function DashboardPanel() {
           {[
             { id: 'transaksi', label: 'Transaksi', icon: <BookText className="w-4 h-4 sm:w-5 sm:h-5" /> },
             { id: 'budget', label: 'Budget', icon: <Wallet className="w-4 h-4 sm:w-5 sm:h-5" /> },
-            { id: 'tabungan', label: 'Tabungan', icon: <Target className="w-4 h-4 sm:w-5 sm:h-5" /> },
+            { id: 'goals', label: 'Goals', icon: <Target className="w-4 h-4 sm:w-5 sm:h-5" /> },
             { id: 'insights', label: 'Insights', icon: <LineChart className="w-4 h-4 sm:w-5 sm:h-5" /> },
           ].map((tab) => (
             <button
@@ -48,7 +48,7 @@ export default function DashboardPanel() {
       >
         {activeTab === 'transaksi' && <TransactionTab />}
         {activeTab === 'budget' && <BudgetTab />}
-        {activeTab === 'tabungan' && <GoalsTab />}
+        {activeTab === 'goals' && <GoalsTab />}
         {activeTab === 'insights' && <InsightTab />}
       </div>
 
