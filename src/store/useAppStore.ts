@@ -120,15 +120,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({
       isDemo: true,
-      fullName: "Demo User",
-      avatarUrl: "https://ui-avatars.com/api/?name=Demo+User&background=2A6A55&color=fff",
-      xp: 2200,
-      levelNumber: 5,
-      level: 'Rainforest',
-      forestHealth: 68,
-      currentStreak: 7,
+      fullName: "Demo Mahasiswa",
+      avatarUrl: "https://ui-avatars.com/api/?name=Demo+Mahasiswa&background=2A6A55&color=fff",
+      xp: 1200,
+      levelNumber: 3,
+      level: 'Sapling',
+      forestHealth: 72,
+      currentStreak: 4,
       monthlyIncomeTarget: 1500000,
-      monthlySavingsTarget: 270000,
+      monthlySavingsTarget: 300000,
       budgetResetDate: 1,
 
       transactions: demoTxs,

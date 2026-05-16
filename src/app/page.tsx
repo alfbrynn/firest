@@ -19,12 +19,6 @@ export default function LandingPage() {
         </div>
         <div className="flex gap-3">
           <Link
-            href="/demo"
-            className="text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-xl hidden sm:block"
-          >
-            Coba Demo
-          </Link>
-          <Link
             href="/login"
             className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors bg-white/40 dark:bg-gray-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-150 dark:border-gray-800"
           >
@@ -52,10 +46,10 @@ export default function LandingPage() {
           </p>
 
           <Link
-            href="/login"
+            href="/demo"
             className="inline-flex items-center justify-center gap-3 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-emerald-700 hover:shadow-lg hover:-translate-y-1 transition-all active:scale-95 mb-6 w-full sm:w-auto cursor-pointer"
           >
-            Mulai Perjalananmu
+            Coba Demo
             <ArrowRight className="w-5 h-5" />
           </Link>
 

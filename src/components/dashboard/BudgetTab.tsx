@@ -111,7 +111,7 @@ export default function BudgetTab() {
                <Wallet className="w-6 h-6 text-primary" />
             </div>
             <div>
-               <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1.5">Total Budget Belanja</p>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1.5">Total Budget Belanja</p>
                <h2 className="text-2xl font-black text-foreground">Rp {totalBudget.toLocaleString('id-ID')}</h2>
             </div>
             <div className="ml-auto text-right">
@@ -122,9 +122,9 @@ export default function BudgetTab() {
          </div>
 
          <div className="space-y-3">
-            <div className="flex justify-between text-xs font-bold px-1">
-               <span className="text-muted-foreground">Realisasi Pengeluaran</span>
-               <span className={totalSpent > totalBudget ? 'text-rose-500' : 'text-primary'}>
+            <div className="flex justify-between px-1">
+               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Realisasi Pengeluaran</span>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${totalSpent > totalBudget ? 'text-rose-500' : 'text-primary'}`}>
                   Rp {totalSpent.toLocaleString('id-ID')} / {formatRb(totalBudget)}
                </span>
             </div>
@@ -134,8 +134,8 @@ export default function BudgetTab() {
                 style={{ width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%` }} 
                />
             </div>
-            <p className="text-[10px] text-muted-foreground text-center font-medium">
-               {totalSpent > totalBudget ? '⚠️ Kamu sudah melewati batas budget aman!' : `Sisa budget kamu Rp ${(totalBudget - totalSpent).toLocaleString('id-ID')} lagi.`}
+            <p className="text-[10px] text-muted-foreground text-center font-bold uppercase tracking-widest">
+               {totalSpent > totalBudget ? '⚠️ Melewati batas budget!' : `Sisa budget Rp ${(totalBudget - totalSpent).toLocaleString('id-ID')} lagi.`}
             </p>
          </div>
       </div>
@@ -145,16 +145,16 @@ export default function BudgetTab() {
       <div className="bg-white dark:bg-gray-900 rounded-[28px] p-8 shadow-sm border border-gray-50 dark:border-gray-800 mb-6">
         <div className="flex justify-between items-center mb-8">
           <div>
-             <h3 className="text-[16px] font-black text-foreground">Alokasi Kategori</h3>
-             <p className="text-[11px] text-muted-foreground font-medium">Pembagian otomatis berdasarkan proporsi ideal.</p>
+             <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Alokasi Kategori</h3>
+             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Pembagian otomatis ideal.</p>
           </div>
           {!isAutoBudget && (
-             <button 
-              onClick={() => setIsAutoBudget(true)}
-              className="text-[11px] font-bold text-primary hover:underline"
-             >
-               Reset ke Auto
-             </button>
+            <button 
+            onClick={() => setIsAutoBudget(true)}
+            className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
+           >
+             Reset ke Auto
+           </button>
           )}
         </div>
 
@@ -196,7 +196,7 @@ export default function BudgetTab() {
                       </div>
                     ) : (
                       <div className={`text-[13px] font-black ${item.alert ? 'text-rose-500' : 'text-foreground'}`}>
-                        {item.spentText} <span className="text-muted-foreground font-medium">/ {item.limitText}</span>
+                        {item.spentText} <span className="text-muted-foreground font-medium uppercase text-[10px] tracking-tighter">/ {item.limitText}</span>
                       </div>
                     )}
                   </div>
@@ -217,7 +217,7 @@ export default function BudgetTab() {
             <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
          </div>
          <div>
-            <p className="text-[14px] font-bold text-amber-900 dark:text-amber-200 mb-1">Tips Hemat Minggu Ini</p>
+            <p className="text-[10px] font-bold text-amber-900 dark:text-amber-200 uppercase tracking-widest mb-1">Tips Hemat Minggu Ini</p>
             <p className="text-[12px] text-amber-800/80 dark:text-amber-300/70 leading-relaxed font-medium">
                Budget "Makanan" kamu sudah terpakai 85%. Cobalah masak sendiri di kost untuk 3 hari ke depan agar budget tetap aman sampai akhir bulan! 🌿
             </p>

@@ -18,15 +18,6 @@ export default function DemoPage() {
         loadDemoData();
     }, [loadDemoData]);
 
-    const handleGoogleLogin = async () => {
-        const supabase = createClient();
-        await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: `${window.location.origin}/dashboard`
-            }
-        });
-    };
 
     return (
         <main className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans">
@@ -36,14 +27,14 @@ export default function DemoPage() {
                     <Link href="/" className="bg-white/20 hover:bg-white/35 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 font-bold">
                         ← Beranda
                     </Link>
-                    <span>Ini adalah mode demo — hubungkan dengan Google untuk menyimpan progres nyata Anda.</span>
+                    <span>Ini adalah mode demo — silakan masuk atau daftar untuk menyimpan progres nyata Anda.</span>
                 </div>
-                <button 
-                    onClick={handleGoogleLogin} 
+                <Link 
+                    href="/login" 
                     className="mt-2 sm:mt-0 bg-white text-primary px-4 py-1 rounded-full font-bold shadow-sm hover:bg-gray-100 transition-colors"
                 >
-                    Connect Google
-                </button>
+                    Masuk / Daftar
+                </Link>
             </div>
 
             {/* Navbar */}

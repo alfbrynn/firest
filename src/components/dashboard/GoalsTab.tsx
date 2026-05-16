@@ -48,7 +48,16 @@ export default function GoalsTab() {
     
     if (monthlyIncomeTarget > 0) setIsEditing(false);
     else setIsEditing(true);
-  }, [monthlyIncomeTarget, monthlySavingsTarget, budgetResetDate]);
+
+    // Initialize Demo Goal (Data Mahasiswa)
+    if (isDemo) {
+        setMainGoal({
+            name: "Sepatu Compass Baru",
+            target: 1200000,
+            color: 'bg-primary'
+        });
+    }
+  }, [monthlyIncomeTarget, monthlySavingsTarget, budgetResetDate, isDemo]);
 
   const handleSaveTargets = async () => {
     if (!userId || isDemo) return;
@@ -78,12 +87,16 @@ export default function GoalsTab() {
   };
 
   const availableCash = useMemo(() => {
+    if (isDemo) return 650000;
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     return Math.max(0, totalIncome - totalExpense);
-  }, [transactions]);
+  }, [transactions, isDemo]);
 
-  const currentSavings = monthlySavingsTarget; // Sementara menggunakan total tabungan bulan ini
+  const currentSavings = useMemo(() => {
+    if (isDemo) return 850000;
+    return monthlySavingsTarget;
+  }, [monthlySavingsTarget, isDemo]);
 
   return (
     <div className="flex flex-col text-foreground font-sans relative pb-20">
@@ -105,9 +118,10 @@ export default function GoalsTab() {
                 <input 
                   type="text" 
                   value={newGoalName}
+                  disabled={isDemo}
                   onChange={(e) => setNewGoalName(e.target.value)}
-                  placeholder="Contoh: Laptop Kerja"
-                  className="w-full bg-transparent text-lg font-bold outline-none"
+                  placeholder={isDemo ? "Sepatu Compass Baru" : "Contoh: Laptop Kerja"}
+                  className="w-full bg-transparent text-lg font-bold outline-none disabled:opacity-50"
                 />
               </div>
               <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
@@ -116,10 +130,11 @@ export default function GoalsTab() {
                   <span className="font-bold text-muted-foreground text-lg">Rp</span>
                   <input 
                     type="text" 
-                    value={formatCurrency(newGoalPrice)}
+                    value={isDemo ? "1.200.000" : formatCurrency(newGoalPrice)}
+                    disabled={isDemo}
                     onChange={(e) => setNewGoalPrice(e.target.value.replace(/[^0-9]/g, ""))}
                     placeholder="0"
-                    className="w-full bg-transparent text-xl font-black outline-none"
+                    className="w-full bg-transparent text-xl font-black outline-none disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -128,6 +143,7 @@ export default function GoalsTab() {
             <div className="flex gap-3">
               <button 
                 onClick={() => {
+                   if (isDemo) return;
                    const price = parseInt(newGoalPrice.replace(/[^0-9]/g, "")) || 0;
                    if (!newGoalName || price <= 0) return;
                    setMainGoal({
@@ -137,9 +153,10 @@ export default function GoalsTab() {
                    });
                    setShowGoalModal(false);
                 }}
-                className="flex-1 bg-primary hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
+                disabled={isDemo}
+                className="flex-1 bg-primary hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Mulai Kejar Impian
+                {isDemo ? "Fitur Dikunci (Demo)" : "Mulai Kejar Impian"}
               </button>
             </div>
           </div>
@@ -161,7 +178,7 @@ export default function GoalsTab() {
         <div className="bg-white dark:bg-gray-900 p-6 rounded-[28px] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Total Tabungan</p>
-            <p className="text-2xl font-black text-rose-500">Rp {monthlySavingsTarget.toLocaleString('id-ID')}</p>
+            <p className="text-2xl font-black text-rose-500">Rp {currentSavings.toLocaleString('id-ID')}</p>
           </div>
           <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/30 rounded-2xl flex items-center justify-center">
             <Coins className="w-6 h-6 text-rose-500" />
@@ -177,9 +194,14 @@ export default function GoalsTab() {
           </div>
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-8">
-              <div>
-                <p className="text-emerald-100/70 text-[10px] font-bold uppercase tracking-widest mb-1">Siklus Aktif</p>
-                <h3 className="text-white text-2xl font-black">Budget {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
+              <div className="flex items-center gap-3">
+                <div>
+                  <p className="text-emerald-100/70 text-[10px] font-bold uppercase tracking-widest mb-1">Siklus Aktif</p>
+                  <h3 className="text-white text-2xl font-black">Budget {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
+                </div>
+                {isDemo && (
+                    <span className="bg-white/20 text-white text-[9px] font-black px-2 py-1 rounded-md border border-white/20">DEMO MODE</span>
+                )}
               </div>
               <button 
                 onClick={() => setIsEditing(true)}
@@ -191,16 +213,16 @@ export default function GoalsTab() {
 
             <div className="grid grid-cols-3 gap-6 mb-8">
                <div>
-                  <p className="text-emerald-100/60 text-[9px] font-bold uppercase tracking-tighter mb-1">Pemasukan</p>
-                  <p className="text-white font-black">Rp {monthlyIncomeTarget.toLocaleString('id-ID')}</p>
+                  <p className="text-emerald-100/60 text-[10px] font-bold uppercase tracking-widest mb-1">Pemasukan</p>
+                  <p className="text-white text-xl font-black">Rp {monthlyIncomeTarget.toLocaleString('id-ID')}</p>
                </div>
                <div>
-                  <p className="text-emerald-100/60 text-[9px] font-bold uppercase tracking-tighter mb-1">Tabungan</p>
-                  <p className="text-white font-black">Rp {monthlySavingsTarget.toLocaleString('id-ID')}</p>
+                  <p className="text-emerald-100/60 text-[10px] font-bold uppercase tracking-widest mb-1">Tabungan</p>
+                  <p className="text-white text-xl font-black">Rp {monthlySavingsTarget.toLocaleString('id-ID')}</p>
                </div>
                <div>
-                  <p className="text-emerald-100/60 text-[9px] font-bold uppercase tracking-tighter mb-1">Budget Belanja</p>
-                  <p className="text-white font-black">Rp {(monthlyIncomeTarget - monthlySavingsTarget).toLocaleString('id-ID')}</p>
+                  <p className="text-emerald-100/60 text-[10px] font-bold uppercase tracking-widest mb-1">Budget Belanja</p>
+                  <p className="text-white text-xl font-black">Rp {(monthlyIncomeTarget - monthlySavingsTarget).toLocaleString('id-ID')}</p>
                </div>
             </div>
 
@@ -212,13 +234,12 @@ export default function GoalsTab() {
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-900 rounded-[32px] p-8 shadow-sm border border-gray-100 dark:border-gray-800 mb-8 animate-in slide-in-from-top-2 duration-300">
-           {/* ... Form input tetap sama ... */}
            <div className="flex justify-between items-center mb-8">
             <h3 className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
               <Edit2 className="w-4 h-4 text-primary" />
               Atur Siklus Keuangan
             </h3>
-            {monthlyIncomeTarget > 0 && (
+            {(monthlyIncomeTarget > 0 || isDemo) && (
               <button onClick={() => setIsEditing(false)} className="text-xs font-bold text-muted-foreground hover:text-foreground">Batal</button>
             )}
           </div>
@@ -227,38 +248,42 @@ export default function GoalsTab() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="relative">
                 <div className="flex justify-between items-center mb-2 ml-1">
-                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest block">Pemasukan</label>
-                  <button 
-                    onClick={() => {
-                      const totalIncome = transactions
-                        .filter(t => t.type === 'income')
-                        .reduce((sum, t) => sum + t.amount, 0);
-                      setIncome(totalIncome.toString());
-                    }}
-                    className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 px-2 py-1 rounded-lg transition-all"
-                  >
-                    <Sparkles className="w-3 h-3" /> Ambil dari Transaksi
-                  </button>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Pemasukan</label>
+                  {!isDemo && (
+                    <button 
+                        onClick={() => {
+                        const totalIncome = transactions
+                            .filter(t => t.type === 'income')
+                            .reduce((sum, t) => sum + t.amount, 0);
+                        setIncome(totalIncome.toString());
+                        }}
+                        className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 px-2 py-1 rounded-lg transition-all"
+                    >
+                        <Sparkles className="w-3 h-3" /> Ambil dari Transaksi
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
                   <span className="font-bold text-muted-foreground">Rp</span>
                   <input 
                     type="text" 
-                    value={formatCurrency(income)}
+                    value={isDemo ? monthlyIncomeTarget.toLocaleString('id-ID') : formatCurrency(income)}
+                    disabled={isDemo}
                     onChange={(e) => setIncome(e.target.value.replace(/[^0-9]/g, ""))}
-                    className="w-full bg-transparent text-lg font-black outline-none"
+                    className="w-full bg-transparent text-lg font-black outline-none disabled:opacity-50"
                   />
                 </div>
               </div>
 
               <div className="relative">
-                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-2 block">Tanggal Reset</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-2 block">Tanggal Reset</label>
                 <div className="flex items-center gap-3 bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
                   <Calendar className="w-5 h-5 text-muted-foreground" />
                   <select 
                     value={resetDate}
+                    disabled={isDemo}
                     onChange={(e) => setResetDate(parseInt(e.target.value))}
-                    className="w-full bg-transparent text-lg font-black outline-none cursor-pointer"
+                    className="w-full bg-transparent text-lg font-black outline-none cursor-pointer disabled:opacity-50"
                   >
                     {[...Array(31)].map((_, i) => (
                       <option key={i+1} value={i+1}>Tanggal {i+1}</option>
@@ -269,14 +294,15 @@ export default function GoalsTab() {
             </div>
 
             <div className="relative">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-2 block">Mau ditabung berapa?</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-2 block">Mau ditabung berapa?</label>
               <div className="flex items-center gap-3 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 rounded-2xl border border-emerald-100/50 dark:border-emerald-900/20">
                 <span className="text-lg font-bold text-primary">Rp</span>
                 <input 
                   type="text" 
-                  value={formatCurrency(savings)}
+                  value={isDemo ? monthlySavingsTarget.toLocaleString('id-ID') : formatCurrency(savings)}
+                  disabled={isDemo}
                   onChange={(e) => setSavings(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full bg-transparent text-xl font-black text-primary outline-none"
+                  className="w-full bg-transparent text-xl font-black text-primary outline-none disabled:opacity-50"
                 />
               </div>
             </div>
@@ -284,10 +310,12 @@ export default function GoalsTab() {
             <button 
               onClick={handleSaveTargets}
               disabled={isSaving || isDemo}
-              className="w-full bg-primary text-white font-black py-4 rounded-2xl shadow-lg hover:bg-emerald-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-primary text-white font-black py-4 rounded-2xl shadow-lg hover:bg-emerald-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : isDemo ? (
+                <><Save className="w-5 h-5" /> Fitur Dikunci (Demo)</>
               ) : (
                 <><Save className="w-5 h-5" /> Simpan Siklus Baru</>
               )}
@@ -298,7 +326,7 @@ export default function GoalsTab() {
 
       {/* Satu Impian Utama Section */}
       <div className="space-y-4">
-        <h3 className="text-lg font-black text-foreground px-2">Impian Utama Anda</h3>
+        <h3 className="text-sm font-black text-foreground uppercase tracking-widest px-2">Impian Utama Anda</h3>
         
         {mainGoal ? (
           <div className="bg-white dark:bg-gray-900 p-10 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-xl relative overflow-hidden group">
@@ -312,7 +340,7 @@ export default function GoalsTab() {
                     </div>
                     <div>
                        <h4 className="text-2xl font-black text-foreground">{mainGoal.name}</h4>
-                       <p className="text-sm text-muted-foreground font-bold">Target Harga: Rp {mainGoal.target.toLocaleString('id-ID')}</p>
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Target: Rp {mainGoal.target.toLocaleString('id-ID')}</p>
                     </div>
                  </div>
 
@@ -327,7 +355,7 @@ export default function GoalsTab() {
                          style={{ width: `${Math.min(100, (currentSavings / mainGoal.target) * 100)}%` }} 
                        />
                     </div>
-                    <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                    <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                        <span>Terkumpul Rp {currentSavings.toLocaleString('id-ID')}</span>
                        <span>Kurang Rp {Math.max(0, mainGoal.target - currentSavings).toLocaleString('id-ID')}</span>
                     </div>
@@ -336,24 +364,27 @@ export default function GoalsTab() {
 
               <div className="flex flex-col gap-3">
                  <button 
-                   onClick={() => setShowGoalModal(true)}
-                   className="bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-foreground font-bold py-3 px-6 rounded-2xl transition-all flex items-center justify-center gap-2"
+                   onClick={() => !isDemo && setShowGoalModal(true)}
+                   disabled={isDemo}
+                   className="bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-foreground font-bold py-3 px-6 rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                   <Edit2 className="w-4 h-4" /> Ganti Impian
+                   <Edit2 className="w-4 h-4" /> {isDemo ? "Ganti Impian (Dikunci)" : "Ganti Impian"}
                  </button>
                  <button 
-                    onClick={() => setShowWithdrawModal(true)}
-                    className="bg-rose-50 dark:bg-rose-950/20 text-rose-500 font-bold py-3 px-6 rounded-2xl hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-center gap-2"
+                    onClick={() => !isDemo && setShowWithdrawModal(true)}
+                    disabled={isDemo}
+                    className="bg-rose-50 dark:bg-rose-950/20 text-rose-500 font-bold py-3 px-6 rounded-2xl hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                  >
-                    <ArrowDownCircle className="w-4 h-4" /> Tarik Dana
+                    <ArrowDownCircle className="w-4 h-4" /> {isDemo ? "Tarik Dana (Dikunci)" : "Tarik Dana"}
                  </button>
               </div>
             </div>
           </div>
         ) : (
           <button 
-            onClick={() => setShowGoalModal(true)}
-            className="w-full bg-white dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 p-16 rounded-[40px] flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-gray-800 transition-all group"
+            onClick={() => !isDemo && setShowGoalModal(true)}
+            disabled={isDemo}
+            className="w-full bg-white dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 p-16 rounded-[40px] flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-gray-800 transition-all group disabled:opacity-50"
           >
             <div className="w-20 h-20 bg-slate-50 dark:bg-gray-800 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all">
                <Plus className="w-10 h-10 text-muted-foreground group-hover:text-primary" />
@@ -372,7 +403,7 @@ export default function GoalsTab() {
             <CheckCircle2 className="w-6 h-6 text-indigo-500" />
          </div>
          <div>
-            <p className="text-[14px] font-bold text-indigo-900 dark:text-indigo-100 mb-1">Carry Over Otomatis</p>
+            <p className="text-sm font-black text-indigo-900 dark:text-indigo-100 uppercase tracking-widest mb-1">Carry Over Otomatis</p>
             <p className="text-[11px] text-indigo-700/70 dark:text-indigo-300/70 leading-relaxed font-medium">
                Sisa budget dari bulan lalu tidak hangus, tapi otomatis ditambahkan ke <strong className="text-indigo-900 dark:text-indigo-200 underline decoration-indigo-300">Kas Tersedia</strong> bulan baru. Hemat hari ini = modal lebih besar untuk impianmu besok!
             </p>

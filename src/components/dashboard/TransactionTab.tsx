@@ -254,15 +254,19 @@ export default function TransactionTab() {
       )}
       {/* Row 1: Pemasukan & Pengeluaran */}
       <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-[16px] border border-gray-100 dark:border-gray-800 shadow-sm">
-          <p className="text-[11px] font-semibold text-muted-foreground mb-1">Pemasukan</p>
-          <p className="text-[22px] font-semibold text-primary">{currentMonthSummary.income}</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Bulan ini</p>
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Pemasukan</p>
+            <p className="text-2xl font-black text-primary">Rp {currentMonthSummary.income}</p>
+          </div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-2">Bulan ini</p>
         </div>
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-[16px] border border-gray-100 dark:border-gray-800 shadow-sm">
-          <p className="text-[11px] font-semibold text-muted-foreground mb-1">Pengeluaran</p>
-          <p className="text-[22px] font-semibold text-red-500 dark:text-red-400">{currentMonthSummary.expense}</p>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Bulan ini</p>
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Pengeluaran</p>
+            <p className="text-2xl font-black text-rose-500">Rp {currentMonthSummary.expense}</p>
+          </div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-2">Bulan ini</p>
         </div>
       </div>
 
