@@ -99,35 +99,37 @@ export const useAppStore = create<AppState>((set, get) => ({
   budgetResetDate: 1,
 
   loadDemoData: () => {
-    // ... (demo code tetap sama)
     const demoGrid: ForestTile[] = [
       { grid_x: 0, grid_y: 0, item_type: 'tree_6', status: 'healthy' },
-      { grid_x: 1, grid_y: 0, item_type: 'tree_5', status: 'healthy' },
-      { grid_x: 0, grid_y: 1, item_type: 'tree_4', status: 'healthy' },
-      { grid_x: -1, grid_y: 0, item_type: 'tree_3', status: 'healthy' },
-      { grid_x: 0, grid_y: -1, item_type: 'tree_2', status: 'healthy' },
-      { grid_x: 1, grid_y: 1, item_type: 'tree_6', status: 'healthy' },
-      { grid_x: -1, grid_y: -1, item_type: 'tree_4', status: 'healthy' },
-      { grid_x: 1, grid_y: -1, item_type: 'tree_5', status: 'healthy' },
-      { grid_x: -1, grid_y: 1, item_type: 'tree_3', status: 'healthy' },
+      { grid_x: 1, grid_y: 0, item_type: 'tree_3', status: 'healthy' },
+      { grid_x: 0, grid_y: 1, item_type: 'tree_2', status: 'dry' },
+      { grid_x: -1, grid_y: 0, item_type: 'tree_1', status: 'healthy' },
+      { grid_x: 1, grid_y: 1, item_type: 'tree_2', status: 'healthy' },
     ];
 
     const demoTxs: Transaction[] = [
-      { id: '1', title: 'Gaji Bulanan', amount: 8500000, category: 'Lainnya', type: 'income', date: new Date().toISOString() },
+      { id: '1', title: 'Kiriman Ortu', amount: 1500000, category: 'Lainnya', type: 'income', date: new Date().toISOString() },
+      { id: '2', title: 'Makan Ayam Geprek (Accumulated)', amount: 545000, category: 'Makanan', type: 'expense', date: new Date().toISOString() },
+      { id: '3', title: 'GoPay – Grab Food', amount: 35000, category: 'Makanan', type: 'expense', date: new Date().toISOString() },
+      { id: '4', title: 'Bensin & Parkir (Accumulated)', amount: 98000, category: 'Transport', type: 'expense', date: new Date().toISOString() },
+      { id: '5', title: 'Grab', amount: 22000, category: 'Transport', type: 'expense', date: new Date().toISOString() },
+      { id: '6', title: 'Skincare / Kaos (Accumulated)', amount: 141000, category: 'Belanja', type: 'expense', date: new Date().toISOString() },
+      { id: '7', title: 'Shopee', amount: 89000, category: 'Belanja', type: 'expense', date: new Date().toISOString() },
+      { id: '8', title: 'Bioskop & Kopi (Accumulated)', amount: 80000, category: 'Hiburan', type: 'expense', date: new Date().toISOString() },
     ];
 
     set({
       isDemo: true,
       fullName: "Demo User",
       avatarUrl: "https://ui-avatars.com/api/?name=Demo+User&background=2A6A55&color=fff",
-      xp: 4500,
-      levelNumber: 10,
+      xp: 2200,
+      levelNumber: 5,
       level: 'Rainforest',
-      forestHealth: 100,
-      currentStreak: 12,
-      monthlyIncomeTarget: 3000000,
-      monthlySavingsTarget: 500000,
-      budgetResetDate: 25,
+      forestHealth: 68,
+      currentStreak: 7,
+      monthlyIncomeTarget: 1500000,
+      monthlySavingsTarget: 270000,
+      budgetResetDate: 1,
 
       transactions: demoTxs,
       forestGrid: demoGrid

@@ -86,27 +86,27 @@ export default function InsightTab() {
       return [
         {
           id: 1,
-          title: "Pola Belanja",
+          title: "Evaluasi Belanja",
           icon: <TrendingUp className="w-5 h-5 text-orange-600" />,
           bg: "bg-orange-50 dark:bg-orange-950/20",
           border: "border-orange-100 dark:border-orange-900/30",
-          content: "Pengeluaran makanan naik 34% dibanding minggu lalu. Sebagian besar dari Grab Food di jam makan siang."
+          content: "Kategori Belanja kamu sudah over budget Rp 30.000. Pengeluaran Shopee kemarin jadi penyebab utamanya. Tahan diri dulu ya!"
         },
         {
           id: 2,
-          title: "Efisiensi",
+          title: "Efisiensi Pangan",
           icon: <Leaf className="w-5 h-5 text-primary" />,
           bg: "bg-emerald-50 dark:bg-emerald-950/30",
           border: "border-emerald-100 dark:border-emerald-900/30",
-          content: "Transportasi sangat hemat minggu ini — kamu sudah aman sampai akhir bulan untuk kategori ini."
+          content: "Budget Makanan sisa Rp 20.000 lagi. Hindari Grab Food minggu ini dan coba masak sendiri agar tanaman tetap sehat."
         },
         {
           id: 3,
-          title: "Peringatan",
-          icon: <AlertTriangle className="w-5 h-5 text-pink-600" />,
-          bg: "bg-pink-50 dark:bg-pink-950/20",
-          border: "border-pink-100 dark:border-pink-900/30",
-          content: "Budget belanja sudah terlampaui Rp 30.000. Taman sedikit layu — tahan dulu 10 hari ke depan."
+          title: "Konsistensi",
+          icon: <Sparkles className="w-5 h-5 text-blue-600" />,
+          bg: "bg-blue-50 dark:bg-blue-950/20",
+          border: "border-blue-100 dark:border-blue-900/30",
+          content: "Keren! 7 hari streak kamu menjaga 18% tabungan tetap aman. Pertahankan performa ini untuk membuka pohon baru."
         }
       ];
     }
