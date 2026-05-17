@@ -25,15 +25,15 @@ export default function DemoPage() {
             <div className="bg-primary px-4 py-2 flex flex-col sm:flex-row items-center justify-between text-white text-xs sm:text-sm font-semibold z-50 gap-2 shrink-0">
                 <div className="flex items-center gap-3">
                     <Link href="/" className="bg-white/20 hover:bg-white/35 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1 font-bold">
-                        ← Beranda
+                        Beranda
                     </Link>
                     <span>Ini adalah mode demo — silakan masuk atau daftar untuk menyimpan progres nyata Anda.</span>
                 </div>
-                <Link 
-                    href="/login" 
+                <Link
+                    href="/login"
                     className="mt-2 sm:mt-0 bg-white text-primary px-4 py-1 rounded-full font-bold shadow-sm hover:bg-gray-100 transition-colors"
                 >
-                    Masuk / Daftar
+                    Masuk
                 </Link>
             </div>
 
@@ -51,7 +51,7 @@ export default function DemoPage() {
                     <span title="Hanya tersedia setelah login" className="cursor-not-allowed opacity-50 hidden sm:block">
                         <Bell className="w-5 h-5" />
                     </span>
-                    
+
                     <span title="Hanya tersedia setelah login" className="cursor-not-allowed opacity-50">
                         <Settings className="w-5 h-5" />
                     </span>
@@ -74,7 +74,7 @@ export default function DemoPage() {
 
             {/* Main Content Area */}
             <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden relative">
-                
+
                 {/* Panel Kiri (Canvas) - Mobile: Sticky 60vh, Desktop: 60% width */}
                 <section className="w-full lg:w-[60%] h-[60vh] lg:h-full shrink-0 sticky lg:relative top-0 z-0">
                     <PixiCanvas />
