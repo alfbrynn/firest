@@ -47,7 +47,7 @@ export default function SettingsMenuList() {
     const [isSecurityOpen, setIsSecurityOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const [showDevModal, setShowDevModal] = useState(false);
-    
+
     const [isGmailConnected, setIsGmailConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
 
@@ -57,7 +57,7 @@ export default function SettingsMenuList() {
         budget: true,
         ai: true
     });
-    
+
     const supabase = createClient();
 
     useEffect(() => {
@@ -66,7 +66,7 @@ export default function SettingsMenuList() {
             if (user) {
                 const connected = user.app_metadata?.provider === 'google' || user.user_metadata?.is_gmail_connected;
                 setIsGmailConnected(!!connected);
-                
+
                 // Ambil preferensi notifikasi
                 const prefResult = await getUserPreferencesAction();
                 if (prefResult.success && prefResult.data) {
@@ -88,17 +88,17 @@ export default function SettingsMenuList() {
 
     const handleNotifToggle = async (id: 'spending' | 'budget' | 'ai') => {
         const newValue = !notifSettings[id];
-        
+
         // Optimistic UI update
         setNotifSettings(prev => ({ ...prev, [id]: newValue }));
 
         // Update ke database
-        const dbKey = id === 'spending' ? 'notif_spending_alert' : 
-                      id === 'budget' ? 'notif_budget_reminder' : 
-                      'notif_ai_insight';
-        
+        const dbKey = id === 'spending' ? 'notif_spending_alert' :
+            id === 'budget' ? 'notif_budget_reminder' :
+                'notif_ai_insight';
+
         const result = await updateNotifPreferencesAction({ [dbKey]: newValue });
-        
+
         if (!result.success) {
             // Revert jika gagal
             setNotifSettings(prev => ({ ...prev, [id]: !newValue }));
@@ -146,9 +146,9 @@ export default function SettingsMenuList() {
         <div className="flex flex-col gap-1">
             {/* Modal Fitur Dalam Pengembangan */}
             {showDevModal && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                    <div 
-                        className="absolute inset-0 bg-gray-950/40 backdrop-blur-sm animate-in fade-in duration-300" 
+                <div className="fixed inset-0 z-110 flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-gray-950/40 backdrop-blur-sm animate-in fade-in duration-300"
                         onClick={() => setShowDevModal(false)}
                     />
                     <div className="relative bg-white dark:bg-gray-900 w-full max-w-[340px] p-8 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white dark:border-gray-800 animate-in zoom-in-95 duration-200 text-center">
@@ -176,12 +176,12 @@ export default function SettingsMenuList() {
                 const isSecurityItem = item.id === "security";
                 const isNotifItem = item.id === "notification";
 
-                const isOpen = (isThemeItem && isThemeOpen) || 
-                               (isSyncItem && isSyncOpen) ||
-                               (isProfileItem && isProfileOpen) ||
-                               (isSecurityItem && isSecurityOpen) ||
-                               (isNotifItem && isNotifOpen);
-                
+                const isOpen = (isThemeItem && isThemeOpen) ||
+                    (isSyncItem && isSyncOpen) ||
+                    (isProfileItem && isProfileOpen) ||
+                    (isSecurityItem && isSecurityOpen) ||
+                    (isNotifItem && isNotifOpen);
+
                 return (
                     <div key={item.id} className="flex flex-col">
                         <div
@@ -231,8 +231,8 @@ export default function SettingsMenuList() {
                                 <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
                                     <label className="text-[11px] font-black text-muted-foreground uppercase tracking-wider block mb-2 px-1">Nama Tampilan</label>
                                     <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             placeholder="Masukkan nama baru..."
                                             className="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         />
@@ -247,7 +247,7 @@ export default function SettingsMenuList() {
                         {isSecurityItem && isSecurityOpen && (
                             <div className="px-4 pb-5 pt-2 flex flex-col gap-4 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[16px] animate-fade-in">
                                 <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-3">
-                                    <button 
+                                    <button
                                         onClick={() => setShowDevModal(true)}
                                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
                                     >
@@ -257,7 +257,7 @@ export default function SettingsMenuList() {
                                         </div>
                                         <ChevronRight className="w-4 h-4 text-gray-400" />
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => setShowDevModal(true)}
                                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
                                     >
@@ -285,7 +285,7 @@ export default function SettingsMenuList() {
                                                 <p className="text-sm font-bold leading-tight">{n.label}</p>
                                                 <p className="text-[10px] text-muted-foreground mt-0.5">{n.desc}</p>
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => handleNotifToggle(n.id as any)}
                                                 className={`w-10 h-5.5 rounded-full transition-all relative ${notifSettings[n.id as keyof typeof notifSettings] ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}`}
                                             >
@@ -307,15 +307,14 @@ export default function SettingsMenuList() {
                                     <p className="text-[11px] text-muted-foreground mb-4 leading-relaxed">
                                         Hubungkan Gmail Anda agar Firest bisa otomatis mencatat pengeluaran dari email bank & e-wallet.
                                     </p>
-                                    
+
                                     <button
                                         onClick={handleConnectGmail}
                                         disabled={isConnecting || isGmailConnected}
-                                        className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-                                            isGmailConnected 
+                                        className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${isGmailConnected
                                             ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 cursor-default"
                                             : "bg-primary text-white hover:bg-emerald-700 active:scale-[0.98]"
-                                        }`}
+                                            }`}
                                     >
                                         {isConnecting ? (
                                             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -342,11 +341,10 @@ export default function SettingsMenuList() {
                                         <button
                                             key={option.id}
                                             onClick={() => handleThemeChange(option.id as any)}
-                                            className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                                                isActive
-                                                    ? "bg-primary/10 text-primary dark:bg-primary/20"
-                                                    : "text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-foreground"
-                                            }`}
+                                            className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${isActive
+                                                ? "bg-primary/10 text-primary dark:bg-primary/20"
+                                                : "text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-foreground"
+                                                }`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <span className={isActive ? "text-primary" : "text-muted-foreground"}>

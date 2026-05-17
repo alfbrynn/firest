@@ -61,9 +61,9 @@ export default function SettingsPage() {
         <div className="min-h-screen w-full bg-background text-foreground relative overflow-x-hidden font-sans">
             {/* Modal Konfirmasi Logout */}
             {showLogoutModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div 
-                        className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-300" 
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-300"
                         onClick={() => setShowLogoutModal(false)}
                     />
                     <div className="relative bg-white dark:bg-gray-900 w-full max-w-[360px] p-8 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-200">
@@ -77,7 +77,7 @@ export default function SettingsPage() {
                             <p className="text-sm font-medium text-muted-foreground mb-8 leading-relaxed">
                                 Kamu akan keluar dari akun Firest. Jangan lupa kembali untuk merawat tamanmu!
                             </p>
-                            
+
                             <div className="flex flex-col w-full gap-3">
                                 <button
                                     onClick={handleLogout}

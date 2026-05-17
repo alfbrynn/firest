@@ -63,7 +63,7 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
             <div className="relative z-10 w-full max-w-[480px] p-4 sm:p-8">
                 <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl p-6 sm:p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-white/20 dark:border-white/5 flex flex-col items-center">
 
-                    <div className="w-14 h-14 bg-gradient-to-br from-primary to-gradient-end rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20 mb-6">
+                    <div className="w-14 h-14 bg-linear-to-br from-primary to-gradient-end rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20 mb-6">
                         <Leaf className="w-7 h-7 text-white fill-white/20" />
                     </div>
 

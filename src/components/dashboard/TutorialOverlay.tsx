@@ -42,12 +42,12 @@ export default function TutorialOverlay() {
     ];
 
     return (
-        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`fixed inset-0 z-100 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
             <div className="bg-white dark:bg-gray-900 w-full max-w-md p-8 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300 relative overflow-hidden">
                 {/* Progress Bar */}
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-100 dark:bg-gray-800">
-                    <div 
-                        className="h-full bg-primary transition-all duration-300" 
+                    <div
+                        className="h-full bg-primary transition-all duration-300"
                         style={{ width: `${((step + 1) / steps.length) * 100}%` }}
                     />
                 </div>
@@ -68,14 +68,14 @@ export default function TutorialOverlay() {
 
                 <div className="flex gap-3">
                     {step > 0 && (
-                        <button 
+                        <button
                             onClick={() => setStep(step - 1)}
                             className="px-6 py-4 rounded-2xl font-bold text-muted-foreground bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         >
                             Kembali
                         </button>
                     )}
-                    <button 
+                    <button
                         onClick={() => {
                             if (step === steps.length - 1) {
                                 handleComplete();

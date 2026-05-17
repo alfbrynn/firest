@@ -19,6 +19,14 @@ export interface ForestTile {
   status: string;
 }
 
+export interface Goal {
+  id?: string;
+  name: string;
+  target: number;
+  current?: number;
+  color?: string;
+}
+
 interface AppState {
   xp: number;
   levelNumber: number;
@@ -28,6 +36,7 @@ interface AppState {
   streakShield: number;
   transactions: Transaction[];
   forestGrid: ForestTile[];
+  mainGoal: Goal | null;
   fullName: string;
   avatarUrl: string;
   isLoading: boolean;
@@ -44,6 +53,8 @@ interface AppState {
   addTransaction: (tx: Omit<Transaction, 'id'>, userId: string) => Promise<void>;
   updateGamificationState: (userId: string, updates: Partial<{ xp: number; levelNumber: number; forestHealth: number; currentStreak: number; streakShield: number }>) => Promise<void>;
   syncForestTile: (tile: Omit<ForestTile, 'id'>, userId: string) => Promise<void>;
+  updateMainGoal: (userId: string, name: string, target: number) => Promise<void>;
+  deleteMainGoal: (userId: string) => Promise<void>;
   loadDemoData: () => void;
 }
 
@@ -92,6 +103,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   streakShield: 1,
   transactions: [],
   forestGrid: [],
+  mainGoal: null,
   fullName: "User",
   avatarUrl: "https://ui-avatars.com/api/?name=User&background=2A6A55&color=fff",
   isLoading: false,
@@ -137,7 +149,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       budgetResetDate: 1,
 
       transactions: demoTxs,
-      forestGrid: demoGrid
+      forestGrid: demoGrid,
+      mainGoal: {
+        name: "Sepatu Compass Baru",
+        target: 1200000,
+        color: 'bg-primary'
+      }
     });
   },
 
@@ -191,6 +208,21 @@ export const useAppStore = create<AppState>((set, get) => ({
         id: tile.id, grid_x: tile.grid_x, grid_y: tile.grid_y, item_type: tile.item_type, status: tile.status
       }));
 
+      // Fetch user's North Star main goal
+      const { data: goalData } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const mappedGoal: Goal | null = goalData ? {
+        id: goalData.id,
+        name: goalData.name,
+        target: Number(goalData.target),
+        current: Number(goalData.current || 0),
+        color: goalData.color || 'bg-primary'
+      } : null;
+
       const resetDate = profile?.budget_reset_date || 1;
 
       set({
@@ -204,8 +236,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         streakShield: gameState.streak_shield,
         transactions: mappedTxs,
         forestGrid: mappedGrid,
-        monthlyIncomeTarget: profile?.monthly_income_target || 0,
-        monthlySavingsTarget: profile?.monthly_savings_target || 0,
+        mainGoal: mappedGoal,
+        monthlyIncomeTarget: Number(profile?.monthly_income_target || 0),
+        monthlySavingsTarget: Number(profile?.monthly_savings_target || 0),
         budgetResetDate: resetDate,
         hasCompletedTutorial: profile?.has_completed_tutorial || false,
         isLoading: false
@@ -379,6 +412,64 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } catch (err) {
       console.error("Error syncing forest tile with DB:", err);
+    }
+  },
+
+  updateMainGoal: async (userId: string, name: string, target: number) => {
+    if (get().isDemo || !userId) {
+      set({
+        mainGoal: {
+          name: name,
+          target: target,
+          color: 'bg-primary'
+        }
+      });
+      return;
+    }
+    const supabase = createClient();
+    try {
+      const { data } = await supabase
+        .from('goals')
+        .upsert({
+          user_id: userId,
+          name: name,
+          target: target,
+          color: 'bg-primary'
+        }, { onConflict: 'user_id' })
+        .select()
+        .single();
+
+      if (data) {
+        set({
+          mainGoal: {
+            id: data.id,
+            name: data.name,
+            target: Number(data.target),
+            current: Number(data.current || 0),
+            color: data.color || 'bg-primary'
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Error updating main goal in DB:", err);
+    }
+  },
+
+  deleteMainGoal: async (userId: string) => {
+    if (get().isDemo || !userId) {
+      set({ mainGoal: null });
+      return;
+    }
+    const supabase = createClient();
+    try {
+      await supabase
+        .from('goals')
+        .delete()
+        .eq('user_id', userId);
+
+      set({ mainGoal: null });
+    } catch (err) {
+      console.error("Error deleting main goal from DB:", err);
     }
   }
 }));

@@ -11,7 +11,10 @@ export default function GoalsTab() {
     updateMonthlyTargets, 
     withdrawFromSavings,
     isDemo, 
-    transactions 
+    transactions,
+    mainGoal,
+    updateMainGoal,
+    deleteMainGoal
   } = useAppStore();
   
   const [income, setIncome] = useState("");
@@ -30,9 +33,6 @@ export default function GoalsTab() {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [newGoalName, setNewGoalName] = useState("");
   const [newGoalPrice, setNewGoalPrice] = useState("");
-  
-  // Single Goal State (null jika belum set)
-  const [mainGoal, setMainGoal] = useState<{name: string, target: number, color: string} | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,16 +48,18 @@ export default function GoalsTab() {
     
     if (monthlyIncomeTarget > 0) setIsEditing(false);
     else setIsEditing(true);
+  }, [monthlyIncomeTarget, monthlySavingsTarget, budgetResetDate]);
 
-    // Initialize Demo Goal (Data Mahasiswa)
-    if (isDemo) {
-        setMainGoal({
-            name: "Sepatu Compass Baru",
-            target: 1200000,
-            color: 'bg-primary'
-        });
+  // Pre-fill values when editing the dream goal
+  useEffect(() => {
+    if (showGoalModal && mainGoal) {
+      setNewGoalName(mainGoal.name);
+      setNewGoalPrice(mainGoal.target.toString());
+    } else if (showGoalModal && !mainGoal) {
+      setNewGoalName("");
+      setNewGoalPrice("");
     }
-  }, [monthlyIncomeTarget, monthlySavingsTarget, budgetResetDate, isDemo]);
+  }, [showGoalModal, mainGoal]);
 
   const handleSaveTargets = async () => {
     if (!userId || isDemo) return;
@@ -118,10 +120,9 @@ export default function GoalsTab() {
                 <input 
                   type="text" 
                   value={newGoalName}
-                  disabled={isDemo}
                   onChange={(e) => setNewGoalName(e.target.value)}
-                  placeholder={isDemo ? "Sepatu Compass Baru" : "Contoh: Laptop Kerja"}
-                  className="w-full bg-transparent text-lg font-bold outline-none disabled:opacity-50"
+                  placeholder="Contoh: Laptop Kerja"
+                  className="w-full bg-transparent text-lg font-bold outline-none"
                 />
               </div>
               <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
@@ -130,11 +131,10 @@ export default function GoalsTab() {
                   <span className="font-bold text-muted-foreground text-lg">Rp</span>
                   <input 
                     type="text" 
-                    value={isDemo ? "1.200.000" : formatCurrency(newGoalPrice)}
-                    disabled={isDemo}
+                    value={formatCurrency(newGoalPrice)}
                     onChange={(e) => setNewGoalPrice(e.target.value.replace(/[^0-9]/g, ""))}
                     placeholder="0"
-                    className="w-full bg-transparent text-xl font-black outline-none disabled:opacity-50"
+                    className="w-full bg-transparent text-xl font-black outline-none"
                   />
                 </div>
               </div>
@@ -143,20 +143,14 @@ export default function GoalsTab() {
             <div className="flex gap-3">
               <button 
                 onClick={() => {
-                   if (isDemo) return;
                    const price = parseInt(newGoalPrice.replace(/[^0-9]/g, "")) || 0;
                    if (!newGoalName || price <= 0) return;
-                   setMainGoal({
-                      name: newGoalName,
-                      target: price,
-                      color: 'bg-primary'
-                   });
+                   updateMainGoal(userId || 'demo', newGoalName, price);
                    setShowGoalModal(false);
                 }}
-                disabled={isDemo}
-                className="flex-1 bg-primary hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-primary hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
               >
-                {isDemo ? "Fitur Dikunci (Demo)" : "Mulai Kejar Impian"}
+                Mulai Kejar Impian
               </button>
             </div>
           </div>
@@ -364,27 +358,24 @@ export default function GoalsTab() {
 
               <div className="flex flex-col gap-3">
                  <button 
-                   onClick={() => !isDemo && setShowGoalModal(true)}
-                   disabled={isDemo}
-                   className="bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-foreground font-bold py-3 px-6 rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                   onClick={() => setShowGoalModal(true)}
+                   className="bg-slate-50 dark:bg-gray-800 hover:bg-slate-100 dark:hover:bg-gray-700 text-foreground font-bold py-3 px-6 rounded-2xl transition-all flex items-center justify-center gap-2"
                  >
-                   <Edit2 className="w-4 h-4" /> {isDemo ? "Ganti Impian (Dikunci)" : "Ganti Impian"}
+                   <Edit2 className="w-4 h-4" /> Ganti Impian
                  </button>
                  <button 
-                    onClick={() => !isDemo && setShowWithdrawModal(true)}
-                    disabled={isDemo}
-                    className="bg-rose-50 dark:bg-rose-950/20 text-rose-500 font-bold py-3 px-6 rounded-2xl hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => setShowWithdrawModal(true)}
+                    className="bg-rose-50 dark:bg-rose-950/20 text-rose-500 font-bold py-3 px-6 rounded-2xl hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-center gap-2"
                  >
-                    <ArrowDownCircle className="w-4 h-4" /> {isDemo ? "Tarik Dana (Dikunci)" : "Tarik Dana"}
+                    <ArrowDownCircle className="w-4 h-4" /> Tarik Dana
                  </button>
               </div>
             </div>
           </div>
         ) : (
           <button 
-            onClick={() => !isDemo && setShowGoalModal(true)}
-            disabled={isDemo}
-            className="w-full bg-white dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 p-16 rounded-[40px] flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-gray-800 transition-all group disabled:opacity-50"
+            onClick={() => setShowGoalModal(true)}
+            className="w-full bg-white dark:bg-gray-900 border-2 border-dashed border-gray-200 dark:border-gray-800 p-16 rounded-[40px] flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-slate-50 dark:hover:bg-gray-800 transition-all group"
           >
             <div className="w-20 h-20 bg-slate-50 dark:bg-gray-800 rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all">
                <Plus className="w-10 h-10 text-muted-foreground group-hover:text-primary" />

@@ -61,7 +61,7 @@ export default function PixiCanvas() {
             });
 
             if (isDestroyed) {
-                try { app.destroy(true, { children: true }); } catch (e) {}
+                try { app.destroy(true, { children: true }); } catch (e) { }
                 return;
             }
 
@@ -136,8 +136,8 @@ export default function PixiCanvas() {
 
                 // 1. Logika Variasi Pohon
                 let finalTreeType = tile.item_type;
-                const isDry = tile.status === 'dry' || (forestHealth < 40 && Math.random() > (forestHealth/100));
-                
+                const isDry = tile.status === 'dry' || (forestHealth < 40 && Math.random() > (forestHealth / 100));
+
                 if (isDry) {
                     const dryLevel = Math.min(4, Math.max(1, Math.ceil(parseInt(tile.item_type.split('_')[1]) / 1.5)));
                     finalTreeType = `tree_dry_${dryLevel}`;
@@ -185,7 +185,7 @@ export default function PixiCanvas() {
                     rabbit.anchor.set(0.5, 1);
                     // Sesuaikan posisi agar tetap di atas pulau land.png
                     const baseX = (Math.random() > 0.5 ? -80 : 80) + (Math.random() * 30);
-                    const baseY = 60 + (Math.random() * 15); 
+                    const baseY = 60 + (Math.random() * 15);
                     rabbit.x = baseX;
                     rabbit.y = baseY;
                     rabbit.scale.set(0.10);
@@ -208,7 +208,7 @@ export default function PixiCanvas() {
                     if (tex) {
                         const animal = new PIXI.Sprite(tex);
                         animal.anchor.set(0.5);
-                        
+
                         const angle = (aIndex / tileAnimals.length) * Math.PI * 2;
                         const dist = animalName === 'bird' ? 120 + Math.random() * 60 : 70 + Math.random() * 40;
                         let baseX = Math.cos(angle) * dist;
@@ -221,10 +221,10 @@ export default function PixiCanvas() {
                         const levelNum = parseInt(finalTreeType.split('_').pop() || '1') || 1;
                         const treeHeightOffset = (levelNum - 1) * 45;
                         baseY -= treeHeightOffset;
-                        
+
                         animal.x = baseX;
                         animal.y = baseY;
-                        
+
                         // SKALA DINAMIS BERDASARKAN JENIS HEWAN
                         const baseScale = (animalName === 'bird' || animalName === 'crow') ? 0.10 : 0.05;
                         animal.scale.set(baseScale);
@@ -273,7 +273,7 @@ export default function PixiCanvas() {
     }, [forestGrid]);
 
     return (
-        <div className="w-full h-full relative bg-gradient-to-b from-background to-[#dcece3] dark:to-slate-950/20 group cursor-grab active:cursor-grabbing overflow-hidden">
+        <div className="w-full h-full relative bg-linear-to-b from-background to-[#dcece3] dark:to-slate-950/20 group cursor-grab active:cursor-grabbing overflow-hidden">
             <div ref={canvasRef} className="absolute inset-0 z-0" />
 
             {/* Hint Tooltip */}
@@ -287,7 +287,7 @@ export default function PixiCanvas() {
                 <div className="bg-white/70 dark:bg-gray-900/75 backdrop-blur-md px-6 py-3.5 rounded-[20px] shadow-lg border border-white/50 dark:border-white/5 flex items-center gap-6 pointer-events-auto">
 
                     <div className="flex items-center gap-3 shrink-0">
-                        <div className="w-10 h-10 rounded-[12px] bg-gradient-to-br from-[#e8f4ec] to-[#d1ebd9] dark:from-emerald-950/40 dark:to-emerald-900/40 flex items-center justify-center text-xl shadow-sm border border-white dark:border-gray-800">
+                        <div className="w-10 h-10 rounded-[12px] bg-linear-to-br from-[#e8f4ec] to-[#d1ebd9] dark:from-emerald-950/40 dark:to-emerald-900/40 flex items-center justify-center text-xl shadow-sm border border-white dark:border-gray-800">
                             🌱
                         </div>
                         <div>
@@ -296,7 +296,7 @@ export default function PixiCanvas() {
                         </div>
                     </div>
 
-                    <div className="w-[1px] h-8 bg-gray-300/40 shrink-0"></div>
+                    <div className="w-px h-8 bg-gray-300/40 shrink-0"></div>
 
                     <div className="w-[160px] flex flex-col justify-center">
                         <div className="flex justify-between text-[10px] font-bold mb-1.5">
@@ -308,13 +308,13 @@ export default function PixiCanvas() {
                         </div>
                         <div className="h-1.5 w-full bg-gray-200/60 dark:bg-gray-850 rounded-full overflow-hidden shadow-inner">
                             <div
-                                className="h-full bg-gradient-to-r from-emerald-400 to-primary rounded-full transition-all duration-700 ease-out"
+                                className="h-full bg-linear-to-r from-emerald-400 to-primary rounded-full transition-all duration-700 ease-out"
                                 style={{ width: `${progressPercent}%` }}
                             ></div>
                         </div>
                     </div>
 
-                    <div className="w-[1px] h-8 bg-gray-300/40 shrink-0"></div>
+                    <div className="w-px h-8 bg-gray-300/40 shrink-0"></div>
 
                     <div className="flex flex-col gap-1.5 shrink-0">
                         <div className="flex items-center gap-2 text-[11px] font-bold text-foreground">

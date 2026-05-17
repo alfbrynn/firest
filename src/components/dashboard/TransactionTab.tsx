@@ -14,13 +14,21 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
+// Fungsi bantuan untuk mendapatkan string YYYY-MM-DD dalam waktu lokal
+const getLocalDateString = (d: Date = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function TransactionTab() {
   const [txType, setTxType] = useState("keluar");
   const [txCat, setTxCat] = useState('Makanan');
 
   const [txTitle, setTxTitle] = useState("");
   const [txAmount, setTxAmount] = useState("");
-  const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
+  const [txDate, setTxDate] = useState(getLocalDateString());
 
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,12 +57,12 @@ export default function TransactionTab() {
 
   const handleSyncGmail = async () => {
     if (!userId || isSyncing) return;
-    
+
     try {
       setIsSyncing(true);
       const response = await fetch("/api/sync-gmail", { method: "POST" });
       const data = await response.json();
-      
+
       if (response.ok) {
         if (data.message.includes("Sukses sync")) {
           // Update data di store agar UI langsung berubah
@@ -80,12 +88,18 @@ export default function TransactionTab() {
     const cleanAmount = parseInt(txAmount.replace(/[^0-9]/g, ""));
     if (isNaN(cleanAmount)) return;
 
+    // Pisahkan YYYY-MM-DD untuk membuat objek Date lokal yang kokoh
+    const [year, month, day] = txDate.split('-').map(Number);
+    const now = new Date();
+    // Gabungkan dengan jam, menit, detik saat ini agar tidak ter-reset ke 00:00:00 (dan 07:00 WIB)
+    const selectedDate = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+
     const newTx = {
       title: txTitle,
       amount: cleanAmount,
       category: txCat,
       type: (txType === "masuk" ? "income" : "expense") as "income" | "expense" | "transfer",
-      date: new Date(txDate).toISOString(),
+      date: selectedDate.toISOString(),
     };
 
     addTransaction(newTx, userId);
@@ -130,7 +144,7 @@ export default function TransactionTab() {
     const result = Object.entries(months).map(([monthName, txList]) => {
       const id = monthName.toLowerCase().replace(/\s+/g, '-');
       const limit = visibleLimits[id] || 10;
-      
+
       // Ambil transaksi sesuai limit untuk ditampilkan
       const limitedTxList = txList.slice(0, limit);
 
@@ -238,12 +252,11 @@ export default function TransactionTab() {
     <div className="flex flex-col text-foreground font-sans relative">
       {/* Custom Toast Notification */}
       {toast && (
-        <div className="fixed top-20 right-6 z-[100] animate-in fade-in slide-in-from-right-4 duration-300">
-          <div className={`flex items-center gap-3 px-6 py-4 rounded-[20px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.1)] border backdrop-blur-xl ${
-            toast.type === "success" 
-            ? "bg-emerald-500/90 border-emerald-400 text-white" 
+        <div className="fixed top-20 right-6 z-100 animate-in fade-in slide-in-from-right-4 duration-300">
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-[20px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.1)] border backdrop-blur-xl ${toast.type === "success"
+            ? "bg-emerald-500/90 border-emerald-400 text-white"
             : "bg-rose-500/90 border-rose-400 text-white"
-          }`}>
+            }`}>
             {toast.type === "success" ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
             <span className="text-sm font-bold tracking-tight">{toast.message}</span>
             <button onClick={() => setToast(null)} className="ml-2 hover:opacity-70 transition-opacity">
@@ -357,29 +370,29 @@ export default function TransactionTab() {
         {/* Date Selection */}
         <div className="flex items-center gap-3 mb-6 bg-slate-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tanggal:</span>
-          <input 
-            type="date" 
+          <input
+            type="date"
             value={txDate}
             onChange={(e) => setTxDate(e.target.value)}
             className="bg-transparent text-sm font-semibold text-foreground outline-none cursor-pointer focus:text-primary transition-colors"
           />
           <div className="flex gap-1 ml-auto">
-             <button 
-              onClick={() => setTxDate(new Date().toISOString().split('T')[0])}
-              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${txDate === new Date().toISOString().split('T')[0] ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
-             >
-               Hari Ini
-             </button>
-             <button 
+            <button
+              onClick={() => setTxDate(getLocalDateString())}
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${txDate === getLocalDateString() ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
+            >
+              Hari Ini
+            </button>
+            <button
               onClick={() => {
                 const yesterday = new Date();
                 yesterday.setDate(yesterday.getDate() - 1);
-                setTxDate(yesterday.toISOString().split('T')[0]);
+                setTxDate(getLocalDateString(yesterday));
               }}
-              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${txDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
-             >
-               Kemarin
-             </button>
+              className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${txDate === getLocalDateString(new Date(Date.now() - 86400000)) ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
+            >
+              Kemarin
+            </button>
           </div>
         </div>
 
@@ -402,15 +415,14 @@ export default function TransactionTab() {
             <p className="text-[10px] text-muted-foreground mt-0.5">Tarik transaksi otomatis dari email</p>
           </div>
         </div>
-        
+
         <button
           onClick={handleSyncGmail}
           disabled={isSyncing}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black transition-all ${
-            isSyncing 
-            ? "bg-gray-100 dark:bg-gray-800 text-gray-400" 
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black transition-all ${isSyncing
+            ? "bg-gray-100 dark:bg-gray-800 text-gray-400"
             : "bg-primary text-white hover:bg-emerald-700 shadow-sm active:scale-[0.96]"
-          }`}
+            }`}
         >
           {isSyncing ? (
             <>Memproses...</>
@@ -506,7 +518,7 @@ export default function TransactionTab() {
 
                       {/* Lazy load / Tampilkan lebih banyak */}
                       {monthData.hasMore && (
-                        <button 
+                        <button
                           onClick={() => handleLoadMore(monthData.id)}
                           className="w-full py-3 mt-2 text-[13px] font-bold text-primary hover:text-primary-hover bg-primary/5 dark:bg-primary/10 rounded-xl transition-colors cursor-pointer"
                         >
@@ -523,4 +535,4 @@ export default function TransactionTab() {
       </div>
     </div>
   );
-}
+}

@@ -41,7 +41,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-foreground tracking-tight leading-[1.1] mb-6 max-w-2xl mx-auto lg:mx-0">
-            Amankan Tabunganmu, Tumbuhkan <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">Hutan Virtualmu.</span>
+            Amankan Tabunganmu, Tumbuhkan <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-emerald-500">Hutan Virtualmu.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
@@ -68,10 +68,10 @@ export default function LandingPage() {
         {/* Kanan: Visual Mockup Dashboard */}
         <div className="flex-1 w-full max-w-xl lg:max-w-none relative mt-8 lg:mt-0">
           {/* Efek glow di belakang mockup */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/10 to-orange-300/10 dark:from-emerald-900/10 dark:to-orange-900/10 rounded-[2rem] blur-2xl transform rotate-3"></div>
+          <div className="absolute inset-0 bg-linear-to-tr from-emerald-400/10 to-orange-300/10 dark:from-emerald-900/10 dark:to-orange-900/10 rounded-4xl blur-2xl transform rotate-3"></div>
 
           {/* Glassmorphism Mockup Card */}
-          <div className="relative bg-white/60 dark:bg-gray-900/65 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.05)] p-5 sm:p-6 overflow-hidden">
+          <div className="relative bg-white/60 dark:bg-gray-900/65 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.05)] p-5 sm:p-6 overflow-hidden">
             {/* Header Mockup */}
             <div className="flex justify-between items-center mb-6 sm:mb-8 border-b border-gray-100/50 dark:border-gray-800/50 pb-4">
               <div className="flex items-center gap-2">
@@ -88,7 +88,7 @@ export default function LandingPage() {
             {/* Body Mockup */}
             <div className="flex gap-4">
               {/* Fake Canvas (Kiri) */}
-              <div className="flex-1 bg-gradient-to-b from-emerald-100/30 to-background dark:to-gray-950 rounded-2xl h-44 sm:h-52 border border-emerald-500/10 flex items-center justify-center relative overflow-hidden">
+              <div className="flex-1 bg-linear-to-b from-emerald-100/30 to-background dark:to-gray-950 rounded-2xl h-44 sm:h-52 border border-emerald-500/10 flex items-center justify-center relative overflow-hidden">
                 <Leaf className="w-16 h-16 text-emerald-200 dark:text-emerald-800/30" />
                 <div className="absolute top-4 right-4 bg-white/80 dark:bg-gray-900/80 backdrop-blur px-2.5 py-1 rounded-lg text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                   🦋 Thriving
