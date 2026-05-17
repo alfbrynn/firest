@@ -2,7 +2,7 @@
 
 import { Leaf, ArrowLeft } from "lucide-react";
 import { createClient } from "@/src/utils/supabase/client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -12,6 +12,22 @@ interface AuthLayoutProps {
     subtitle: string;
     error?: string;
     isLoading?: boolean;
+}
+
+function AuthBackButton() {
+    const searchParams = useSearchParams();
+    const from = searchParams.get('from');
+    const backHref = from === 'settings' ? '/settings' : '/';
+
+    return (
+        <Link
+            href={backHref}
+            className="absolute top-6 left-6 z-20 bg-white/70 dark:bg-gray-800/70 hover:bg-white dark:hover:bg-gray-850 backdrop-blur-md p-3 rounded-full border border-gray-200/50 dark:border-gray-700/50 text-muted-foreground hover:text-foreground shadow-sm transition-all flex items-center gap-2 group"
+        >
+            <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+            <span className="text-sm font-bold pr-1">Kembali</span>
+        </Link>
+    );
 }
 
 export default function AuthLayout({ children, title, subtitle, error, isLoading }: AuthLayoutProps) {
@@ -40,21 +56,18 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
         }
     };
 
-    const searchParams = useSearchParams();
-    const from = searchParams.get('from');
-    const backHref = from === 'settings' ? '/settings' : '/';
-
     return (
         <div className="min-h-screen w-full bg-background flex items-center justify-center relative overflow-hidden font-sans text-foreground">
 
-            {/* Back Button */}
-            <Link
-                href={backHref}
-                className="absolute top-6 left-6 z-20 bg-white/70 dark:bg-gray-800/70 hover:bg-white dark:hover:bg-gray-850 backdrop-blur-md p-3 rounded-full border border-gray-200/50 dark:border-gray-700/50 text-muted-foreground hover:text-foreground shadow-sm transition-all flex items-center gap-2 group"
-            >
-                <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                <span className="text-sm font-bold pr-1">Kembali</span>
-            </Link>
+            {/* Back Button wrapped in Suspense for static prerendering */}
+            <Suspense fallback={
+                <div className="absolute top-6 left-6 z-20 bg-white/70 dark:bg-gray-800/70 p-3 rounded-full border border-gray-200/50 dark:border-gray-700/50 text-muted-foreground/50 shadow-sm w-24 h-11 flex items-center justify-center gap-1.5">
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-xs font-bold animate-pulse">Memuat...</span>
+                </div>
+            }>
+                <AuthBackButton />
+            </Suspense>
 
             {/* Background Ornaments */}
             <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-200/20 dark:bg-emerald-900/10 rounded-full blur-3xl pointer-events-none"></div>
