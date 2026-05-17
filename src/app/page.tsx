@@ -9,26 +9,29 @@ export default function LandingPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[700px] h-[700px] bg-emerald-200/20 dark:bg-emerald-900/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-orange-100/30 dark:bg-orange-950/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      {/* Navbar Simple - Diperlebar ke max-w-[1800px] untuk mengisi lebih banyak ruang layar */}
-      <nav className="relative z-10 max-w-[1800px] mx-auto px-8 sm:px-16 lg:px-24 xl:px-32 2xl:px-40 py-10 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="bg-[#a8e0cb] dark:bg-[#1a5c44] p-2 rounded-xl">
-            <Leaf className="w-6 h-6 text-emerald-900 dark:text-emerald-100 fill-emerald-900 dark:fill-emerald-100" />
+      {/* Fixed Glassmorphic Navbar (Stays in place at the top of the viewport) */}
+      <header className="fixed top-0 left-0 z-50 w-full border-b border-gray-100/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md">
+        <nav className="max-w-[1800px] mx-auto px-8 sm:px-16 lg:px-24 xl:px-32 2xl:px-40 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#a8e0cb] dark:bg-[#1a5c44] p-2 rounded-xl">
+              <Leaf className="w-6 h-6 text-emerald-900 dark:text-emerald-100 fill-emerald-900 dark:fill-emerald-100" />
+            </div>
+            <span className="text-2xl font-black text-primary tracking-tight">Firest</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1.5 hidden md:block border-l border-gray-200 dark:border-gray-800 pl-3">Financial Rainforest</span>
           </div>
-          <span className="text-2xl font-black text-primary tracking-tight">Firest</span>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href="/login"
-            className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors bg-white/40 dark:bg-gray-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-150 dark:border-gray-800"
-          >
-            Masuk / Daftar
-          </Link>
-        </div>
-      </nav>
+          <div className="flex gap-3">
+            <Link
+              href="/login"
+              className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors bg-white/40 dark:bg-gray-900/40 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-150 dark:border-gray-800"
+            >
+              Masuk / Daftar
+            </Link>
+          </div>
+        </nav>
+      </header>
 
       {/* Hero Section - Diperlebar dan gap ditingkatkan agar konten lebih menyebar ke sisi kiri/kanan */}
-      <main className="relative z-10 max-w-[1800px] mx-auto px-8 sm:px-16 lg:px-24 xl:px-32 2xl:px-40 pt-10 pb-20 lg:pt-24 lg:pb-32 flex flex-col lg:flex-row items-center gap-12 lg:gap-32 xl:gap-48">
+      <main className="relative z-10 max-w-[1800px] mx-auto px-8 sm:px-16 lg:px-24 xl:px-32 2xl:px-40 pt-28 pb-20 lg:pt-36 lg:pb-32 flex flex-col lg:flex-row items-center gap-12 lg:gap-32 xl:gap-48">
 
         {/* Kiri: Copywriting & CTA */}
         <div className="flex-1 text-center lg:text-left w-full">

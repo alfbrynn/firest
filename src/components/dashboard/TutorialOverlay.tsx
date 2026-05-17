@@ -20,7 +20,7 @@ export default function TutorialOverlay() {
 
     const steps = [
         {
-            title: "Selamat Datang di Firest! 🌱",
+            title: "Selamat Datang di Firest: Financial Rainforest! 🌱",
             desc: "Mari kita mulai perjalanan finansialmu. Firest bukan sekadar pencatat keuangan biasa, tapi ekosistem untuk membantumu mencapai impian.",
             icon: <Sparkles className="w-8 h-8 text-emerald-500" />
         },

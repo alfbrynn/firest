@@ -37,9 +37,9 @@ export default function LoginPage() {
     };
 
     return (
-        <AuthLayout 
-            title="Masuk ke Firest" 
-            subtitle="Tumbuhkan kebiasaan finansialmu. Satu transaksi, satu benih."
+        <AuthLayout
+            title="Masuk ke Firest"
+            subtitle="Financial Rainforest — Tumbuhkan kebiasaan finansialmu. Satu transaksi, satu benih."
             error={error}
             isLoading={isLoading}
         >
@@ -76,8 +76,8 @@ export default function LoginPage() {
                 </div>
 
                 <div className="flex justify-end px-1">
-                    <Link 
-                        href="/forgot-password" 
+                    <Link
+                        href="/forgot-password"
                         className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors"
                     >
                         Lupa Password?
@@ -92,7 +92,7 @@ export default function LoginPage() {
                     {isLoading ? (
                         <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
-                        <><LogIn className="w-4 h-4" /> Masuk Sekarang</>
+                        <><LogIn className="w-4 h-4" /> Masuk</>
                     )}
                 </button>
             </form>

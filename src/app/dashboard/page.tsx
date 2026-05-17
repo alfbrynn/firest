@@ -75,6 +75,7 @@ export default function Home() {
                         <Leaf className="w-5 h-5 text-emerald-900 dark:text-emerald-100 fill-emerald-900 dark:fill-emerald-100" />
                     </div>
                     <span className="text-xl sm:text-2xl font-bold text-primary">Firest</span>
+                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1 hidden md:block border-l border-gray-200 dark:border-gray-800 pl-3">Financial Rainforest</span>
                 </div>
 
                 <div className="flex items-center gap-3 sm:gap-4 text-muted-foreground">
