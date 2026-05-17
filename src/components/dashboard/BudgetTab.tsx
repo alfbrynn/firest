@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Utensils, Car, ShoppingBag, Gamepad2, Zap, CircleEllipsis, Pencil, Check, X, Sparkles, Wallet, Info } from "lucide-react";
+import { Utensils, Car, ShoppingBag, Gamepad2, Zap, CircleEllipsis, Pencil, Check, X, Sparkles, Wallet, Info, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
 
 // Fungsi bantuan untuk mengubah angka menjadi format "rb" (contoh: 680000 -> 680rb)
@@ -100,6 +100,123 @@ export default function BudgetTab() {
 
   const totalSpent = Object.values(expensesByCategory).reduce((a, b) => a + b, 0);
   const totalLimit = Object.values(budgetLimits).reduce((a, b) => a + b, 0);
+
+  // 5. Generate Personalized saving tips based on current budget limits and actual spending
+  const personalizedTips = useMemo(() => {
+    const tips: { type: 'danger' | 'warning' | 'success' | 'info'; title: string; text: string; icon: string }[] = [];
+
+    // Find overspent categories
+    const overspentCategories = budgetData
+      .filter(item => item.alert)
+      .map(item => ({
+        cat: item.cat,
+        overAmount: (expensesByCategory[item.cat] || 0) - item.limit,
+        spent: expensesByCategory[item.cat] || 0,
+        limit: item.limit
+      }));
+
+    // Find categories close to limit (>= 80% and < 100%)
+    const warnedCategories = budgetData
+      .filter(item => {
+        const spent = expensesByCategory[item.cat] || 0;
+        return item.limit > 0 && spent >= item.limit * 0.8 && spent <= item.limit;
+      })
+      .map(item => ({
+        cat: item.cat,
+        pct: Math.round(((expensesByCategory[item.cat] || 0) / item.limit) * 100),
+        spent: expensesByCategory[item.cat] || 0,
+        limit: item.limit
+      }));
+
+    // Case 1: Total budget overspent
+    if (totalSpent > totalBudget && totalBudget > 0) {
+      tips.push({
+        type: 'danger',
+        title: '⚠️ Total Budget Jebol!',
+        text: `Total pengeluaran belanjamu sudah melebihi budget bulanan sebesar Rp ${(totalSpent - totalBudget).toLocaleString('id-ID')}. Untuk menjaga Financial Rainforest-mu tetap lestari, segera batasi pengeluaran non-primer dan alihkan sisa uang ke kebutuhan pokok saja!`,
+        icon: 'AlertCircle'
+      });
+    }
+
+    // Case 2: Overspent specific categories
+    overspentCategories.forEach(c => {
+      let advice = "";
+      if (c.cat === 'Makanan') {
+        advice = "Coba batasi jajan di luar/delivery dan beralih ke masak porsi lebih besar di kost untuk menghemat pengeluaran makanan secara signifikan.";
+      } else if (c.cat === 'Belanja') {
+        advice = "Hapus keranjang e-commerce dan tunda pembelian barang baru. Simpan barang non-esensial ke dalam wishlist untuk dibeli di siklus berikutnya.";
+      } else if (c.cat === 'Hiburan') {
+        advice = "Ganti nongkrong kafe mahal dengan alternatif gratis seperti olahraga sore, bermain game santai bersama teman, atau movie-night di rumah.";
+      } else if (c.cat === 'Transport') {
+        advice = "Pertimbangkan opsi menumpang teman, berjalan kaki untuk jarak dekat, atau mencocokkan rute perjalanan demi menghemat bahan bakar.";
+      } else if (c.cat === 'Tagihan') {
+        advice = "Periksa kembali langganan bulananmu (streaming/aplikasi) yang jarang digunakan dan nonaktifkan sementara untuk memotong biaya bulanan.";
+      } else {
+        advice = "Tunda pengeluaran pendukung untuk kategori ini dan prioritaskan kas yang tersisa untuk pengeluaran yang mutlak dibutuhkan.";
+      }
+
+      tips.push({
+        type: 'danger',
+        title: `⚠️ Budget ${c.cat} Terlewati!`,
+        text: `Pengeluaran ${c.cat}-mu sudah melewati batas alokasi sebesar Rp ${c.overAmount.toLocaleString('id-ID')}. ${advice}`,
+        icon: 'AlertCircle'
+      });
+    });
+
+    // Case 3: Warned categories (80% - 100%)
+    warnedCategories.forEach(c => {
+      let advice = "";
+      if (c.cat === 'Makanan') {
+        advice = "Kurangi frekuensi ngopi-ngopi premium di luar dan siapkan bekal sendiri untuk 3 hari ke depan agar budget makan tetap aman hingga akhir bulan.";
+      } else if (c.cat === 'Belanja') {
+        advice = "Pembelian belanjamu sudah kritis. Sebelum menambah transaksi belanja baru, tanyakan kembali pada dirimu: apakah barang ini butuh sekarang?";
+      } else if (c.cat === 'Hiburan') {
+        advice = "Batasi aktivitas hiburan berbayar akhir pekan ini. Pilih hiburan gratis atau piknik santai di taman kota tanpa memakan biaya besar.";
+      } else if (c.cat === 'Transport') {
+        advice = "Cobalah rencanakan perjalananmu secara efisien dalam satu rute searah, atau gunakan opsi transportasi publik jika memungkinkan.";
+      } else if (c.cat === 'Tagihan') {
+        advice = "Hemat penggunaan listrik dan kuota internet non-esensial dari sekarang agar tagihan berikutnya tidak melonjak melebihi perkiraan.";
+      } else {
+        advice = "Berhati-hatilah melakukan transaksi tambahan di kategori ini karena budget kamu sudah hampir menyentuh garis batas.";
+      }
+
+      tips.push({
+        type: 'warning',
+        title: `💡 Budget ${c.cat} Kritis (${c.pct}%)`,
+        text: `Kategori ${c.cat} telah terpakai sebanyak Rp ${c.spent.toLocaleString('id-ID')} dari Rp ${c.limit.toLocaleString('id-ID')}. ${advice} 🌿`,
+        icon: 'Info'
+      });
+    });
+
+    // Case 4: No critical issues, doing great!
+    if (tips.length === 0) {
+      const totalPct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+      if (totalSpent <= totalBudget * 0.5 && totalBudget > 0) {
+        tips.push({
+          type: 'success',
+          title: '🎉 Hutan Virtual Tumbuh Subur!',
+          text: `Luar biasa! Pengeluaranmu baru terpakai ${totalPct}% dari total budget belanja. Hutan di Financial Rainforest-mu sangat rindang. Pertahankan kedisiplinan hebat ini demi mencapai target menabung Rp ${monthlySavingsTarget.toLocaleString('id-ID')} bulan ini!`,
+          icon: 'Sparkles'
+        });
+      } else if (totalBudget > 0) {
+        tips.push({
+          type: 'success',
+          title: '🌟 Alokasi Keuangan Terjaga Aman',
+          text: `Kerja bagus! Hutan virtualmu terpelihara dengan baik tanpa kekeringan karena semua kategori pengeluaranmu berada di batas aman (total terpakai ${totalPct}%). Terus pantau sisa budget secara berkala!`,
+          icon: 'CheckCircle2'
+        });
+      } else {
+        tips.push({
+          type: 'info',
+          title: '🌱 Mulai Perjalanan Financial Rainforest-mu',
+          text: 'Atur target pemasukan dan tabungan bulananmu di tab Target agar Firest dapat membagi alokasi budget belanja belanjamu secara otomatis secara ideal!',
+          icon: 'Sparkles'
+        });
+      }
+    }
+
+    return tips;
+  }, [budgetData, expensesByCategory, totalSpent, totalBudget, monthlySavingsTarget]);
 
   return (
     <div className="flex flex-col text-foreground font-sans">
@@ -211,17 +328,61 @@ export default function BudgetTab() {
         </div>
       </div>
 
-      {/* Contextual Insight Banner */}
-      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-[24px] p-6 shadow-sm flex gap-4">
-         <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/40 rounded-xl flex items-center justify-center shrink-0">
-            <Info className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-         </div>
-         <div>
-            <p className="text-[10px] font-bold text-amber-900 dark:text-amber-200 uppercase tracking-widest mb-1">Tips Hemat Minggu Ini</p>
-            <p className="text-[12px] text-amber-800/80 dark:text-amber-300/70 leading-relaxed font-medium">
-               Budget "Makanan" kamu sudah terpakai 85%. Cobalah masak sendiri di kost untuk 3 hari ke depan agar budget tetap aman sampai akhir bulan! 🌿
-            </p>
-         </div>
+      {/* Personalized Insights Section */}
+      <div className="space-y-4 mt-2">
+        <div className="flex items-center gap-2 px-1">
+          <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+          <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Rekomendasi Hemat Personal</h4>
+        </div>
+        
+        <div className="space-y-3">
+          {personalizedTips.map((tip, idx) => {
+            let cardBg = "bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30";
+            let iconBg = "bg-amber-100 dark:bg-amber-800/40";
+            let iconColor = "text-amber-600 dark:text-amber-400";
+            let textColor = "text-amber-800/80 dark:text-amber-300/70";
+            let titleColor = "text-amber-900 dark:text-amber-200";
+            
+            if (tip.type === 'danger') {
+              cardBg = "bg-rose-50/60 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30";
+              iconBg = "bg-rose-100 dark:bg-rose-800/40";
+              iconColor = "text-rose-600 dark:text-rose-400";
+              textColor = "text-rose-800/80 dark:text-rose-300/70";
+              titleColor = "text-rose-900 dark:text-rose-200";
+            } else if (tip.type === 'success') {
+              cardBg = "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30";
+              iconBg = "bg-emerald-100 dark:bg-emerald-800/40";
+              iconColor = "text-emerald-600 dark:text-emerald-400";
+              textColor = "text-emerald-800/80 dark:text-emerald-300/70";
+              titleColor = "text-emerald-900 dark:text-emerald-200";
+            } else if (tip.type === 'info') {
+              cardBg = "bg-indigo-50/60 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30";
+              iconBg = "bg-indigo-100 dark:bg-indigo-800/40";
+              iconColor = "text-indigo-600 dark:text-indigo-400";
+              textColor = "text-indigo-800/80 dark:text-indigo-300/70";
+              titleColor = "text-indigo-900 dark:text-indigo-200";
+            }
+
+            let IconComponent = Info;
+            if (tip.icon === 'AlertCircle') IconComponent = AlertCircle;
+            else if (tip.icon === 'Sparkles') IconComponent = Sparkles;
+            else if (tip.icon === 'CheckCircle2') IconComponent = CheckCircle2;
+
+            return (
+              <div key={idx} className={`border rounded-[24px] p-5 shadow-xs flex gap-4 transition-all duration-300 ${cardBg}`}>
+                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+                    <IconComponent className={`w-5 h-5 ${iconColor}`} />
+                 </div>
+                 <div>
+                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${titleColor}`}>{tip.title}</p>
+                    <p className={`text-[12.5px] leading-relaxed font-medium ${textColor}`}>
+                       {tip.text}
+                    </p>
+                 </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
