@@ -87,12 +87,12 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-1"
+                    className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-1"
                 >
                     {isLoading ? (
                         <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
-                        <><LogIn className="w-4 h-4" /> Masuk</>
+                        "Masuk"
                     )}
                 </button>
             </form>
