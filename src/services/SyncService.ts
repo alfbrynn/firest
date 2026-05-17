@@ -1,6 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { GmailProvider } from "@/src/utils/gmail/GmailProvider";
-import { TransactionService } from "@/src/utils/db/TransactionService";
+import { TransactionService } from "../utils/db/TransactionService";
 import { ParsingService } from "./ParsingService";
 import { GamificationService } from "@/src/utils/db/GamificationService";
 
