@@ -73,7 +73,7 @@ export default function RegisterPage() {
             error={error}
             isLoading={isLoading}
         >
-            <form onSubmit={handleRegister} className="w-full flex flex-col gap-4">
+            <form onSubmit={handleRegister} className="w-full flex flex-col gap-2.5">
                 <div className="relative group animate-in fade-in slide-in-from-top-2">
                     <UserPlus className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
@@ -82,7 +82,7 @@ export default function RegisterPage() {
                         required
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                        className="w-full pl-11 pr-4 py-2 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-xs font-medium"
                     />
                 </div>
 
@@ -94,7 +94,7 @@ export default function RegisterPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                        className="w-full pl-11 pr-4 py-2 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-xs font-medium"
                     />
                 </div>
 
@@ -106,7 +106,7 @@ export default function RegisterPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                        className="w-full pl-11 pr-4 py-2 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-xs font-medium"
                     />
                 </div>
 
@@ -118,17 +118,17 @@ export default function RegisterPage() {
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                        className="w-full pl-11 pr-4 py-2 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-xs font-medium"
                     />
                 </div>
 
                 <div className="px-1">
-                    <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full ${password.length >= 8 ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
+                    <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1.5">
+                        <span className={`w-1 h-1 rounded-full ${password.length >= 8 ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
                         Minimal 8 karakter
                     </p>
-                    <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1.5 mt-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${(/[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password)) ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
+                    <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1.5 mt-0.5">
+                        <span className={`w-1 h-1 rounded-full ${(/[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password)) ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
                         Kombinasi Huruf Besar, Kecil, & Angka
                     </p>
                 </div>
@@ -136,19 +136,19 @@ export default function RegisterPage() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-2"
+                    className="w-full bg-primary text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-2 text-sm cursor-pointer"
                 >
                     {isLoading ? (
                         <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     ) : (
-                        <><UserPlus className="w-4 h-4" /> Daftar Sekarang</>
+                        <><UserPlus className="w-3.5 h-3.5" /> Daftar Sekarang</>
                     )}
                 </button>
             </form>
 
             <Link
                 href="/login"
-                className="mt-6 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+                className="mt-4 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
             >
                 Sudah punya akun? Masuk
             </Link>

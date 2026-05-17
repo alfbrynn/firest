@@ -51,6 +51,7 @@ export default function PixiCanvas() {
 
         const app = new PIXI.Application();
         let isDestroyed = false;
+        let resizeObserver: ResizeObserver | null = null;
 
         const initPixi = async () => {
             await app.init({
@@ -65,18 +66,18 @@ export default function PixiCanvas() {
                 return;
             }
 
-            if (canvasRef.current) canvasRef.current.appendChild(app.canvas);
+            if (canvasRef.current) {
+                app.canvas.style.display = "block";
+                app.canvas.style.position = "absolute";
+                app.canvas.style.top = "0";
+                app.canvas.style.left = "0";
+                app.canvas.style.width = "100%";
+                app.canvas.style.height = "100%";
+                canvasRef.current.appendChild(app.canvas);
+            }
 
-            const viewport = new Viewport({
-                screenWidth: app.screen.width,
-                screenHeight: app.screen.height,
-                worldWidth: app.screen.width * 2,
-                worldHeight: app.screen.height * 2,
-                events: app.renderer.events,
-            });
-
-            app.stage.addChild(viewport);
-            viewport.drag().pinch().wheel().decelerate().clampZoom({ minScale: 0.4, maxScale: 3 });
+            // We mount mainContainer directly to app.stage to ensure perfect native 1:1 pixel rendering,
+            // bypassing pixi-viewport entirely to guarantee the tile land stays perfectly centered in the panel.
 
             // 1. Tentukan Hewan yang muncul (Load semua untuk digunakan per-tile)
             const airAnimalNames = ['bee', 'butterfly', 'bird', 'crow'];
@@ -116,7 +117,7 @@ export default function PixiCanvas() {
             if (isDestroyed) return;
 
             const mainContainer = new PIXI.Container();
-            viewport.addChild(mainContainer);
+            app.stage.addChild(mainContainer);
 
             const gapX = 400;
             const gapY = 200;
@@ -247,21 +248,43 @@ export default function PixiCanvas() {
             });
 
 
-            // Skala dinamis bergantung jumlah grid
+            // Skala dinamis bergantung jumlah grid (Diperbesar/Zoom In agar terlihat lebih detail & premium)
             const coordList = forestGrid.map(f => Math.max(Math.abs(f.grid_x), Math.abs(f.grid_y)));
             const maxCoordVal = coordList.length > 0 ? Math.max(...coordList) : 0;
             const maxCoords = maxCoordVal + 1;
-            const globalScale = maxCoords >= 3 ? 0.12 : maxCoords >= 2 ? 0.16 : 0.25;
+            const globalScale = maxCoords >= 3 ? 0.18 : maxCoords >= 2 ? 0.28 : 0.45;
 
             mainContainer.scale.set(globalScale);
-            mainContainer.x = app.screen.width / 2;
-            mainContainer.y = app.screen.height / 2;
+
+            // Centering function that remains responsive to window resizing
+            const centerMainContainer = () => {
+                mainContainer.x = app.screen.width / 2;
+                // Positioned slightly downward (+15) to sit perfectly above the bottom status card
+                mainContainer.y = (app.screen.height / 2) + 15;
+            };
+
+            // Setup ResizeObserver to track NextJS DOM mount, Tailwind flex grid paints, and panel resizes
+            resizeObserver = new ResizeObserver(() => {
+                if (!isDestroyed && app.renderer) {
+                    app.resize();
+                    centerMainContainer();
+                }
+            });
+            if (canvasRef.current) {
+                resizeObserver.observe(canvasRef.current);
+            }
+
+            centerMainContainer();
+            app.renderer.on('resize', centerMainContainer);
         };
 
         initPixi();
 
         return () => {
             isDestroyed = true;
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+            }
             if (app.renderer) {
                 try {
                     app.destroy(true, { children: true });
@@ -273,40 +296,34 @@ export default function PixiCanvas() {
     }, [forestGrid]);
 
     return (
-        <div className="w-full h-full relative bg-linear-to-b from-background to-[#dcece3] dark:to-slate-950/20 group cursor-grab active:cursor-grabbing overflow-hidden">
+        <div className="w-full h-full relative bg-linear-to-b from-background to-[#dcece3] dark:to-slate-950/20 overflow-hidden">
             <div ref={canvasRef} className="absolute inset-0 z-0" />
 
-            {/* Hint Tooltip */}
-            <div className={`absolute top-6 left-1/2 -translate-x-1/2 z-10 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200/50 dark:border-gray-800/50 flex items-center gap-2 transition-opacity duration-1000 pointer-events-none ${showHint ? 'opacity-100' : 'opacity-0'}`}>
-                <Info className="w-4 h-4 text-primary" />
-                <span className="text-xs font-medium text-primary">Scroll untuk zoom, drag untuk pan area taman</span>
-            </div>
-
             {/* Status Card Overlay - Pindah ke bawah */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 w-fit transition-transform hover:scale-105 duration-300">
-                <div className="bg-white/70 dark:bg-gray-900/75 backdrop-blur-md px-6 py-3.5 rounded-[20px] shadow-lg border border-white/50 dark:border-white/5 flex items-center gap-6 pointer-events-auto">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-fit transition-transform hover:scale-[1.02] duration-300">
+                <div className="bg-white/75 dark:bg-gray-900/80 backdrop-blur-md px-4 py-2 rounded-xl shadow-md border border-white/40 dark:border-white/5 flex items-center gap-4 pointer-events-auto">
 
-                    <div className="flex items-center gap-3 shrink-0">
-                        <div className="w-10 h-10 rounded-[12px] bg-linear-to-br from-[#e8f4ec] to-[#d1ebd9] dark:from-emerald-950/40 dark:to-emerald-900/40 flex items-center justify-center text-xl shadow-sm border border-white dark:border-gray-800">
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className="w-7.5 h-7.5 rounded-lg bg-linear-to-br from-[#e8f4ec] to-[#d1ebd9] dark:from-emerald-950/40 dark:to-emerald-900/40 flex items-center justify-center text-sm shadow-xs border border-white dark:border-gray-800">
                             🌱
                         </div>
                         <div>
-                            <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold mb-0.5">Status</p>
-                            <p className="text-[14px] font-black text-primary leading-none">{level}</p>
+                            <p className="text-[8px] uppercase tracking-widest text-muted-foreground font-bold mb-0.5">Status</p>
+                            <p className="text-xs font-black text-primary leading-none">{level}</p>
                         </div>
                     </div>
 
-                    <div className="w-px h-8 bg-gray-300/40 shrink-0"></div>
+                    <div className="w-px h-6 bg-gray-300/30 shrink-0"></div>
 
-                    <div className="w-[160px] flex flex-col justify-center">
-                        <div className="flex justify-between text-[10px] font-bold mb-1.5">
-                            <span className="text-muted-foreground flex items-center gap-1">
-                                <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                    <div className="w-[120px] flex flex-col justify-center">
+                        <div className="flex justify-between text-[9px] font-bold mb-1">
+                            <span className="text-muted-foreground flex items-center gap-0.5">
+                                <Zap className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />
                                 Growth XP
                             </span>
-                            <span className="text-primary">{xp} / {nextXp}</span>
+                            <span className="text-primary">{xp}/{nextXp}</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-200/60 dark:bg-gray-850 rounded-full overflow-hidden shadow-inner">
+                        <div className="h-1 w-full bg-gray-200/50 dark:bg-gray-850 rounded-full overflow-hidden shadow-inner">
                             <div
                                 className="h-full bg-linear-to-r from-emerald-400 to-primary rounded-full transition-all duration-700 ease-out"
                                 style={{ width: `${progressPercent}%` }}
@@ -314,15 +331,15 @@ export default function PixiCanvas() {
                         </div>
                     </div>
 
-                    <div className="w-px h-8 bg-gray-300/40 shrink-0"></div>
+                    <div className="w-px h-6 bg-gray-300/30 shrink-0"></div>
 
-                    <div className="flex flex-col gap-1.5 shrink-0">
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-foreground">
-                            <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
+                    <div className="flex flex-col gap-1 shrink-0">
+                        <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-foreground leading-none">
+                            <Heart className="w-3 h-3 text-pink-500 fill-pink-500" />
                             Health {forestHealth}%
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-bold text-foreground">
-                            <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+                        <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-foreground leading-none">
+                            <Flame className="w-3 h-3 text-orange-500 fill-orange-500" />
                             {currentStreak} Hari Streak
                         </div>
                     </div>

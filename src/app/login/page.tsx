@@ -43,7 +43,7 @@ export default function LoginPage() {
             error={error}
             isLoading={isLoading}
         >
-            <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
+            <form onSubmit={handleLogin} className="w-full flex flex-col gap-2.5">
                 <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
@@ -52,7 +52,7 @@ export default function LoginPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                        className="w-full pl-11 pr-4 py-2 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-xs font-medium"
                     />
                 </div>
 
@@ -64,7 +64,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full pl-11 pr-12 py-3 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
+                        className="w-full pl-11 pr-12 py-2 bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-xl outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all text-xs font-medium"
                     />
                     <button
                         type="button"
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 <div className="flex justify-end px-1">
                     <Link
                         href="/forgot-password"
-                        className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors"
+                        className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors"
                     >
                         Lupa Password?
                     </Link>
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-1"
+                    className="w-full bg-primary text-white font-bold py-2.5 rounded-xl flex items-center justify-center hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-1 text-sm cursor-pointer"
                 >
                     {isLoading ? (
                         <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -99,7 +99,7 @@ export default function LoginPage() {
 
             <Link
                 href="/register"
-                className="mt-6 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+                className="mt-4 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
             >
                 Belum punya akun? Daftar gratis
             </Link>

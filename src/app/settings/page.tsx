@@ -105,27 +105,27 @@ export default function SettingsPage() {
             <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-emerald-200/20 dark:bg-emerald-900/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-orange-100/25 dark:bg-orange-950/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-12 lg:px-16 xl:px-24 pt-6 pb-12 sm:pt-10">
-                <div className="flex items-center justify-between gap-4 mb-6 sm:mb-8">
+            <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-6">
+                <div className="flex items-center justify-between gap-4 mb-4 sm:mb-6">
                     <Link
                         href="/dashboard"
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors font-bold text-sm bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-4 py-2.5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md w-fit shrink-0"
+                        className="group flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors font-bold text-xs bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-3.5 py-2 rounded-lg border border-gray-100 dark:border-gray-800 shadow-xs hover:shadow-sm w-fit shrink-0 cursor-pointer"
                     >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                         Kembali ke Taman
                     </Link>
 
                     {/* Judul Halaman */}
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">Pengaturan</h1>
-                        <div className="bg-[#e8f4ec] dark:bg-emerald-950/40 p-2 sm:p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/30 shrink-0">
-                            <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                        <h1 className="text-lg sm:text-xl font-black text-foreground tracking-tight">Pengaturan</h1>
+                        <div className="bg-[#e8f4ec] dark:bg-emerald-950/40 p-1.5 sm:p-2 rounded-lg border border-emerald-100 dark:border-emerald-900/30 shrink-0">
+                            <Settings className="w-4.5 h-4.5 sm:w-5 h-5 text-primary" />
                         </div>
                     </div>
                 </div>
 
                 {/* Container Konten Utama */}
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4">
                     {/* Profile Hero Card */}
                     <ProfileHeroCard
                         fullName={fullName}
@@ -134,12 +134,12 @@ export default function SettingsPage() {
                     />
 
                     {/* Settings Menu List */}
-                    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-[24px] border border-gray-100 dark:border-gray-800/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-2">
+                    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-[16px] border border-gray-100 dark:border-gray-800/50 shadow-sm p-1.5">
                         <SettingsMenuList />
                     </div>
 
                     {/* Logout Button */}
-                    <div className="mt-2">
+                    <div className="mt-1">
                         <LogoutButton
                             isLoggingOut={isLoggingOut}
                             onLogout={() => setShowLogoutModal(true)}

@@ -73,27 +73,27 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
             <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-200/20 dark:bg-emerald-900/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-100/30 dark:bg-orange-950/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div className="relative z-10 w-full max-w-[480px] p-4 sm:p-8">
-                <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl p-6 sm:p-10 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-white/20 dark:border-white/5 flex flex-col items-center">
+            <div className="relative z-10 w-full max-w-[420px] p-4">
+                <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur-xl p-5 sm:p-7 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-white/20 dark:border-white/5 flex flex-col items-center">
 
-                    <div className="w-14 h-14 bg-linear-to-br from-primary to-gradient-end rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-900/20 mb-6">
-                        <Leaf className="w-7 h-7 text-white fill-white/20" />
+                    <div className="w-10 h-10 bg-linear-to-br from-primary to-gradient-end rounded-xl flex items-center justify-center shadow-md shadow-emerald-900/20 mb-3">
+                        <Leaf className="w-5 h-5 text-white fill-white/20" />
                     </div>
 
-                    <h1 className="text-2xl font-black text-foreground tracking-tight mb-2">{title}</h1>
-                    <p className="text-xs font-medium text-muted-foreground mb-8 leading-relaxed text-center">
+                    <h1 className="text-lg sm:text-xl font-black text-foreground tracking-tight mb-1">{title}</h1>
+                    <p className="text-[11px] font-medium text-muted-foreground mb-4 leading-relaxed text-center">
                         {subtitle}
                     </p>
 
                     {error && (
-                        <div className="w-full mb-6 p-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold animate-shake">
+                        <div className="w-full mb-4 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-xs font-bold animate-shake">
                             {error}
                         </div>
                     )}
 
                     {children}
 
-                    <div className="w-full flex items-center gap-4 my-6">
+                    <div className="w-full flex items-center gap-3 my-3">
                         <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800"></div>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Atau</span>
                         <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800"></div>
@@ -103,7 +103,7 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
                     <button
                         onClick={handleGoogleLogin}
                         disabled={isLoading || isGoogleLoading}
-                        className={`w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-all ${(isLoading || isGoogleLoading) ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-sm active:scale-[0.98]'
+                        className={`w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2.5 transition-all ${(isLoading || isGoogleLoading) ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-sm active:scale-[0.98]'
                             }`}
                     >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
                         <span className="text-sm">Lanjutkan dengan Google</span>
                     </button>
 
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-8 font-medium text-center">
+                    <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-4 font-medium text-center">
                         Dengan masuk, kamu menyetujui <span className="text-primary cursor-pointer hover:underline">Syarat & Ketentuan</span> kami.
                     </p>
 

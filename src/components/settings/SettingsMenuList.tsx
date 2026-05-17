@@ -192,80 +192,81 @@ export default function SettingsMenuList() {
                                 if (isSecurityItem) setIsSecurityOpen(!isSecurityOpen);
                                 if (isNotifItem) setIsNotifOpen(!isNotifOpen);
                             }}
-                            className="group flex items-center justify-between p-4 hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-all cursor-pointer rounded-[16px] active:scale-[0.99]"
+                            className="group flex items-center justify-between p-3 hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-all cursor-pointer rounded-[12px] active:scale-[0.99]"
                         >
-                            <div className="flex items-center gap-4 min-w-0">
-                                <div className="w-11 h-11 rounded-[14px] bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:shadow-sm transition-all flex items-center justify-center shrink-0">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-9 h-9 rounded-[10px] bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:shadow-sm transition-all flex items-center justify-center shrink-0">
                                     {isThemeItem && currentTheme === "dark" ? (
-                                        <Moon className="w-5 h-5 text-purple-400" />
+                                        <Moon className="w-4 h-4 text-purple-400" />
                                     ) : isThemeItem && currentTheme === "system" ? (
-                                        <Monitor className="w-5 h-5 text-rose-500" />
+                                        <Monitor className="w-4 h-4 text-rose-500" />
                                     ) : (
-                                        item.icon
+                                        // We clone standard icons with smaller dimensions
+                                        <span className="[&>svg]:w-4 [&>svg]:h-4">{item.icon}</span>
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[15px] font-bold text-foreground leading-tight mb-1 group-hover:text-primary transition-colors">
+                                    <p className="text-xs font-bold text-foreground leading-tight mb-0.5 group-hover:text-primary transition-colors">
                                         {item.title}
                                     </p>
-                                    <p className="text-xs text-muted-foreground truncate max-w-[220px] sm:max-w-md">
+                                    <p className="text-[10px] text-muted-foreground truncate max-w-[220px] sm:max-w-md">
                                         {isSyncItem && isGmailConnected ? "Terhubung ke Gmail ✅" : item.desc}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                                 {isSyncItem && isGmailConnected && (
-                                    <span className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider bg-[#e8f4ec] dark:bg-emerald-950/40 text-[#2A6A55] dark:text-emerald-400 px-2.5 py-1.5 rounded-lg border border-emerald-100/50 dark:border-emerald-900/30">
+                                    <span className="flex items-center gap-1.5 text-[9px] uppercase font-bold tracking-wider bg-[#e8f4ec] dark:bg-emerald-950/40 text-[#2A6A55] dark:text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-100/50 dark:border-emerald-900/30">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Aktif
                                     </span>
                                 )}
-                                <ChevronRight className={`w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-all ${isOpen ? 'rotate-90 text-primary' : 'group-hover:translate-x-1'}`} />
+                                <ChevronRight className={`w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-all ${isOpen ? 'rotate-90 text-primary' : 'group-hover:translate-x-1'}`} />
                             </div>
                         </div>
 
                         {/* Dropdown Profile */}
                         {isProfileItem && isProfileOpen && (
-                            <div className="px-4 pb-5 pt-2 flex flex-col gap-4 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[16px] animate-fade-in">
-                                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                                    <label className="text-[11px] font-black text-muted-foreground uppercase tracking-wider block mb-2 px-1">Nama Tampilan</label>
+                            <div className="px-3.5 pb-4 pt-1.5 flex flex-col gap-3 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[12px] animate-fade-in">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-xs">
+                                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-wider block mb-1.5 px-1">Nama Tampilan</label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             placeholder="Masukkan nama baru..."
-                                            className="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                            className="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                                         />
-                                        <button className="bg-primary text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-sm shadow-primary/10">Simpan</button>
+                                        <button className="bg-primary text-white px-3.5 py-2 rounded-lg font-bold text-xs hover:bg-emerald-700 transition-all shadow-xs cursor-pointer">Simpan</button>
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground mt-3 px-1">Nama ini akan terlihat di dashboard dan avatar utama Anda.</p>
+                                    <p className="text-[9px] text-muted-foreground mt-2 px-1">Nama ini akan terlihat di dashboard dan avatar utama Anda.</p>
                                 </div>
                             </div>
                         )}
 
                         {/* Dropdown Security */}
                         {isSecurityItem && isSecurityOpen && (
-                            <div className="px-4 pb-5 pt-2 flex flex-col gap-4 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[16px] animate-fade-in">
-                                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-3">
+                            <div className="px-3.5 pb-4 pt-1.5 flex flex-col gap-3 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[12px] animate-fade-in">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-xs space-y-2">
                                     <button
                                         onClick={() => setShowDevModal(true)}
-                                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                                        className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700 cursor-pointer"
                                     >
                                         <div className="flex flex-col items-start">
-                                            <span className="text-sm font-bold">Ganti Kata Sandi</span>
-                                            <span className="text-[10px] text-muted-foreground">Terakhir diubah 3 bulan lalu</span>
+                                            <span className="text-xs font-bold">Ganti Kata Sandi</span>
+                                            <span className="text-[9px] text-muted-foreground mt-0.5">Terakhir diubah 3 bulan lalu</span>
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                                        <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
                                     </button>
                                     <button
                                         onClick={() => setShowDevModal(true)}
-                                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                                        className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700 cursor-pointer"
                                     >
                                         <div className="flex flex-col items-start">
-                                            <span className="text-sm font-bold">Otentikasi 2 Faktor (2FA)</span>
-                                            <span className="text-[10px] text-rose-500 font-bold">Belum Aktif</span>
+                                            <span className="text-xs font-bold">Otentikasi 2 Faktor (2FA)</span>
+                                            <span className="text-[9px] text-rose-500 font-bold mt-0.5">Belum Aktif</span>
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                                        <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
                                     </button>
                                 </div>
                             </div>
@@ -273,8 +274,8 @@ export default function SettingsMenuList() {
 
                         {/* Dropdown Notifications */}
                         {isNotifItem && isNotifOpen && (
-                            <div className="px-4 pb-5 pt-2 flex flex-col gap-4 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[16px] animate-fade-in">
-                                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-4">
+                            <div className="px-3.5 pb-4 pt-1.5 flex flex-col gap-3 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[12px] animate-fade-in">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-xs space-y-3">
                                     {[
                                         { id: 'spending', label: 'Peringatan Pengeluaran', desc: 'Beri tahu jika jajan sudah mendekati limit.' },
                                         { id: 'budget', label: 'Pengingat Budget Harian', desc: 'Saran budget harian setiap pagi.' },
@@ -282,14 +283,14 @@ export default function SettingsMenuList() {
                                     ].map((n) => (
                                         <div key={n.id} className="flex items-center justify-between gap-4">
                                             <div className="flex-1">
-                                                <p className="text-sm font-bold leading-tight">{n.label}</p>
-                                                <p className="text-[10px] text-muted-foreground mt-0.5">{n.desc}</p>
+                                                <p className="text-xs font-bold leading-tight">{n.label}</p>
+                                                <p className="text-[9px] text-muted-foreground mt-0.5">{n.desc}</p>
                                             </div>
                                             <button
                                                 onClick={() => handleNotifToggle(n.id as any)}
-                                                className={`w-10 h-5.5 rounded-full transition-all relative ${notifSettings[n.id as keyof typeof notifSettings] ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}`}
+                                                className={`w-8.5 h-5 rounded-full transition-all relative cursor-pointer ${notifSettings[n.id as keyof typeof notifSettings] ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'}`}
                                             >
-                                                <div className={`absolute top-1 w-3.5 h-3.5 bg-white rounded-full transition-all ${notifSettings[n.id as keyof typeof notifSettings] ? 'right-1' : 'left-1'}`} />
+                                                <div className={`absolute top-0.5 w-4.5 h-4 bg-white rounded-full transition-all ${notifSettings[n.id as keyof typeof notifSettings] ? 'right-0.5' : 'left-0.5'}`} />
                                             </button>
                                         </div>
                                     ))}
@@ -299,29 +300,29 @@ export default function SettingsMenuList() {
 
                         {/* Dropdown Sync Gmail */}
                         {isSyncItem && isSyncOpen && (
-                            <div className="px-4 pb-5 pt-2 flex flex-col gap-4 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[16px] animate-fade-in">
-                                <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                                    <h4 className="text-sm font-black mb-1 flex items-center gap-2">
-                                        <RefreshCw className="w-4 h-4 text-primary" /> Auto-Sync Transaksi
+                            <div className="px-3.5 pb-4 pt-1.5 flex flex-col gap-3 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[12px] animate-fade-in">
+                                <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-xs">
+                                    <h4 className="text-xs font-black mb-1 flex items-center gap-1.5">
+                                        <RefreshCw className="w-3.5 h-3.5 text-primary" /> Auto-Sync Transaksi
                                     </h4>
-                                    <p className="text-[11px] text-muted-foreground mb-4 leading-relaxed">
+                                    <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
                                         Hubungkan Gmail Anda agar Firest bisa otomatis mencatat pengeluaran dari email bank & e-wallet.
                                     </p>
 
                                     <button
                                         onClick={handleConnectGmail}
                                         disabled={isConnecting || isGmailConnected}
-                                        className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${isGmailConnected
+                                        className={`w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${isGmailConnected
                                             ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 cursor-default"
                                             : "bg-primary text-white hover:bg-emerald-700 active:scale-[0.98]"
                                             }`}
                                     >
                                         {isConnecting ? (
-                                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                            <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                         ) : isGmailConnected ? (
                                             <>✅ Gmail Sudah Terhubung</>
                                         ) : (
-                                            <><LinkIcon className="w-4 h-4" /> Hubungkan Gmail Sekarang</>
+                                            <><LinkIcon className="w-3.5 h-3.5" /> Hubungkan Gmail Sekarang</>
                                         )}
                                     </button>
                                 </div>
@@ -330,29 +331,29 @@ export default function SettingsMenuList() {
 
                         {/* Dropdown Pilihan Tema */}
                         {isThemeItem && isThemeOpen && (
-                            <div className="px-4 pb-4 pt-1 flex flex-col gap-2 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[16px] animate-fade-in">
+                            <div className="px-3.5 pb-3 pt-1 flex flex-col gap-1.5 border-t border-gray-100/40 dark:border-gray-800/20 bg-gray-50/30 dark:bg-gray-900/10 rounded-b-[12px] animate-fade-in">
                                 {[
-                                    { id: "light", label: "Mode Terang", icon: <Sun className="w-4 h-4" /> },
-                                    { id: "dark", label: "Mode Gelap", icon: <Moon className="w-4 h-4" /> },
-                                    { id: "system", label: "Sistem Otomatis (Laptop)", icon: <Monitor className="w-4 h-4" /> },
+                                    { id: "light", label: "Mode Terang", icon: <Sun className="w-3.5 h-3.5" /> },
+                                    { id: "dark", label: "Mode Gelap", icon: <Moon className="w-3.5 h-3.5" /> },
+                                    { id: "system", label: "Sistem Otomatis (Laptop)", icon: <Monitor className="w-3.5 h-3.5" /> },
                                 ].map((option) => {
                                     const isActive = currentTheme === option.id;
                                     return (
                                         <button
                                             key={option.id}
                                             onClick={() => handleThemeChange(option.id as any)}
-                                            className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${isActive
+                                            className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${isActive
                                                 ? "bg-primary/10 text-primary dark:bg-primary/20"
                                                 : "text-muted-foreground hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:text-foreground"
                                                 }`}
                                         >
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2.5">
                                                 <span className={isActive ? "text-primary" : "text-muted-foreground"}>
                                                     {option.icon}
                                                 </span>
                                                 {option.label}
                                             </div>
-                                            {isActive && <Check className="w-4 h-4 text-primary" />}
+                                            {isActive && <Check className="w-3.5 h-3.5 text-primary" />}
                                         </button>
                                     );
                                 })}

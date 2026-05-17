@@ -142,38 +142,38 @@ export default function InsightTab() {
   }
 
   return (
-    <div className="flex flex-col space-y-6 pb-10">
+    <div className="flex flex-col space-y-4 pb-10">
       
       {/* Header Section */}
-      <div className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-[32px] p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="relative overflow-hidden bg-white dark:bg-gray-900 rounded-[24px] p-5 shadow-sm border border-gray-100 dark:border-gray-800">
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-4.5 h-4.5 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-foreground leading-tight">Financial AI Insights</h2>
-              <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Powered by Google Gemini</p>
+              <h2 className="text-sm font-black text-foreground leading-tight">Financial AI Insights</h2>
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Powered by Google Gemini</p>
             </div>
           </div>
           
-          <p className="text-[13px] text-muted-foreground leading-relaxed mb-6 font-medium">
+          <p className="text-xs text-muted-foreground leading-relaxed mb-4 font-medium">
             Dapatkan analisis personal berdasarkan pola transaksi, budget harian, dan streak kamu.
           </p>
 
           <button
             onClick={handleGenerateAI}
             disabled={isGenerating || (isCooldown as boolean)}
-            className={`w-full py-4 rounded-2xl font-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 ${
+            className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-xs shadow-primary/10 cursor-pointer ${
               isCooldown 
                 ? 'bg-gray-50 dark:bg-gray-800 text-muted-foreground cursor-not-allowed border border-gray-100 dark:border-gray-700' 
-                : 'bg-primary text-white hover:scale-[1.02] active:scale-[0.98]'
+                : 'bg-primary text-white hover:scale-[1.01] active:scale-[0.98]'
             } disabled:opacity-80`}
           >
             {isGenerating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
             )}
             {isGenerating ? "Menganalisis..." : (isCooldown ? `Buka Analisis (${daysRemaining} hari lagi)` : "Generate Analisis Baru")}
           </button>
@@ -184,11 +184,11 @@ export default function InsightTab() {
       </div>
 
       {/* Main Insights List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex justify-between items-center px-2">
-          <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Insight Pekan Ini</h3>
+          <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Insight Pekan Ini</h3>
           {cachedInsight && (
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary bg-primary/5 px-2.5 py-0.5 rounded-full border border-primary/10">
               <Clock className="w-3 h-3" />
               {formatDistanceToNow(new Date(cachedInsight.created_at), { addSuffix: true, locale: id })}
             </div>
@@ -196,33 +196,33 @@ export default function InsightTab() {
         </div>
 
         {displayInsights.length === 0 ? (
-          <div className="bg-white dark:bg-gray-900 rounded-[32px] p-12 text-center border border-gray-50 dark:border-gray-800 border-dashed">
-            <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BarChart3 className="w-8 h-8 text-muted-foreground/30" />
+          <div className="bg-white dark:bg-gray-900 rounded-[24px] p-8 text-center border border-gray-50 dark:border-gray-800 border-dashed">
+            <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+              <BarChart3 className="w-6 h-6 text-muted-foreground/30" />
             </div>
-            <p className="text-[14px] font-bold text-foreground mb-1">Belum ada analisis</p>
-            <p className="text-[12px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
+            <p className="text-xs font-bold text-foreground mb-1">Belum ada analisis</p>
+            <p className="text-[11px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
               Klik tombol di atas untuk memulai analisis cerdas pertama kamu.
             </p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {displayInsights.map((item) => (
               <div 
                 key={item.id} 
-                className={`${item.bg} ${item.border} border rounded-[28px] p-5 transition-all hover:scale-[1.01] flex gap-4`}
+                className={`${item.bg} ${item.border} border rounded-[18px] p-4 transition-all hover:scale-[1.01] flex gap-3.5`}
               >
-                <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-black/5 dark:border-white/5 flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 bg-white dark:bg-gray-900 rounded-xl shadow-xs border border-black/5 dark:border-white/5 flex items-center justify-center shrink-0">
                   {item.icon}
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-[14px] font-black text-foreground mb-1">{item.title}</h4>
-                  <p className="text-[12.5px] text-muted-foreground leading-relaxed font-medium">
+                  <h4 className="text-xs font-black text-foreground mb-0.5">{item.title}</h4>
+                  <p className="text-[11.5px] text-muted-foreground leading-relaxed font-medium">
                     {item.content}
                   </p>
                 </div>
                 <div className="self-center opacity-20">
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </div>
               </div>
             ))}
@@ -231,13 +231,13 @@ export default function InsightTab() {
       </div>
 
       {/* Info Notice */}
-      <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/20 rounded-[28px] p-5 flex gap-4">
-         <div className="w-10 h-10 bg-white dark:bg-indigo-900/30 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-            <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+      <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/20 rounded-[20px] p-4 flex gap-3.5">
+         <div className="w-8 h-8 bg-white dark:bg-indigo-900/30 rounded-lg flex items-center justify-center shrink-0 shadow-xs border border-indigo-100/30">
+            <Info className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
          </div>
          <div className="flex-1">
-            <p className="text-[13px] font-black text-indigo-900 dark:text-indigo-200 mb-0.5">Kenapa harus 7 hari?</p>
-            <p className="text-[11.5px] text-indigo-800/70 dark:text-indigo-300/60 leading-relaxed font-medium">
+            <p className="text-xs font-black text-indigo-900 dark:text-indigo-200 mb-0.5">Kenapa harus 7 hari?</p>
+            <p className="text-[10px] text-indigo-800/70 dark:text-indigo-300/60 leading-relaxed font-medium">
                Interval ini dirancang agar kamu punya waktu menerapkan saran AI. Perubahan kebiasaan finansial butuh konsistensi mingguan. 🌿
             </p>
          </div>
