@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X, Leaf } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
 import { createClient } from "@/src/utils/supabase/client";
 
@@ -253,72 +253,129 @@ export default function TransactionTab() {
       {/* Custom Toast Notification */}
       {toast && (
         <div className="fixed top-20 right-6 z-100 animate-in fade-in slide-in-from-right-4 duration-300">
-          <div className={`flex items-center gap-3 px-6 py-4 rounded-[20px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.1)] border backdrop-blur-xl ${toast.type === "success"
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-[20px] shadow-[0_15px_50px_-10px_rgba(0,0,0,0.15)] border backdrop-blur-xl ${toast.type === "success"
             ? "bg-emerald-500/90 border-emerald-400 text-white"
             : "bg-rose-500/90 border-rose-400 text-white"
             }`}>
             {toast.type === "success" ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-            <span className="text-sm font-bold tracking-tight">{toast.message}</span>
+            <span className="text-sm font-black tracking-tight">{toast.message}</span>
             <button onClick={() => setToast(null)} className="ml-2 hover:opacity-70 transition-opacity">
               <X className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
-      {/* Row 1: Pemasukan & Pengeluaran */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-[18px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Pemasukan</p>
-            <p className="text-lg sm:text-xl font-black text-primary">Rp {currentMonthSummary.income}</p>
-          </div>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Bulan ini</p>
+
+      {/* =========================================================================
+         👑 CROWN JEWEL: REDESIGNED SAVING RATE WIDGET (Top Visual Hierarchy)
+         ========================================================================= */}
+      <div className="bg-gradient-to-br from-emerald-600 to-teal-900 dark:from-[#1b5e43] dark:to-[#0f2e21] p-5 sm:p-6 rounded-[28px] mb-4 shadow-[0_10px_30px_rgba(42,106,85,0.2)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative overflow-hidden group border border-emerald-500/10 dark:border-emerald-400/10 transition-all duration-300 hover:shadow-[0_15px_35px_rgba(42,106,85,0.3)] hover:-translate-y-0.5">
+        
+        {/* Decorative Glowing Radial Grid Behind Content */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
+        
+        {/* Dynamic Rotating Leaf Asset in Widget Background */}
+        <div className="absolute -top-6 -right-6 text-white/5 group-hover:rotate-12 group-hover:scale-110 transition-all duration-700 ease-out select-none pointer-events-none">
+          <Leaf className="w-24 h-24 fill-white/5" />
         </div>
-        <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-[18px] border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Pengeluaran</p>
-            <p className="text-lg sm:text-xl font-black text-rose-500">Rp {currentMonthSummary.expense}</p>
+        
+        <div className="relative z-10 flex flex-col justify-between h-full">
+          
+          <div className="flex items-center justify-between mb-4">
+             <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
+                   <TrendingUp className="w-3.5 h-3.5 text-emerald-300" />
+                </div>
+                <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Saving Power Engine</span>
+             </div>
+             
+             {/* Gamified Health Status Indicator Tag */}
+             <span className="text-[9px] font-black text-emerald-100 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider animate-pulse leading-none">
+                🌱 Taman Tumbuh
+             </span>
           </div>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Bulan ini</p>
+
+          <div className="flex items-baseline gap-3 mb-3">
+             <h2 className="text-5xl sm:text-6xl font-black text-white leading-none tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                {currentMonthSummary.savingRate}
+             </h2>
+             <div className="flex flex-col">
+                <span className="text-emerald-300 font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-1 leading-none">
+                   Saving Rate
+                </span>
+                <span className="text-[9px] text-white/70 font-bold mt-1 leading-none">
+                   Makin besar, pohon makin subur!
+                </span>
+             </div>
+          </div>
+
+          {/* Gamified Narrative Feedback */}
+          <p className="text-[11px] text-emerald-50/95 leading-relaxed font-semibold mb-4 bg-emerald-950/25 dark:bg-emerald-950/45 p-2.5 px-3.5 rounded-2xl border border-white/5 shadow-inner">
+             🌿 {currentMonthSummary.progressRate >= 50 
+               ? `Luar biasa! Saving Rate ${currentMonthSummary.savingRate} sangat menyehatkan ekosistem. Pohon-pohon bertumbuh 2x lebih cepat!`
+               : currentMonthSummary.progressRate > 0
+               ? `Kerja bagus! Sisa tabungan Anda berada di zona aman. Teruskan berhemat agar pohon tidak layu.`
+               : `Peringatan: Saving Rate Anda di bawah batas minimal. Pemasukan bulanan habis terpakai. Hemat segera untuk menyiram hutan!`
+             }
+          </p>
+
+          <div className="space-y-2">
+             <div className="flex justify-between text-[9px] font-bold text-emerald-100 uppercase tracking-widest px-0.5">
+                <span>Tabungan Tersimpan: Rp {((currentMonthSummary.rawIncome - currentMonthSummary.rawExpense) > 0 ? (currentMonthSummary.rawIncome - currentMonthSummary.rawExpense) : 0).toLocaleString('id-ID')}</span>
+                <span>{currentMonthSummary.savingRate}</span>
+             </div>
+             
+             {/* Dynamic Glowing Progress Bar with Sweeping Shimmer */}
+             <div className="h-3 bg-emerald-950/40 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full animate-shimmer" 
+                  style={{ width: `${currentMonthSummary.progressRate}%` }} 
+                />
+             </div>
+          </div>
+          
         </div>
       </div>
 
-      {/* Row 2: Saving Rate */}
-      <div className="bg-primary p-4 rounded-[16px] mb-3 shadow-md">
-        <p className="text-[10px] font-medium text-emerald-100 dark:text-emerald-200 mb-1">Saving Rate bulan ini</p>
-        <div className="flex items-end justify-between">
-          <div className="flex items-center gap-1.5">
-            <p className="text-3xl sm:text-[32px] font-bold text-white leading-none">{currentMonthSummary.savingRate}</p>
-            <TrendingUp className="w-4.5 h-4.5 text-emerald-300 mb-0.5" />
+      {/* Row 1: Pemasukan & Pengeluaran (Visual contrast boost) */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-[22px] border border-gray-100 dark:border-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-primary/20 hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
+          <div>
+            <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-1.5">Pemasukan</p>
+            <p className="text-xl sm:text-2xl font-black text-primary">Rp {currentMonthSummary.income}</p>
           </div>
-          <span className="text-[10px] text-emerald-300 dark:text-emerald-200 bg-emerald-800/30 px-2.5 py-0.5 rounded-full">
-            🌱 Taman tumbuh
-          </span>
+          <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mt-3.5">Bulan ini</p>
         </div>
-        <div className="mt-2.5 h-1.5 bg-emerald-800/30 rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-300 rounded-full" style={{ width: `${currentMonthSummary.progressRate}%` }} />
+        
+        <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-[22px] border border-gray-100 dark:border-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-rose-500/20 hover:shadow-[0_8px_20px_rgba(244,63,94,0.03)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
+          <div>
+            <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-1.5">Pengeluaran</p>
+            <p className="text-xl sm:text-2xl font-black text-rose-500">Rp {currentMonthSummary.expense}</p>
+          </div>
+          <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mt-3.5">Bulan ini</p>
         </div>
       </div>
 
-      {/* Add Transaction Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-[18px] p-4 sm:p-5 shadow-sm border border-gray-50 dark:border-gray-800 mb-4 relative">
+      {/* Add Transaction Section (Clean UI, High legibility, Scale interactions) */}
+      <div className="bg-white dark:bg-gray-900 rounded-[24px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800 mb-4 relative overflow-hidden">
         {isDemo && (
-          <div className="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-[1px] z-10 rounded-[18px] flex items-center justify-center">
-            <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+          <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/60 backdrop-blur-[1px] z-10 rounded-[24px] flex items-center justify-center">
+            <span className="bg-primary text-white text-xs font-black px-4 py-1.5 rounded-full shadow-md border border-emerald-400/20 animate-pulse">
               Input dinonaktifkan di mode Demo
             </span>
           </div>
         )}
-        <div className="text-[10px] font-bold text-muted-foreground mb-3 uppercase tracking-widest">Catat Transaksi</div>
-        <div className="flex bg-slate-50 dark:bg-gray-800 p-1 rounded-xl mb-4">
+        <div className="text-[10px] font-black text-gray-500 dark:text-gray-300 mb-4.5 uppercase tracking-widest">Catat Transaksi</div>
+        
+        <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl mb-4.5">
           {['Keluar', 'Masuk', 'Transfer'].map((type) => (
             <button
               key={type}
               onClick={() => setTxType(type.toLowerCase())}
               disabled={isDemo}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${txType === type.toLowerCase()
-                ? "bg-white dark:bg-gray-900 text-primary shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+              className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === type.toLowerCase()
+                ? "bg-white dark:bg-gray-900 text-primary shadow-[0_2px_8px_rgba(42,106,85,0.04)] border border-primary/5 dark:border-primary/10"
+                : "text-gray-500 dark:text-gray-400 hover:text-foreground"
                 }`}
             >
               {type}
@@ -326,7 +383,7 @@ export default function TransactionTab() {
           ))}
         </div>
 
-        <div className="flex gap-4 mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
+        <div className="flex gap-4 mb-4.5 border-b border-gray-100 dark:border-gray-800/80 pb-2.5">
           <input
             type="text"
             id="titleTransactions"
@@ -335,10 +392,10 @@ export default function TransactionTab() {
             onChange={(e) => setTxTitle(e.target.value)}
             disabled={isDemo}
             placeholder="Nama transaksi..."
-            className="flex-1 text-sm font-medium text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50"
+            className="flex-1 text-sm font-semibold text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50"
           />
           <div className="flex items-center w-1/3">
-            <span className="text-lg font-bold text-muted-foreground mr-0.5">Rp</span>
+            <span className="text-lg font-black text-gray-500 dark:text-gray-400 mr-1">Rp</span>
             <input
               type="text"
               id="amountTransactions"
@@ -347,19 +404,19 @@ export default function TransactionTab() {
               onChange={handleAmountChange}
               disabled={isDemo}
               placeholder="0"
-              className="w-full text-lg text-left font-bold text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50"
+              className="w-full text-lg text-left font-black text-foreground bg-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50"
             />
           </div>
         </div>
 
-        <div className="flex gap-1.5 flex-wrap mb-4">
+        <div className="flex gap-1.5 flex-wrap mb-4.5">
           {['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'].map((tag) => (
             <button
               key={tag}
               onClick={() => setTxCat(tag)}
-              className={`px-3 py-1 rounded-full text-[11px] border transition-colors cursor-pointer ${txCat === tag
-                ? 'border-primary bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary font-semibold'
-                : 'border-gray-200 dark:border-gray-700 text-muted-foreground hover:border-gray-300 dark:hover:border-gray-600'
+              className={`px-3.5 py-1 rounded-full text-[11px] font-bold border transition-all duration-200 cursor-pointer hover:-translate-y-0.25 ${txCat === tag
+                ? 'border-primary bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary'
+                : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
             >
               {tag}
@@ -368,18 +425,18 @@ export default function TransactionTab() {
         </div>
 
         {/* Date Selection */}
-        <div className="flex items-center gap-3 mb-4 bg-slate-50 dark:bg-gray-800/50 p-2 px-3 rounded-xl border border-gray-100 dark:border-gray-800">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-0.5">Tanggal:</span>
+        <div className="flex items-center gap-3 mb-4.5 bg-slate-50 dark:bg-gray-800/30 p-2.5 px-3.5 rounded-xl border border-gray-100 dark:border-gray-800/80">
+          <span className="text-[10px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest pl-0.5 leading-none">Tanggal:</span>
           <input
             type="date"
             value={txDate}
             onChange={(e) => setTxDate(e.target.value)}
-            className="bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer focus:text-primary transition-colors"
+            className="bg-transparent text-xs font-extrabold text-foreground outline-none cursor-pointer focus:text-primary transition-colors"
           />
           <div className="flex gap-1 ml-auto">
             <button
               onClick={() => setTxDate(getLocalDateString())}
-              className={`px-2 py-0.5 rounded-lg text-[9px] font-bold transition-all ${txDate === getLocalDateString() ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
+              className={`px-2 py-1 rounded-lg text-[9px] font-black transition-all ${txDate === getLocalDateString() ? 'bg-primary text-white shadow-xs' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700'}`}
             >
               Hari Ini
             </button>
@@ -389,7 +446,7 @@ export default function TransactionTab() {
                 yesterday.setDate(yesterday.getDate() - 1);
                 setTxDate(getLocalDateString(yesterday));
               }}
-              className={`px-2 py-0.5 rounded-lg text-[9px] font-bold transition-all ${txDate === getLocalDateString(new Date(Date.now() - 86400000)) ? 'bg-primary text-white' : 'bg-white dark:bg-gray-800 text-muted-foreground border border-gray-100 dark:border-gray-700'}`}
+              className={`px-2 py-1 rounded-lg text-[9px] font-black transition-all ${txDate === getLocalDateString(new Date(Date.now() - 86400000)) ? 'bg-primary text-white shadow-xs' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700'}`}
             >
               Kemarin
             </button>
@@ -398,46 +455,49 @@ export default function TransactionTab() {
 
         <button
           onClick={handleAddTransaction}
-          className="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-xs hover:bg-primary-hover transition-colors shadow-xs cursor-pointer"
+          className="w-full bg-primary text-white py-3 rounded-xl font-black text-xs hover:bg-primary-hover active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(42,106,85,0.15)] cursor-pointer"
         >
           + Simpan Transaksi
         </button>
       </div>
 
-      {/* Gmail Sync Section */}
-      <div className="bg-[#e8f4ec] dark:bg-emerald-950/20 border border-[#b6dfc2] dark:border-emerald-900/30 rounded-[18px] p-3.5 mb-4 flex items-center justify-between group">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-lg bg-white dark:bg-emerald-900/40 flex items-center justify-center shadow-xs shrink-0 ${isSyncing ? 'animate-spin' : ''}`}>
-            <Mail className="w-4 h-4 text-primary" />
+      {/* Gmail Sync Section (Upgraded with Glows and Micro-Leaf theme details) */}
+      <div className="bg-[#e8f4ec]/80 dark:bg-emerald-950/20 border border-[#b6dfc2]/60 dark:border-emerald-900/30 rounded-[20px] p-4 mb-4.5 flex items-center justify-between group hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-300 relative overflow-hidden">
+        {/* Soft underlying glow gradient */}
+        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
+        
+        <div className="flex items-center gap-3 relative z-10">
+          <div className={`w-9 h-9 rounded-xl bg-white dark:bg-emerald-900/30 flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.02)] shrink-0 border border-emerald-100/30 ${isSyncing ? 'animate-spin' : 'group-hover:scale-105 transition-transform'}`}>
+            <Mail className="w-4.5 h-4.5 text-primary" />
           </div>
           <div>
-            <p className="text-xs font-bold text-primary leading-tight">Sinkronisasi Gmail</p>
-            <p className="text-[9px] text-muted-foreground mt-0.5">Tarik transaksi otomatis dari email</p>
+            <p className="text-xs font-black text-primary leading-tight">Sinkronisasi Gmail</p>
+            <p className="text-[10px] font-bold text-gray-500 dark:text-emerald-200/50 mt-1">Tarik transaksi otomatis dari email</p>
           </div>
         </div>
 
         <button
           onClick={handleSyncGmail}
           disabled={isSyncing}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${isSyncing
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer ${isSyncing
             ? "bg-gray-100 dark:bg-gray-800 text-gray-400"
-            : "bg-primary text-white hover:bg-emerald-700 shadow-xs active:scale-[0.96]"
+            : "bg-primary text-white hover:bg-emerald-700 shadow-[0_4px_12px_rgba(42,106,85,0.1)] active:scale-[0.96]"
             }`}
         >
           {isSyncing ? (
             <>Memproses...</>
           ) : (
-            <><RefreshCw className="w-3 h-3" /> Sinkronkan</>
+            <><RefreshCw className="w-3.5 h-3.5 animate-pulse" /> Sinkronkan</>
           )}
         </button>
       </div>
 
-      {/* Riwayat Transaksi (Grouped List) */}
+      {/* Riwayat Transaksi (Grouped List, Glow Shadow improvements, high legibility) */}
       <div className="mb-4">
         {/* Search Bar & Filter */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 flex items-center gap-2.5 shadow-xs focus-within:border-primary/50 transition-colors">
-            <Search className="w-3.5 h-3.5 text-muted-foreground" />
+          <div className="flex-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 flex items-center gap-2.5 shadow-xs focus-within:border-primary/50 transition-colors">
+            <Search className="w-3.5 h-3.5 text-gray-400" />
             <input
               type="text"
               id="transactionsSearch"
@@ -445,69 +505,69 @@ export default function TransactionTab() {
               placeholder="Cari transaksi..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-xs outline-none text-foreground placeholder-gray-400"
+              className="w-full bg-transparent text-xs outline-none text-foreground placeholder-gray-400 font-semibold"
             />
           </div>
-          <button className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-2.5 rounded-xl shadow-xs hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-            <Filter className="w-4 h-4 text-muted-foreground" />
+          <button className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-3 rounded-xl shadow-xs hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-200 transition-all cursor-pointer">
+            <Filter className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
         {/* Mapped Month Groups */}
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {groupedHistory.length === 0 ? (
-            <div className="text-center py-10 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
-              <p className="text-xs font-semibold text-foreground">Belum ada riwayat transaksi</p>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">Pencarian Anda tidak menemukan hasil, atau Anda belum mencatatkan transaksi bulan ini.</p>
+            <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-[24px] border border-gray-100 dark:border-gray-800 p-6 shadow-[0_4px_12px_rgba(0,0,0,0.01)]">
+              <p className="text-xs font-black text-foreground">Belum ada riwayat transaksi</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">Pencarian Anda tidak menemukan hasil, atau Anda belum mencatatkan transaksi bulan ini.</p>
             </div>
           ) : (
             groupedHistory.map((monthData) => {
               const isExpanded = expandedMonths.includes(monthData.id);
 
               return (
-                <div key={monthData.id} className="flex flex-col border border-gray-100/50 dark:border-gray-800/50 rounded-xl bg-gray-50/30 dark:bg-gray-900/10 overflow-hidden transition-all">
+                <div key={monthData.id} className="flex flex-col border border-gray-100/60 dark:border-gray-800/60 rounded-[20px] bg-gray-50/50 dark:bg-gray-900/10 overflow-hidden transition-all">
                   {/* Accordion Header */}
                   <button
                     onClick={() => toggleMonth(monthData.id)}
-                    className="flex items-center justify-between p-3.5 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors w-full text-left cursor-pointer"
+                    className="flex items-center justify-between p-4 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors w-full text-left cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        <ChevronDown className="w-4 h-4 text-gray-500" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        <ChevronRight className="w-4 h-4 text-gray-500" />
                       )}
-                      <span className="text-xs sm:text-sm font-bold text-foreground">{monthData.month}</span>
+                      <span className="text-xs sm:text-sm font-black text-foreground">{monthData.month}</span>
                     </div>
-                    <span className="text-[11px] text-muted-foreground font-medium hidden sm:inline-block">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-300 font-extrabold hidden sm:inline-block">
                       {monthData.totalCount} transaksi · {monthData.totalExpenseText}
                     </span>
-                    <span className="text-[11px] text-muted-foreground font-medium sm:hidden">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-300 font-extrabold sm:hidden">
                       {monthData.totalExpenseText}
                     </span>
                   </button>
 
                   {/* Collapsible Content */}
                   {isExpanded && (
-                    <div className="p-3 pt-1 bg-transparent">
+                    <div className="p-3.5 pt-1.5 bg-transparent">
                       {monthData.groups.map((group, gIdx) => (
-                        <div key={gIdx} className="mb-4 last:mb-0">
-                          <p className="text-[9px] font-bold text-muted-foreground tracking-widest mb-2 px-1.5">{group.label}</p>
-                          <div className="space-y-1.5">
+                        <div key={gIdx} className="mb-4.5 last:mb-0">
+                          <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 tracking-widest mb-2 px-1.5">{group.label}</p>
+                          <div className="space-y-2">
                             {group.items.map((item) => (
-                              <div key={item.id} className="bg-white dark:bg-gray-900 p-2.5 sm:p-3 rounded-[12px] flex items-center justify-between shadow-xs border border-gray-50 dark:border-gray-800 hover:border-emerald-500/20 transition-colors cursor-pointer group">
+                              <div key={item.id} className="bg-white dark:bg-gray-900 p-3 sm:p-3.5 rounded-[16px] flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800/80 hover:border-primary/40 dark:hover:border-primary/30 hover:shadow-[0_8px_20px_rgba(42,106,85,0.06)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 ${item.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-500'}`}>
+                                  <div className={`w-8.5 h-8.5 rounded-[12px] flex items-center justify-center shrink-0 ${item.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-500'}`}>
                                     {item.icon}
                                   </div>
                                   <div>
-                                    <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</p>
-                                    <p className="text-[9px] font-medium text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                                      {item.time} <span className="bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-md text-[8px] uppercase font-bold">{item.source}</span>
+                                    <p className="text-xs font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                                    <p className="text-[9px] font-extrabold text-gray-500 dark:text-gray-300 mt-1 flex items-center gap-1.5">
+                                      {item.time} <span className="bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 px-2 py-0.5 rounded-md text-[8px] uppercase font-black">{item.source}</span>
                                     </p>
                                   </div>
                                 </div>
-                                <p className={`text-xs font-bold shrink-0 ${item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
+                                <p className={`text-xs font-black shrink-0 ${item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
                                   {item.type === 'income' ? '+ ' : '- '} Rp {item.amount.toLocaleString('id-ID')}
                                 </p>
                               </div>
@@ -520,7 +580,7 @@ export default function TransactionTab() {
                       {monthData.hasMore && (
                         <button
                           onClick={() => handleLoadMore(monthData.id)}
-                          className="w-full py-2 mt-1.5 text-xs font-bold text-primary hover:text-primary-hover bg-primary/5 dark:bg-primary/10 rounded-xl transition-colors cursor-pointer"
+                          className="w-full py-2.5 mt-2.5 text-xs font-black text-primary hover:text-primary-hover bg-primary/5 dark:bg-primary/10 rounded-xl transition-all duration-200 active:scale-[0.98] cursor-pointer"
                         >
                           Lihat lebih banyak ↓
                         </button>

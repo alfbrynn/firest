@@ -219,20 +219,20 @@ export default function BudgetTab() {
   }, [budgetData, expensesByCategory, totalSpent, totalBudget, monthlySavingsTarget]);
 
   return (
-    <div className="flex flex-col text-foreground font-sans">
+    <div className="flex flex-col text-foreground font-sans relative">
       
-      {/* Pay Yourself First Summary Card */}
-      <div className="bg-white dark:bg-gray-900 rounded-[28px] p-5 shadow-sm border border-gray-100 dark:border-gray-800 mb-4">
+      {/* Pay Yourself First Summary Card (Interactive elevate, glowing borders) */}
+      <div className="bg-white dark:bg-gray-900 rounded-[28px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800/80 mb-4 hover:border-primary/20 hover:shadow-[0_8px_24px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100/20">
                <Wallet className="w-5 h-5 text-primary" />
             </div>
             <div>
-               <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">Total Budget Belanja</p>
-               <h2 className="text-lg sm:text-xl font-black text-foreground">Rp {totalBudget.toLocaleString('id-ID')}</h2>
+               <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest leading-none mb-1.5">Total Budget Belanja</p>
+               <h2 className="text-xl sm:text-2xl font-black text-foreground">Rp {totalBudget.toLocaleString('id-ID')}</h2>
             </div>
             <div className="ml-auto text-right">
-               <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isAutoBudget ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700'}`}>
+               <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isAutoBudget ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/20' : 'bg-amber-100 text-amber-700 border border-amber-200/20'}`}>
                   {isAutoBudget ? 'Auto-Divide' : 'Custom'}
                </span>
             </div>
@@ -240,50 +240,50 @@ export default function BudgetTab() {
 
          <div className="space-y-2">
             <div className="flex justify-between px-1">
-               <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Realisasi Pengeluaran</span>
+               <span className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">Realisasi Pengeluaran</span>
                <span className={`text-[9px] font-black uppercase tracking-widest ${totalSpent > totalBudget ? 'text-rose-500' : 'text-primary'}`}>
                   Rp {totalSpent.toLocaleString('id-ID')} / {formatRb(totalBudget)}
                </span>
             </div>
-            <div className="h-2.5 bg-gray-50 dark:bg-gray-800/50 rounded-full overflow-hidden border border-gray-100 dark:border-gray-800 shadow-inner">
+            <div className="h-3 bg-slate-100 dark:bg-gray-800/40 rounded-full overflow-hidden border border-gray-100 dark:border-gray-800/80 shadow-inner">
                <div 
                 className={`h-full transition-all duration-1000 ${totalSpent > totalBudget ? 'bg-rose-500' : 'bg-primary'}`} 
                 style={{ width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%` }} 
                />
             </div>
-            <p className="text-[9px] text-muted-foreground text-center font-bold uppercase tracking-widest">
+            <p className={`text-[10px] text-center font-black uppercase tracking-widest mt-2 ${totalSpent > totalBudget ? 'text-rose-500' : 'text-primary'}`}>
                {totalSpent > totalBudget ? '⚠️ Melewati batas budget!' : `Sisa budget Rp ${(totalBudget - totalSpent).toLocaleString('id-ID')} lagi.`}
             </p>
          </div>
       </div>
 
 
-      {/* Categories Grid */}
-      <div className="bg-white dark:bg-gray-900 rounded-[28px] p-5 sm:p-6 shadow-sm border border-gray-50 dark:border-gray-800 mb-4">
-        <div className="flex justify-between items-center mb-6">
+      {/* Categories Grid (Interactive hover items, enhanced typography contrast) */}
+      <div className="bg-white dark:bg-gray-900 rounded-[28px] p-5 sm:p-6 shadow-[0_4px_12px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800/80 mb-4 hover:shadow-[0_8px_24px_rgba(0,0,0,0.03)] transition-shadow duration-300">
+        <div className="flex justify-between items-center mb-5 px-1">
           <div>
              <h3 className="text-xs font-black text-foreground uppercase tracking-widest">Alokasi Kategori</h3>
-             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Pembagian otomatis ideal.</p>
+             <p className="text-[10px] text-gray-500 dark:text-gray-300 font-extrabold uppercase tracking-widest mt-1.5">Pembagian otomatis ideal.</p>
           </div>
           {!isAutoBudget && (
             <button 
-            onClick={() => setIsAutoBudget(true)}
-            className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
-           >
-             Reset ke Auto
-           </button>
+              onClick={() => setIsAutoBudget(true)}
+              className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline cursor-pointer transition-all active:scale-95"
+            >
+              Reset ke Auto
+            </button>
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-2">
           {budgetData.map((item) => {
             const isEditing = editingCategory === item.cat;
 
             return (
-              <div key={item.cat} className="group">
+              <div key={item.cat} className="group p-2.5 sm:p-3 rounded-2xl border border-transparent hover:border-gray-100 dark:hover:border-gray-800/60 hover:bg-slate-50/40 dark:hover:bg-gray-800/20 transition-all duration-300">
                 <div className="flex justify-between items-center mb-2.5">
-                  <div className="text-xs font-bold text-foreground flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors shrink-0">
+                  <div className="text-xs font-black text-foreground flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-gray-800/60 border border-gray-100/50 dark:border-gray-700/50 flex items-center justify-center text-gray-500 group-hover:text-primary transition-all shrink-0">
                       {item.icon}
                     </div>
                     {item.cat}
@@ -291,7 +291,7 @@ export default function BudgetTab() {
                     {!isEditing && !isDemo && (
                       <button 
                         onClick={() => startEditing(item.cat)}
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all p-1 cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-primary transition-all p-1 cursor-pointer hover:scale-110"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
@@ -300,26 +300,26 @@ export default function BudgetTab() {
 
                   <div className="flex items-center gap-2">
                     {isEditing ? (
-                      <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
+                      <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1">
                         <input
                            type="text"
                            value={editValue}
                            onChange={(e) => setEditValue(e.target.value.replace(/[^0-9]/g, ""))}
-                           className="w-16 bg-transparent text-xs font-bold text-foreground outline-none text-right"
+                           className="w-16 bg-transparent text-xs font-black text-foreground outline-none text-right"
                            autoFocus
                         />
-                        <button onClick={() => saveBudget(item.cat)} className="text-primary cursor-pointer"><Check className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setEditingCategory(null)} className="text-rose-500 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => saveBudget(item.cat)} className="text-primary cursor-pointer hover:scale-110 transition-transform"><Check className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setEditingCategory(null)} className="text-rose-500 cursor-pointer hover:scale-110 transition-transform"><X className="w-3.5 h-3.5" /></button>
                       </div>
                     ) : (
                       <div className={`text-xs font-black ${item.alert ? 'text-rose-500' : 'text-foreground'}`}>
-                        {item.spentText} <span className="text-muted-foreground font-medium uppercase text-[9px] tracking-tighter">/ {item.limitText}</span>
+                        {item.spentText} <span className="text-gray-500 dark:text-gray-300 font-extrabold uppercase text-[9px] tracking-widest pl-0.5">/ {item.limitText}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="h-1.5 bg-gray-50 dark:bg-gray-800 rounded-full overflow-hidden border border-gray-100 dark:border-gray-800">
+                <div className="h-2 bg-slate-100 dark:bg-gray-800/40 rounded-full overflow-hidden border border-gray-100/50 dark:border-gray-850 shadow-inner">
                   <div className={`h-full rounded-full ${item.color} transition-all duration-700`} style={{ width: item.pctText }}></div>
                 </div>
               </div>
@@ -328,7 +328,7 @@ export default function BudgetTab() {
         </div>
       </div>
 
-      {/* Personalized Insights Section */}
+      {/* Personalized Insights Section (High visual interest, high contrast cards) */}
       <div className="space-y-3 mt-1">
         <div className="flex items-center gap-2 px-1">
           <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
@@ -337,29 +337,29 @@ export default function BudgetTab() {
         
         <div className="space-y-2">
           {personalizedTips.map((tip, idx) => {
-            let cardBg = "bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30";
-            let iconBg = "bg-amber-100 dark:bg-amber-800/40";
-            let iconColor = "text-amber-600 dark:text-amber-400";
-            let textColor = "text-amber-800/80 dark:text-amber-300/70";
+            let cardBg = "bg-amber-50/70 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30";
+            let iconBg = "bg-amber-100 dark:bg-amber-900/40";
+            let iconColor = "text-amber-700 dark:text-amber-300";
+            let textColor = "text-amber-900 dark:text-amber-200";
             let titleColor = "text-amber-900 dark:text-amber-200";
             
             if (tip.type === 'danger') {
-              cardBg = "bg-rose-50/60 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30";
-              iconBg = "bg-rose-100 dark:bg-rose-800/40";
-              iconColor = "text-rose-600 dark:text-rose-400";
-              textColor = "text-rose-800/80 dark:text-rose-300/70";
+              cardBg = "bg-rose-50/70 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30";
+              iconBg = "bg-rose-100 dark:bg-rose-900/40";
+              iconColor = "text-rose-700 dark:text-rose-300";
+              textColor = "text-rose-950 dark:text-rose-250";
               titleColor = "text-rose-900 dark:text-rose-200";
             } else if (tip.type === 'success') {
-              cardBg = "bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30";
-              iconBg = "bg-emerald-100 dark:bg-emerald-800/40";
-              iconColor = "text-emerald-600 dark:text-emerald-400";
-              textColor = "text-emerald-800/80 dark:text-emerald-300/70";
+              cardBg = "bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30";
+              iconBg = "bg-emerald-100 dark:bg-emerald-900/40";
+              iconColor = "text-emerald-700 dark:text-emerald-350";
+              textColor = "text-emerald-950 dark:text-emerald-250";
               titleColor = "text-emerald-900 dark:text-emerald-200";
             } else if (tip.type === 'info') {
-              cardBg = "bg-indigo-50/60 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30";
-              iconBg = "bg-indigo-100 dark:bg-indigo-800/40";
-              iconColor = "text-indigo-600 dark:text-indigo-400";
-              textColor = "text-indigo-800/80 dark:text-indigo-300/70";
+              cardBg = "bg-indigo-50/70 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30";
+              iconBg = "bg-indigo-100 dark:bg-indigo-900/40";
+              iconColor = "text-indigo-700 dark:text-indigo-300";
+              textColor = "text-indigo-950 dark:text-indigo-250";
               titleColor = "text-indigo-900 dark:text-indigo-200";
             }
 
@@ -369,13 +369,13 @@ export default function BudgetTab() {
             else if (tip.icon === 'CheckCircle2') IconComponent = CheckCircle2;
 
             return (
-              <div key={idx} className={`border rounded-[18px] p-4 shadow-xs flex gap-3.5 transition-all duration-300 ${cardBg}`}>
-                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
-                    <IconComponent className={`w-4 h-4 ${iconColor}`} />
+              <div key={idx} className={`border rounded-[22px] p-4 shadow-[0_4px_12px_rgba(0,0,0,0.01)] flex gap-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] ${cardBg}`}>
+                 <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-black/5 dark:border-white/5 ${iconBg}`}>
+                    <IconComponent className={`w-4.5 h-4.5 ${iconColor}`} />
                  </div>
                  <div>
-                    <p className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${titleColor}`}>{tip.title}</p>
-                    <p className={`text-[11.5px] leading-relaxed font-medium ${textColor}`}>
+                    <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${titleColor}`}>{tip.title}</p>
+                    <p className={`text-[12px] leading-relaxed font-semibold ${textColor}`}>
                        {tip.text}
                     </p>
                  </div>
