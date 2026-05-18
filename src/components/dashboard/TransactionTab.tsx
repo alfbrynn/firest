@@ -270,70 +270,70 @@ export default function TransactionTab() {
          👑 CROWN JEWEL: REDESIGNED SAVING RATE WIDGET (Top Visual Hierarchy)
          ========================================================================= */}
       <div className="bg-gradient-to-br from-emerald-600 to-teal-900 dark:from-[#1b5e43] dark:to-[#0f2e21] p-5 sm:p-6 rounded-[28px] mb-4 shadow-[0_10px_30px_rgba(42,106,85,0.2)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative overflow-hidden group border border-emerald-500/10 dark:border-emerald-400/10 transition-all duration-300 hover:shadow-[0_15px_35px_rgba(42,106,85,0.3)] hover:-translate-y-0.5">
-        
+
         {/* Decorative Glowing Radial Grid Behind Content */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
-        
+
         {/* Dynamic Rotating Leaf Asset in Widget Background */}
         <div className="absolute -top-6 -right-6 text-white/5 group-hover:rotate-12 group-hover:scale-110 transition-all duration-700 ease-out select-none pointer-events-none">
           <Leaf className="w-24 h-24 fill-white/5" />
         </div>
-        
+
         <div className="relative z-10 flex flex-col justify-between h-full">
-          
+
           <div className="flex items-center justify-between mb-4">
-             <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
-                   <TrendingUp className="w-3.5 h-3.5 text-emerald-300" />
-                </div>
-                <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Saving Power Engine</span>
-             </div>
-             
-             {/* Gamified Health Status Indicator Tag */}
-             <span className="text-[9px] font-black text-emerald-100 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider animate-pulse leading-none">
-                🌱 Taman Tumbuh
-             </span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-300" />
+              </div>
+              <span className="text-[10px] font-black text-emerald-100 uppercase tracking-widest leading-none">Mesin Tabunganmu</span>
+            </div>
+
+            {/* Gamified Health Status Indicator Tag */}
+            <span className="text-[9px] font-black text-emerald-100 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider animate-pulse leading-none">
+              🌱 Taman Tumbuh
+            </span>
           </div>
 
           <div className="flex items-baseline gap-3 mb-3">
-             <h2 className="text-5xl sm:text-6xl font-black text-white leading-none tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
-                {currentMonthSummary.savingRate}
-             </h2>
-             <div className="flex flex-col">
-                <span className="text-emerald-300 font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-1 leading-none">
-                   Saving Rate
-                </span>
-                <span className="text-[9px] text-white/70 font-bold mt-1 leading-none">
-                   Makin besar, pohon makin subur!
-                </span>
-             </div>
+            <h2 className="text-5xl sm:text-6xl font-black text-white leading-none tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+              {currentMonthSummary.savingRate}
+            </h2>
+            <div className="flex flex-col">
+              <span className="text-emerald-300 font-extrabold text-[10px] uppercase tracking-widest flex items-center gap-1 leading-none">
+                Rasio Hemat
+              </span>
+              <span className="text-[9px] text-white/70 font-bold mt-1 leading-none">
+                Makin besar, pohon makin subur!
+              </span>
+            </div>
           </div>
 
           {/* Gamified Narrative Feedback */}
           <p className="text-[11px] text-emerald-50/95 leading-relaxed font-semibold mb-4 bg-emerald-950/25 dark:bg-emerald-950/45 p-2.5 px-3.5 rounded-2xl border border-white/5 shadow-inner">
-             🌿 {currentMonthSummary.progressRate >= 50 
-               ? `Luar biasa! Saving Rate ${currentMonthSummary.savingRate} sangat menyehatkan ekosistem. Pohon-pohon bertumbuh 2x lebih cepat!`
-               : currentMonthSummary.progressRate > 0
-               ? `Kerja bagus! Sisa tabungan Anda berada di zona aman. Teruskan berhemat agar pohon tidak layu.`
-               : `Peringatan: Saving Rate Anda di bawah batas minimal. Pemasukan bulanan habis terpakai. Hemat segera untuk menyiram hutan!`
-             }
+            🌿 {currentMonthSummary.progressRate >= 50
+              ? `Luar biasa! Saving Rate ${currentMonthSummary.savingRate} sangat menyehatkan ekosistem. Pohon-pohon bertumbuh 2x lebih cepat!`
+              : currentMonthSummary.progressRate > 0
+                ? `Kerja bagus! Sisa tabungan Anda berada di zona aman. Teruskan berhemat agar pohon tidak layu.`
+                : `Peringatan: Saving Rate Anda di bawah batas minimal. Pemasukan bulanan habis terpakai. Hemat segera untuk menyiram hutan!`
+            }
           </p>
 
           <div className="space-y-2">
-             <div className="flex justify-between text-[9px] font-bold text-emerald-100 uppercase tracking-widest px-0.5">
-                <span>Tabungan Tersimpan: Rp {((currentMonthSummary.rawIncome - currentMonthSummary.rawExpense) > 0 ? (currentMonthSummary.rawIncome - currentMonthSummary.rawExpense) : 0).toLocaleString('id-ID')}</span>
-                <span>{currentMonthSummary.savingRate}</span>
-             </div>
-             
-             {/* Dynamic Glowing Progress Bar with Sweeping Shimmer */}
-             <div className="h-3 bg-emerald-950/40 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                <div 
-                  className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full animate-shimmer" 
-                  style={{ width: `${currentMonthSummary.progressRate}%` }} 
-                />
-             </div>
+            <div className="flex justify-between text-[9px] font-bold text-emerald-100 uppercase tracking-widest px-0.5">
+              <span>Tabungan Tersimpan: Rp {((currentMonthSummary.rawIncome - currentMonthSummary.rawExpense) > 0 ? (currentMonthSummary.rawIncome - currentMonthSummary.rawExpense) : 0).toLocaleString('id-ID')}</span>
+              <span>{currentMonthSummary.savingRate}</span>
+            </div>
+
+            {/* Dynamic Glowing Progress Bar with Sweeping Shimmer */}
+            <div className="h-3 bg-emerald-950/40 rounded-full overflow-hidden border border-white/5 shadow-inner">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full animate-shimmer"
+                style={{ width: `${currentMonthSummary.progressRate}%` }}
+              />
+            </div>
           </div>
-          
+
         </div>
       </div>
 
@@ -346,7 +346,7 @@ export default function TransactionTab() {
           </div>
           <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mt-3.5">Bulan ini</p>
         </div>
-        
+
         <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-[22px] border border-gray-100 dark:border-gray-800 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-col justify-between hover:border-rose-500/20 hover:shadow-[0_8px_20px_rgba(244,63,94,0.03)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
           <div>
             <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-1.5">Pengeluaran</p>
@@ -366,7 +366,7 @@ export default function TransactionTab() {
           </div>
         )}
         <div className="text-[10px] font-black text-gray-500 dark:text-gray-300 mb-4.5 uppercase tracking-widest">Catat Transaksi</div>
-        
+
         <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl mb-4.5">
           {['Keluar', 'Masuk', 'Transfer'].map((type) => (
             <button
@@ -465,7 +465,7 @@ export default function TransactionTab() {
       <div className="bg-[#e8f4ec]/80 dark:bg-emerald-950/20 border border-[#b6dfc2]/60 dark:border-emerald-900/30 rounded-[20px] p-4 mb-4.5 flex items-center justify-between group hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-300 relative overflow-hidden">
         {/* Soft underlying glow gradient */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
-        
+
         <div className="flex items-center gap-3 relative z-10">
           <div className={`w-9 h-9 rounded-xl bg-white dark:bg-emerald-900/30 flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.02)] shrink-0 border border-emerald-100/30 ${isSyncing ? 'animate-spin' : 'group-hover:scale-105 transition-transform'}`}>
             <Mail className="w-4.5 h-4.5 text-primary" />

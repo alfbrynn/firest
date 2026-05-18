@@ -13,7 +13,7 @@ export default function DashboardPanel() {
 
   return (
     <div className="w-full h-auto lg:h-full bg-slate-50 dark:bg-gray-950 flex flex-col lg:overflow-hidden relative overflow-hidden">
-      
+
       {/* 1. Ambient Glow Backdrops (WOW visual factor) */}
       <div className="absolute top-[-10%] right-[-15%] w-80 h-80 rounded-full bg-emerald-400/15 dark:bg-emerald-500/5 blur-3xl pointer-events-none animate-glow-pulse" />
       <div className="absolute bottom-[20%] left-[-15%] w-96 h-96 rounded-full bg-primary/10 dark:bg-primary/5 blur-3xl pointer-events-none animate-glow-pulse" style={{ animationDelay: '2s' }} />
@@ -40,9 +40,9 @@ export default function DashboardPanel() {
         <nav className="flex w-full space-x-1 sm:space-x-2 overflow-x-auto hide-scrollbar pb-1 sm:pb-0 relative z-10">
           {[
             { id: 'transaksi', label: 'Transaksi', icon: <BookText className="w-4 h-4" /> },
-            { id: 'budget', label: 'Budget', icon: <Wallet className="w-4 h-4" /> },
-            { id: 'goals', label: 'Goals', icon: <Target className="w-4 h-4" /> },
-            { id: 'insights', label: 'Insights', icon: <LineChart className="w-4 h-4" /> },
+            { id: 'budget', label: 'Anggaran', icon: <Wallet className="w-4 h-4" /> },
+            { id: 'goals', label: 'Target', icon: <Target className="w-4 h-4" /> },
+            { id: 'insights', label: 'Analisis', icon: <LineChart className="w-4 h-4" /> },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -64,7 +64,7 @@ export default function DashboardPanel() {
 
       {/* Scrollable Tab Content Container */}
       <div
-        className="flex-1 lg:overflow-y-auto px-4 sm:px-8 py-6 sm:py-8 relative z-10"
+        className="flex-1 lg:overflow-y-auto px-4 sm:px-8 py-6 sm:py-8 relative"
         style={{ scrollbarGutter: "stable" }}
       >
         {activeTab === 'transaksi' && <TransactionTab />}

@@ -244,7 +244,7 @@ export default function LandingPage() {
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-gray-100 dark:border-gray-800 rounded-3xl p-5 relative overflow-hidden group">
             <div className="absolute top-[-10%] right-[-10%] w-20 h-20 bg-linear-to-br from-blue-400/10 to-transparent rounded-full blur-xl group-hover:scale-125 transition-all"></div>
             <span className="inline-block px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-bold rounded-md uppercase tracking-wider mb-3">Benih Impian</span>
-            <h4 className="text-lg font-bold text-foreground mb-1">Seedling & Sprout</h4>
+            <h4 className="text-lg font-bold text-foreground mb-1">Bibit & Tunas</h4>
             <p className="text-[10px] text-muted-foreground mb-3 font-bold uppercase tracking-wider">Level 1 - 4</p>
             <p className="text-xs text-muted-foreground leading-relaxed">Tahap awal menabung. Hutan virtual Anda berupa tanah lapang dengan bibit kecil. Anda harus membatasi pengeluaran agar bibit tidak layu.</p>
           </div>
@@ -253,7 +253,7 @@ export default function LandingPage() {
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-gray-100 dark:border-gray-800 rounded-3xl p-5 relative overflow-hidden group">
             <div className="absolute top-[-10%] right-[-10%] w-20 h-20 bg-linear-to-br from-emerald-400/10 to-transparent rounded-full blur-xl group-hover:scale-125 transition-all"></div>
             <span className="inline-block px-2.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold rounded-md uppercase tracking-wider mb-3">Taman Bersemi</span>
-            <h4 className="text-lg font-bold text-foreground mb-1">Sapling & Forest</h4>
+            <h4 className="text-lg font-bold text-foreground mb-1">Pohon Muda & Hutan</h4>
             <p className="text-[10px] text-muted-foreground mb-3 font-bold uppercase tracking-wider">Level 5 - 8</p>
             <p className="text-xs text-muted-foreground leading-relaxed">Tunas tumbuh menjadi pohon rindang. Kupu-kupu, lebah madu, dan kelinci kecil mulai berdatangan meramaikan taman virtual Anda.</p>
           </div>
@@ -262,7 +262,7 @@ export default function LandingPage() {
           <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-gray-100 dark:border-gray-800 rounded-3xl p-5 relative overflow-hidden group">
             <div className="absolute top-[-10%] right-[-10%] w-20 h-20 bg-linear-to-br from-orange-400/10 to-transparent rounded-full blur-xl group-hover:scale-125 transition-all"></div>
             <span className="inline-block px-2.5 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[9px] font-bold rounded-md uppercase tracking-wider mb-3">Rimbar Raya Lestari</span>
-            <h4 className="text-lg font-bold text-foreground mb-1">Rainforest & Ecosystem</h4>
+            <h4 className="text-lg font-bold text-foreground mb-1">Hutan Hujan & Ekosistem</h4>
             <p className="text-[10px] text-muted-foreground mb-3 font-bold uppercase tracking-wider">Level 9 - 12</p>
             <p className="text-xs text-muted-foreground leading-relaxed">Ekosistem hutan tropis raksasa yang makmur. Burung warna-warni hinggap di dahan besar. Selamat, kondisi keuangan Anda sudah mandiri!</p>
           </div>

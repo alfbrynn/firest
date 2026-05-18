@@ -8,12 +8,12 @@ import { formatDistanceToNow, differenceInDays } from "date-fns";
 import { id } from "date-fns/locale";
 
 export default function InsightTab() {
-  const { 
-    isDemo, 
-    transactions, 
-    monthlyIncomeTarget, 
-    monthlySavingsTarget, 
-    currentStreak 
+  const {
+    isDemo,
+    transactions,
+    monthlyIncomeTarget,
+    monthlySavingsTarget,
+    currentStreak
   } = useAppStore();
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -26,7 +26,7 @@ export default function InsightTab() {
       setIsLoadingInitial(false);
       return;
     }
-    
+
     async function loadInsight() {
       try {
         const last = await getInsightsAction();
@@ -143,7 +143,7 @@ export default function InsightTab() {
 
   return (
     <div className="flex flex-col space-y-4 pb-10">
-      
+
       {/* Header Section (Stunning Glassmorphic AI Box with Hover Uplift) */}
       <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50/50 to-emerald-50/25 dark:from-gray-900 dark:via-gray-900 dark:to-emerald-950/20 rounded-[28px] p-5.5 shadow-[0_4px_16px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800/80 hover:border-primary/25 hover:shadow-[0_8px_24px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
         <div className="relative z-10">
@@ -152,11 +152,10 @@ export default function InsightTab() {
               <Sparkles className="w-4.5 h-4.5 text-primary animate-pulse" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-foreground leading-none">Financial AI Insights</h2>
-              <p className="text-[9px] text-gray-500 dark:text-gray-300 font-black uppercase tracking-widest mt-1.5 leading-none">Powered by Google Gemini</p>
+              <h2 className="text-sm font-black text-foreground leading-none">Analisis Keuangan oleh AI</h2>
             </div>
           </div>
-          
+
           <p className="text-[12.5px] text-gray-700 dark:text-gray-250 leading-relaxed mb-4.5 font-semibold">
             Dapatkan analisis personal berdasarkan pola transaksi, budget harian, dan streak kamu.
           </p>
@@ -164,11 +163,10 @@ export default function InsightTab() {
           <button
             onClick={handleGenerateAI}
             disabled={isGenerating || (isCooldown as boolean)}
-            className={`w-full py-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.1)] cursor-pointer ${
-              isCooldown 
-                ? 'bg-slate-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-gray-100 dark:border-gray-700/60 shadow-none' 
-                : 'bg-primary text-white hover:scale-[1.01] active:scale-[0.98] hover:bg-emerald-700'
-            } disabled:opacity-80`}
+            className={`w-full py-3 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.1)] cursor-pointer ${isCooldown
+              ? 'bg-slate-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-not-allowed border border-gray-100 dark:border-gray-700/60 shadow-none'
+              : 'bg-primary text-white hover:scale-[1.01] active:scale-[0.98] hover:bg-emerald-700'
+              } disabled:opacity-80`}
           >
             {isGenerating ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -178,7 +176,7 @@ export default function InsightTab() {
             {isGenerating ? "Menganalisis..." : (isCooldown ? `Buka Analisis (${daysRemaining} hari lagi)` : "Generate Analisis Baru")}
           </button>
         </div>
-        
+
         {/* Background Decorative Element */}
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-40 h-40 bg-primary/5 rounded-full blur-3xl select-none pointer-events-none"></div>
       </div>
@@ -208,8 +206,8 @@ export default function InsightTab() {
         ) : (
           <div className="grid gap-3">
             {displayInsights.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className={`${item.bg} ${item.border} border rounded-[22px] p-4.5 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(0,0,0,0.02)] flex gap-3.5`}
               >
                 <div className="w-9 h-9 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-black/5 dark:border-white/5 flex items-center justify-center shrink-0">
@@ -232,15 +230,15 @@ export default function InsightTab() {
 
       {/* Info Notice (High Contrast Indigo Alert Card) */}
       <div className="bg-indigo-50/70 dark:bg-indigo-950/20 border border-indigo-100/60 dark:border-indigo-900/30 rounded-[24px] p-5 flex gap-3.5 hover:shadow-[0_4px_16px_rgba(99,102,241,0.03)] transition-shadow duration-300">
-         <div className="w-8.5 h-8.5 bg-white dark:bg-indigo-900/40 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-indigo-100/20">
-            <Info className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
-         </div>
-         <div className="flex-1">
-            <p className="text-xs font-black text-indigo-900 dark:text-indigo-250 uppercase tracking-widest mb-1.5 leading-none">Kenapa harus 7 hari?</p>
-            <p className="text-[12px] text-indigo-950 dark:text-indigo-200 leading-relaxed font-semibold">
-               Interval ini dirancang agar kamu punya waktu menerapkan saran AI. Perubahan kebiasaan finansial butuh konsistensi mingguan. 🌿
-            </p>
-         </div>
+        <div className="w-8.5 h-8.5 bg-white dark:bg-indigo-900/40 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-indigo-100/20">
+          <Info className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-black text-indigo-900 dark:text-indigo-250 uppercase tracking-widest mb-1.5 leading-none">Kenapa harus 7 hari?</p>
+          <p className="text-[12px] text-indigo-950 dark:text-indigo-200 leading-relaxed font-semibold">
+            Interval ini dirancang agar kamu punya waktu menerapkan saran AI. Perubahan kebiasaan finansial butuh konsistensi mingguan. 🌿
+          </p>
+        </div>
       </div>
     </div>
   );

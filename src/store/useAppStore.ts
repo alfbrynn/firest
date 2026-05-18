@@ -58,7 +58,7 @@ interface AppState {
   loadDemoData: () => void;
 }
 
-const LEVEL_NAMES = ['Seedling', 'Sprout', 'Sapling', 'Forest', 'Rainforest', 'Ecosystem'];
+const LEVEL_NAMES = ['Bibit', 'Tunas', 'Pohon Muda', 'Hutan', 'Hutan Hujan', 'Ekosistem'];
 export const getLevelName = (levelNum: number) => {
   const nameIndex = Math.min(Math.max(Math.ceil(levelNum / 2) - 1, 0), 5);
   return LEVEL_NAMES[nameIndex];
@@ -97,7 +97,7 @@ export const calculateHealthFromTransactions = (transactions: Transaction[], res
 export const useAppStore = create<AppState>((set, get) => ({
   xp: 0,
   levelNumber: 1,
-  level: 'Seedling',
+  level: 'Bibit',
   forestHealth: 100,
   currentStreak: 1,
   streakShield: 1,
@@ -139,9 +139,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       isDemo: true,
       fullName: "Demo Mahasiswa",
       avatarUrl: "https://ui-avatars.com/api/?name=Demo+Mahasiswa&background=2A6A55&color=fff",
-      xp: 1200,
-      levelNumber: 3,
-      level: 'Sapling',
+      xp: 2200,
+      levelNumber: 5,
+      level: 'Pohon Muda',
       forestHealth: 72,
       currentStreak: 4,
       monthlyIncomeTarget: 1500000,

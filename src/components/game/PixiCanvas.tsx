@@ -319,7 +319,7 @@ export default function PixiCanvas() {
                         <div className="flex justify-between text-[9px] font-bold mb-1">
                             <span className="text-muted-foreground flex items-center gap-0.5">
                                 <Zap className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />
-                                Growth XP
+                                XP
                             </span>
                             <span className="text-primary">{xp}/{nextXp}</span>
                         </div>
@@ -336,7 +336,7 @@ export default function PixiCanvas() {
                     <div className="flex flex-col gap-1 shrink-0">
                         <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-foreground leading-none">
                             <Heart className="w-3 h-3 text-pink-500 fill-pink-500" />
-                            Health {forestHealth}%
+                            Kesehatan {forestHealth}%
                         </div>
                         <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-foreground leading-none">
                             <Flame className="w-3 h-3 text-orange-500 fill-orange-500" />
