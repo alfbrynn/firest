@@ -59,6 +59,20 @@ export class InsightService {
       throw new Error("Failed to save insight");
     }
 
+    // Save notification to history
+    try {
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          type: 'insight',
+          title: 'Analisis AI Baru! 🤖',
+          content: 'AI Firest telah memperbarui rekomendasi dan analisis keuangan khusus untukmu. Cek tab Analisis sekarang!'
+        });
+    } catch (err) {
+      console.error("Error saving insight notification:", err);
+    }
+
     return { 
       insight: newInsight, 
       isNew: true, 

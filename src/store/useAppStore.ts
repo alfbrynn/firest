@@ -51,7 +51,7 @@ interface AppState {
   completeTutorial: () => void;
   fetchUserData: (userId: string) => Promise<void>;
   updateMonthlyTargets: (userId: string, income: number, savings: number, resetDate: number) => Promise<void>;
-  withdrawFromSavings: (userId: string, amount: number, reason: string) => Promise<void>;
+
   addTransaction: (tx: Omit<Transaction, 'id'>, userId: string) => Promise<void>;
   updateTransaction: (txId: string, updatedFields: Partial<Transaction>, userId: string) => Promise<void>;
   deleteTransaction: (txId: string, userId: string) => Promise<void>;
@@ -352,22 +352,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  withdrawFromSavings: async (userId: string, amount: number, reason: string) => {
-    const supabase = createClient();
-    try {
-      // Withdrawal is essentially an income transaction (money back to available cash)
-      // but flagged as withdrawal to avoid double counting "real" income
-      await get().addTransaction({
-        title: `Tarik Tabungan: ${reason || 'Kebutuhan'}`,
-        amount: amount,
-        category: 'Lainnya',
-        type: 'income',
-        date: new Date().toISOString(),
-      }, userId);
-    } catch (err) {
-      console.error("Error withdrawing from savings:", err);
-    }
-  },
+
 
 
   addTransaction: async (tx: Omit<Transaction, 'id'>, userId: string) => {
@@ -697,6 +682,28 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   showToast: (message, type, subtext) => {
     set({ activeToast: { message, type, subtext } });
+
+    if (get().isDemo) return;
+
+    let dbType = "general";
+    if (type === "warning") {
+      dbType = "budget";
+    } else if (type === "streak") {
+      dbType = "streak";
+    } else if (type === "levelUp") {
+      dbType = "insight";
+    } else if (type === "success") {
+      dbType = "general";
+    } else if (type === "onboarding") {
+      dbType = "system";
+    }
+
+    import("../app/actions/notificationActions")
+      .then(({ createNotificationAction }) => {
+        createNotificationAction(dbType, message, subtext || "")
+          .catch(err => console.error("Failed to persist notification:", err));
+      })
+      .catch(err => console.error("Failed to import notification actions:", err));
   },
 
   clearToast: () => {
@@ -817,6 +824,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
 
       get().showStatusBarMessage("+5 XP Login Harian ☀️");
+
+      if (!state.isDemo) {
+        import("../app/actions/notificationActions")
+          .then(({ createNotificationAction }) => {
+            createNotificationAction("general", "Klaim Login Harian! ⚡", "Login hari ini berhasil! Dapatkan +5 XP untuk bibitmu.")
+              .catch(err => console.error("Failed to persist login notification:", err));
+          })
+          .catch(err => console.error("Failed to import notification actions for login:", err));
+      }
 
       if (isLevelUp) {
         get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
