@@ -13,7 +13,8 @@ export default function InsightTab() {
     transactions,
     monthlyIncomeTarget,
     monthlySavingsTarget,
-    currentStreak
+    currentStreak,
+    triggerWeeklyReviewXP
   } = useAppStore();
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -35,6 +36,7 @@ export default function InsightTab() {
           const nextDate = new Date(new Date(last.created_at).getTime() + 7 * 24 * 60 * 60 * 1000);
           setNextAvailableDate(nextDate.toISOString());
         }
+        await triggerWeeklyReviewXP();
       } catch (err) {
         console.error("Failed to load insight:", err);
       } finally {
@@ -42,7 +44,7 @@ export default function InsightTab() {
       }
     }
     loadInsight();
-  }, [isDemo]);
+  }, [isDemo, triggerWeeklyReviewXP]);
 
   const totalBudget = Math.max(0, monthlyIncomeTarget - monthlySavingsTarget);
   const budgetCategories = {
@@ -73,6 +75,7 @@ export default function InsightTab() {
       if (result.insight) {
         setCachedInsight(result.insight);
         setNextAvailableDate(result.nextAvailableDate);
+        await triggerWeeklyReviewXP();
       }
     } catch (err) {
       console.error("Error generating insight:", err);
@@ -136,7 +139,7 @@ export default function InsightTab() {
           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           <Sparkles className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
-        <p className="text-sm font-black text-gray-700 dark:text-gray-300 animate-pulse">Menghubungkan ke Gemini AI...</p>
+        <p className="text-sm font-black text-gray-700 dark:text-gray-300 animate-pulse">Menghubungkan ke Groq AI...</p>
       </div>
     );
   }

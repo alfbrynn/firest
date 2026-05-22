@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X, Leaf, Edit2, Trash2 } from "lucide-react";
+import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X, Leaf, Edit2, Trash2, PiggyBank } from "lucide-react";
 import { useAppStore, Transaction } from "@/src/store/useAppStore";
 import { createClient } from "@/src/utils/supabase/client";
 
@@ -10,6 +10,7 @@ const getCategoryIcon = (category: string) => {
     case 'Transport': return <Car className="w-5 h-5" />;
     case 'Belanja': return <ShoppingBag className="w-5 h-5" />;
     case 'Tagihan': return <Landmark className="w-5 h-5" />;
+    case 'Tabungan': return <PiggyBank className="w-5 h-5" />;
     default: return <Plus className="w-5 h-5" />;
   }
 };
@@ -22,7 +23,7 @@ const getCategoriesForType = (type: string) => {
   if (type === 'transfer') {
     return ['Transfer', 'Lainnya'];
   }
-  return ['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'];
+  return ['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Tabungan', 'Lainnya'];
 };
 
 // Fungsi bantuan untuk mendapatkan string YYYY-MM-DD dalam waktu lokal
@@ -693,18 +694,29 @@ export default function TransactionTab() {
                             {group.items.map((item) => (
                               <div key={item.id} className="bg-white dark:bg-gray-900 p-3 sm:p-3.5 rounded-[16px] flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.02)] border border-gray-100 dark:border-gray-800/80 hover:border-primary/40 dark:hover:border-primary/30 hover:shadow-[0_8px_20px_rgba(42,106,85,0.06)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                 <div className="flex items-center gap-3">
-                                  <div className={`w-8.5 h-8.5 rounded-[12px] flex items-center justify-center shrink-0 ${item.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-500'}`}>
+                                  <div className={`w-8.5 h-8.5 rounded-[12px] flex items-center justify-center shrink-0 ${item.category === 'Tabungan' ? 'bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400' : item.type === 'income' ? 'bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-500'}`}>
                                     {item.icon}
                                   </div>
                                   <div>
-                                    <p className="text-xs font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <p className="text-xs font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                                      {item.is_auto_sync && item.category === 'Lainnya' && (
+                                        <span className="bg-amber-500/10 text-amber-600 dark:bg-amber-500/5 dark:text-amber-400 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border border-amber-500/20">
+                                          Perlu Dikategorikan ⚠️
+                                        </span>
+                                      )}
+                                    </div>
                                     <p className="text-[9px] font-extrabold text-gray-500 dark:text-gray-300 mt-1 flex items-center gap-1.5">
-                                      {item.time} <span className="bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 px-2 py-0.5 rounded-md text-[8px] uppercase font-black">{item.source}</span>
+                                      {item.time} {item.category === 'Tabungan' ? (
+                                        <span className="bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 px-2 py-0.5 rounded-md text-[8px] uppercase font-black">TABUNGAN</span>
+                                      ) : (
+                                        <span className="bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 px-2 py-0.5 rounded-md text-[8px] uppercase font-black">{item.source}</span>
+                                      )}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-3 shrink-0">
-                                  <p className={`text-xs font-black ${item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
+                                  <p className={`text-xs font-black ${item.category === 'Tabungan' ? 'text-violet-600 dark:text-violet-400' : item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
                                     {item.type === 'income' ? '+ ' : '- '} Rp {item.amount.toLocaleString('id-ID')}
                                   </p>
                                   <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">

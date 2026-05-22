@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Target, Wallet, TrendingUp, Landmark, ArrowRight, Save, Coins, ArrowDownCircle, AlertCircle, Calendar, Edit2, Plus, Trash2, CheckCircle2, Sparkles } from "lucide-react";
+import { Target, Wallet, TrendingUp, Landmark, ArrowRight, Save, Coins, AlertCircle, Calendar, Edit2, Plus, Trash2, CheckCircle2, Sparkles } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
 import { createClient } from "@/src/utils/supabase/client";
 
@@ -9,7 +9,6 @@ export default function GoalsTab() {
     monthlySavingsTarget,
     budgetResetDate,
     updateMonthlyTargets,
-    withdrawFromSavings,
     isDemo,
     transactions,
     mainGoal,
@@ -24,10 +23,7 @@ export default function GoalsTab() {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // State untuk Withdrawal
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawReason, setWithdrawReason] = useState("");
+
 
   // State untuk Satu Impian Utama
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -72,16 +68,7 @@ export default function GoalsTab() {
     setIsEditing(false);
   };
 
-  const handleWithdraw = async () => {
-    if (!userId || isDemo) return;
-    const amount = parseInt(withdrawAmount.replace(/[^0-9]/g, "")) || 0;
-    if (amount <= 0) return;
 
-    await withdrawFromSavings(userId, amount, withdrawReason);
-    setShowWithdrawModal(false);
-    setWithdrawAmount("");
-    setWithdrawReason("");
-  };
 
   const formatCurrency = (val: string) => {
     const num = parseInt(val.replace(/[^0-9]/g, ""));
@@ -157,64 +144,7 @@ export default function GoalsTab() {
         </div>
       )}
 
-      {/* Modal Withdraw (Missing dialog layout added with high contrast design) */}
-      {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowWithdrawModal(false)} />
-          <div className="relative bg-white dark:bg-gray-900 w-full max-w-md p-8 rounded-[32px] shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-200 z-50">
-            <h3 className="text-xl font-black mb-2 flex items-center gap-2 text-rose-500">
-              <ArrowDownCircle className="w-6 h-6 text-rose-500 animate-bounce" />
-              Tarik Dana Tabungan
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-300 font-bold mb-6">
-              Pindahkan dana dari tabungan kembali ke Kas Tersedia untuk kebutuhan mendesak.
-            </p>
 
-            <div className="space-y-4 mb-8">
-              <div className="bg-slate-50 dark:bg-gray-850 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <label className="text-[10px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest block mb-1">Jumlah Penarikan</label>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-rose-500 text-lg">Rp</span>
-                  <input
-                    type="text"
-                    value={formatCurrency(withdrawAmount)}
-                    onChange={(e) => setWithdrawAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                    placeholder="0"
-                    className="w-full bg-transparent text-xl font-black outline-none text-rose-500"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-gray-850 p-4 rounded-2xl border border-gray-100 dark:border-gray-800">
-                <label className="text-[10px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest block mb-1">Keperluan / Keterangan</label>
-                <input
-                  type="text"
-                  value={withdrawReason}
-                  onChange={(e) => setWithdrawReason(e.target.value)}
-                  placeholder="Contoh: Kebutuhan medis mendadak"
-                  className="w-full bg-transparent text-sm font-semibold outline-none text-foreground"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowWithdrawModal(false)}
-                className="flex-1 bg-slate-50 dark:bg-gray-850 text-foreground hover:bg-slate-100 dark:hover:bg-gray-800 font-black py-4 rounded-2xl border border-gray-100 dark:border-gray-700/50 transition-all active:scale-[0.98] text-xs cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleWithdraw}
-                disabled={isDemo}
-                className="flex-1 bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl shadow-lg shadow-rose-500/10 transition-all active:scale-[0.98] text-xs cursor-pointer"
-              >
-                {isDemo ? "Fitur Dikunci (Demo)" : "Tarik Sekarang"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Kas Tersedia Section (Enhanced shadows, micro-interaction elevations) */}
       <div className="grid grid-cols-2 gap-3 mb-4">
@@ -432,12 +362,6 @@ export default function GoalsTab() {
                   className="bg-slate-50 dark:bg-gray-800/60 hover:bg-slate-100 dark:hover:bg-gray-700/80 text-foreground font-black py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-gray-100 dark:border-gray-700/50"
                 >
                   <Edit2 className="w-3.5 h-3.5" /> Ganti Impian
-                </button>
-                <button
-                  onClick={() => setShowWithdrawModal(true)}
-                  className="bg-rose-50 dark:bg-rose-950/20 text-rose-500 font-black py-2.5 px-4 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-rose-100/10"
-                >
-                  <ArrowDownCircle className="w-3.5 h-3.5" /> Tarik Dana
                 </button>
               </div>
             </div>

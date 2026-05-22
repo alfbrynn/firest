@@ -1,5 +1,5 @@
 import { createClient } from "../supabase/server";
-import { GeminiProvider } from "../ai/GeminiProvider";
+import { GroqProvider } from "../ai/GroqProvider";
 import { differenceInDays } from "date-fns";
 
 export class InsightService {
@@ -42,7 +42,7 @@ export class InsightService {
     }
 
     // Generate new insight
-    const insights = await GeminiProvider.generateFinancialInsight(data);
+    const insights = await GroqProvider.generateFinancialInsight(data);
     
     const supabase = await createClient();
     const { data: newInsight, error } = await supabase
@@ -57,6 +57,20 @@ export class InsightService {
     if (error) {
       console.error("Error saving new insight:", error);
       throw new Error("Failed to save insight");
+    }
+
+    // Save notification to history
+    try {
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: userId,
+          type: 'insight',
+          title: 'Analisis AI Baru! 🤖',
+          content: 'AI Firest telah memperbarui rekomendasi dan analisis keuangan khusus untukmu. Cek tab Analisis sekarang!'
+        });
+    } catch (err) {
+      console.error("Error saving insight notification:", err);
     }
 
     return { 

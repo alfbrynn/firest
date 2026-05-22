@@ -1,4 +1,4 @@
-import { GeminiProvider } from "@/src/utils/ai/GeminiProvider";
+import { GroqProvider } from "../utils/ai/GroqProvider";
 
 const PARSERS = [
   {
@@ -75,8 +75,8 @@ export class ParsingService {
    * Deteksi kategori berdasarkan kata kunci di judul/keterangan email
    */
   static detectCategoryFromKeywords(title: string, emailBody: string): string {
-    const foodRegex = /Kopi|Resto|Kfc|GoFood|Ice/i;
-    const transportRegex = /Gojek|Grab/i;
+    const foodRegex = /\b(kopi|resto|kfc|gofood|go-food|go\s+food|grabfood|grab-food|grab\s+food|ice|alfamart|indomaret)\b/i;
+    const transportRegex = /\b(gojek|go-jek|go\s+jek|grab(?:car|bike|taxi|share|express|ride)?)\b/i;
 
     const combinedText = `${title} ${emailBody}`;
 
@@ -105,7 +105,7 @@ export class ParsingService {
     } else {
       // 3. Fallback ke AI jika regex tidak ada yang cocok
       console.log("[ParsingService] Regex Gagal, Fallback ke AI...");
-      const aiResult = await GeminiProvider.extractReceiptWithAI(emailBody);
+      const aiResult = await GroqProvider.extractReceiptWithAI(emailBody);
 
       // Jika AI tidak mengembalikan tanggal, gunakan fallbackDate
       if (aiResult && !aiResult.date && fallbackDate) {
