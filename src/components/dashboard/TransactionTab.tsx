@@ -52,6 +52,7 @@ export default function TransactionTab() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const { addTransaction, updateTransaction, deleteTransaction, transactions, isDemo, fetchUserData } = useAppStore();
 
@@ -62,6 +63,8 @@ export default function TransactionTab() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
+        const connected = session.user.app_metadata?.provider === 'google' || session.user.user_metadata?.is_gmail_connected;
+        setIsGmailConnected(!!connected);
       }
     };
     fetchUser();
@@ -479,19 +482,26 @@ export default function TransactionTab() {
         <div className="text-[10px] font-black text-gray-500 dark:text-gray-300 mb-4.5 uppercase tracking-widest">Catat Transaksi</div>
 
         <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl mb-4.5">
-          {['Keluar', 'Masuk', 'Transfer'].map((type) => (
-            <button
-              key={type}
-              onClick={() => handleTxTypeChange(type.toLowerCase())}
-              disabled={isDemo}
-              className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === type.toLowerCase()
-                ? "bg-white dark:bg-gray-900 text-primary shadow-[0_2px_8px_rgba(42,106,85,0.04)] border border-primary/5 dark:border-primary/10"
-                : "text-gray-500 dark:text-gray-400 hover:text-foreground"
-                }`}
-            >
-              {type}
-            </button>
-          ))}
+          {['Keluar', 'Masuk', 'Transfer'].map((type) => {
+            const typeLower = type.toLowerCase();
+            return (
+              <button
+                key={type}
+                onClick={() => handleTxTypeChange(typeLower)}
+                disabled={isDemo}
+                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === typeLower
+                  ? typeLower === 'keluar'
+                    ? "bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]"
+                    : typeLower === 'masuk'
+                      ? "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
+                      : "bg-blue-500 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+                  : "text-gray-500 dark:text-gray-400 hover:text-foreground"
+                  }`}
+              >
+                {type}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex gap-4 mb-4.5 border-b border-gray-100 dark:border-gray-800/80 pb-2.5">
@@ -566,14 +576,25 @@ export default function TransactionTab() {
 
         <button
           onClick={handleAddTransaction}
-          className="w-full bg-primary text-white py-3 rounded-xl font-black text-xs hover:bg-primary-hover active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(42,106,85,0.15)] cursor-pointer"
+          className={`w-full text-white py-3 rounded-xl font-black text-xs active:scale-[0.98] transition-all cursor-pointer ${
+            txType === 'masuk'
+              ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_12px_rgba(16,185,129,0.25)]'
+              : txType === 'transfer'
+              ? 'bg-blue-600 hover:bg-blue-700 shadow-[0_4px_12px_rgba(37,99,235,0.25)]'
+              : 'bg-rose-600 hover:bg-rose-700 shadow-[0_4px_12px_rgba(225,29,72,0.25)]'
+          }`}
         >
-          + Simpan Transaksi
+          {txType === 'masuk'
+            ? '+ Simpan Pemasukan 💰'
+            : txType === 'transfer'
+            ? '+ Catat Transfer 🔄'
+            : '+ Catat Pengeluaran 💸'
+          }
         </button>
       </div>
 
       {/* Gmail Sync Section (Upgraded with Glows and Micro-Leaf theme details) */}
-      <div className="bg-[#e8f4ec]/80 dark:bg-emerald-950/20 border border-[#b6dfc2]/60 dark:border-emerald-900/30 rounded-[20px] p-4 mb-4.5 flex items-center justify-between group hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-300 relative overflow-hidden">
+      <div className={`bg-[#e8f4ec]/80 dark:bg-emerald-950/20 border border-[#b6dfc2]/60 dark:border-emerald-900/30 rounded-[20px] p-4 mb-4.5 flex items-center justify-between group hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-300 relative overflow-hidden ${!isGmailConnected ? 'opacity-80' : ''}`}>
         {/* Soft underlying glow gradient */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
 
@@ -583,20 +604,24 @@ export default function TransactionTab() {
           </div>
           <div>
             <p className="text-xs font-black text-primary leading-tight">Sinkronisasi Gmail</p>
-            <p className="text-[10px] font-bold text-gray-500 dark:text-emerald-200/50 mt-1">Tarik transaksi otomatis dari email</p>
+            <p className="text-[10px] font-bold text-gray-500 dark:text-emerald-200/50 mt-1">
+              {!isGmailConnected ? "Gmail belum terhubung. Aktifkan di Pengaturan." : "Tarik transaksi otomatis dari email"}
+            </p>
           </div>
         </div>
 
         <button
           onClick={handleSyncGmail}
-          disabled={isSyncing}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer ${isSyncing
-            ? "bg-gray-100 dark:bg-gray-800 text-gray-400"
+          disabled={isSyncing || !isGmailConnected}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer ${isSyncing || !isGmailConnected
+            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
             : "bg-primary text-white hover:bg-emerald-700 shadow-[0_4px_12px_rgba(42,106,85,0.1)] active:scale-[0.96]"
             }`}
         >
           {isSyncing ? (
             <>Memproses...</>
+          ) : !isGmailConnected ? (
+            <>Belum Terhubung</>
           ) : (
             <><RefreshCw className="w-3.5 h-3.5 animate-pulse" /> Sinkronkan</>
           )}
@@ -783,7 +808,11 @@ export default function TransactionTab() {
                         setEditingTxCategory(cats[0]);
                       }}
                       className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 active:scale-95 disabled:opacity-50 ${editingTxType === typeValue
-                        ? "bg-white dark:bg-gray-900 text-primary shadow-[0_2px_8px_rgba(42,106,85,0.04)] border border-primary/5 dark:border-primary/10"
+                        ? typeValue === 'expense'
+                          ? "bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]"
+                          : typeValue === 'income'
+                            ? "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
+                            : "bg-blue-500 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
                         : "text-gray-500 dark:text-gray-400 hover:text-foreground"
                         }`}
                     >
@@ -871,9 +900,20 @@ export default function TransactionTab() {
               <button
                 type="button"
                 onClick={handleSaveEditTransaction}
-                className="flex-1 bg-primary text-white py-3 rounded-xl font-black text-xs hover:bg-primary-hover active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(42,106,85,0.15)] cursor-pointer"
+                className={`flex-1 text-white py-3 rounded-xl font-black text-xs active:scale-[0.98] transition-all cursor-pointer ${
+                  editingTxType === 'income'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_12px_rgba(16,185,129,0.25)]'
+                    : editingTxType === 'transfer'
+                    ? 'bg-blue-600 hover:bg-blue-700 shadow-[0_4px_12px_rgba(37,99,235,0.25)]'
+                    : 'bg-rose-600 hover:bg-rose-700 shadow-[0_4px_12px_rgba(225,29,72,0.25)]'
+                }`}
               >
-                Simpan Perubahan
+                {editingTxType === 'income'
+                  ? 'Simpan Pemasukan 💰'
+                  : editingTxType === 'transfer'
+                  ? 'Simpan Transfer 🔄'
+                  : 'Simpan Pengeluaran 💸'
+                }
               </button>
             </div>
           </div>
