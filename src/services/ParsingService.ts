@@ -31,7 +31,7 @@ const PARSERS = [
     extract: (text: string, fallbackDate?: string) => {
       // Nominal: Ambil dari baris "Total Pembayaran Rp 109.500"
       const amountMatch = text.match(/Total Pembayaran\s*Rp\s*([\d.,]+)/i);
-      
+
       if (amountMatch) {
         return {
           title: 'Belanja Alfagift',
@@ -71,6 +71,24 @@ export class ParsingService {
     return null;
   }
 
+  /**
+   * Deteksi kategori berdasarkan kata kunci di judul/keterangan email
+   */
+  static detectCategoryFromKeywords(title: string, emailBody: string): string {
+    const foodRegex = /Kopi|Resto|Kfc|GoFood|Ice|/i;
+    const transportRegex = /Gojek|Grab/i;
+
+    const combinedText = `${title} ${emailBody}`;
+
+    if (foodRegex.test(combinedText)) {
+      return "Makanan";
+    }
+    if (transportRegex.test(combinedText)) {
+      return "Transport";
+    }
+    return "Lainnya";
+  }
+
   static async parseEmailToTransaction(emailBody: string, fallbackDate?: string) {
     // 1. Cek Regex Nominal (Filter awal)
     if (!this.hasMoneyNominal(emailBody)) {
@@ -80,17 +98,27 @@ export class ParsingService {
 
     // 2. Coba Hardcode Regex (Mandiri, Alfagift, dll)
     const regexResult = this.parseWithHardcodedRegex(emailBody, fallbackDate);
-    if (regexResult) return regexResult;
 
-    // 3. Fallback ke AI jika regex tidak ada yang cocok
-    console.log("[ParsingService] Regex Gagal, Fallback ke AI...");
-    const aiResult = await GeminiProvider.extractReceiptWithAI(emailBody);
-    
-    // Jika AI tidak mengembalikan tanggal, gunakan fallbackDate
-    if (aiResult && !aiResult.date && fallbackDate) {
-      aiResult.date = fallbackDate;
+    let result = null;
+    if (regexResult) {
+      result = regexResult;
+    } else {
+      // 3. Fallback ke AI jika regex tidak ada yang cocok
+      console.log("[ParsingService] Regex Gagal, Fallback ke AI...");
+      const aiResult = await GeminiProvider.extractReceiptWithAI(emailBody);
+
+      // Jika AI tidak mengembalikan tanggal, gunakan fallbackDate
+      if (aiResult && !aiResult.date && fallbackDate) {
+        aiResult.date = fallbackDate;
+      }
+      result = aiResult;
     }
-    
-    return aiResult;
+
+    // 4. Deteksi Kategori otomatis berdasarkan judul & isi email
+    if (result) {
+      result.category = this.detectCategoryFromKeywords(result.title, emailBody);
+    }
+
+    return result;
   }
 }
