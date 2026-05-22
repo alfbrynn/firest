@@ -14,6 +14,17 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
+// Fungsi bantuan untuk mendapatkan kategori berdasarkan tipe transaksi
+const getCategoriesForType = (type: string) => {
+  if (type === 'masuk' || type === 'income') {
+    return ['Uang Saku', 'Gaji', 'Bonus', 'Hasil Jualan', 'Lainnya'];
+  }
+  if (type === 'transfer') {
+    return ['Transfer', 'Lainnya'];
+  }
+  return ['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'];
+};
+
 // Fungsi bantuan untuk mendapatkan string YYYY-MM-DD dalam waktu lokal
 const getLocalDateString = (d: Date = new Date()) => {
   const year = d.getFullYear();
@@ -29,6 +40,12 @@ export default function TransactionTab() {
   const [txTitle, setTxTitle] = useState("");
   const [txAmount, setTxAmount] = useState("");
   const [txDate, setTxDate] = useState(getLocalDateString());
+
+  const handleTxTypeChange = (newType: string) => {
+    setTxType(newType);
+    const availableCategories = getCategoriesForType(newType);
+    setTxCat(availableCategories[0]);
+  };
 
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -465,7 +482,7 @@ export default function TransactionTab() {
           {['Keluar', 'Masuk', 'Transfer'].map((type) => (
             <button
               key={type}
-              onClick={() => setTxType(type.toLowerCase())}
+              onClick={() => handleTxTypeChange(type.toLowerCase())}
               disabled={isDemo}
               className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === type.toLowerCase()
                 ? "bg-white dark:bg-gray-900 text-primary shadow-[0_2px_8px_rgba(42,106,85,0.04)] border border-primary/5 dark:border-primary/10"
@@ -504,7 +521,7 @@ export default function TransactionTab() {
         </div>
 
         <div className="flex gap-1.5 flex-wrap mb-4.5">
-          {['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'].map((tag) => (
+          {getCategoriesForType(txType).map((tag) => (
             <button
               key={tag}
               onClick={() => setTxCat(tag)}
@@ -760,7 +777,11 @@ export default function TransactionTab() {
                       key={type}
                       type="button"
                       disabled={editingTxIsAutoSync}
-                      onClick={() => setEditingTxType(typeValue)}
+                      onClick={() => {
+                        setEditingTxType(typeValue);
+                        const cats = getCategoriesForType(typeValue);
+                        setEditingTxCategory(cats[0]);
+                      }}
                       className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 active:scale-95 disabled:opacity-50 ${editingTxType === typeValue
                         ? "bg-white dark:bg-gray-900 text-primary shadow-[0_2px_8px_rgba(42,106,85,0.04)] border border-primary/5 dark:border-primary/10"
                         : "text-gray-500 dark:text-gray-400 hover:text-foreground"
@@ -807,7 +828,7 @@ export default function TransactionTab() {
               <div className="flex flex-col">
                 <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Kategori</label>
                 <div className="flex gap-1.5 flex-wrap">
-                  {['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'].map((tag) => (
+                  {getCategoriesForType(editingTxType).map((tag) => (
                     <button
                       key={tag}
                       type="button"
