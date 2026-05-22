@@ -13,7 +13,8 @@ export default function InsightTab() {
     transactions,
     monthlyIncomeTarget,
     monthlySavingsTarget,
-    currentStreak
+    currentStreak,
+    triggerWeeklyReviewXP
   } = useAppStore();
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -35,6 +36,7 @@ export default function InsightTab() {
           const nextDate = new Date(new Date(last.created_at).getTime() + 7 * 24 * 60 * 60 * 1000);
           setNextAvailableDate(nextDate.toISOString());
         }
+        await triggerWeeklyReviewXP();
       } catch (err) {
         console.error("Failed to load insight:", err);
       } finally {
@@ -42,7 +44,7 @@ export default function InsightTab() {
       }
     }
     loadInsight();
-  }, [isDemo]);
+  }, [isDemo, triggerWeeklyReviewXP]);
 
   const totalBudget = Math.max(0, monthlyIncomeTarget - monthlySavingsTarget);
   const budgetCategories = {
@@ -73,6 +75,7 @@ export default function InsightTab() {
       if (result.insight) {
         setCachedInsight(result.insight);
         setNextAvailableDate(result.nextAvailableDate);
+        await triggerWeeklyReviewXP();
       }
     } catch (err) {
       console.error("Error generating insight:", err);
@@ -126,7 +129,7 @@ export default function InsightTab() {
     }));
   }, [isDemo, cachedInsight]);
 
-  const isCooldown = false; // Temporarily disabled cooldown for testing
+  const isCooldown = nextAvailableDate && new Date() < new Date(nextAvailableDate) && !isDemo;
   const daysRemaining = nextAvailableDate ? Math.max(0, differenceInDays(new Date(nextAvailableDate), new Date())) : 0;
 
   if (isLoadingInitial) {

@@ -31,8 +31,7 @@ export class InsightService {
 
     if (lastInsight) {
       const daysSinceLast = differenceInDays(new Date(), new Date(lastInsight.created_at));
-      // Temporarily disabled cooldown for testing
-      if (false && daysSinceLast < 7) {
+      if (daysSinceLast < 7) {
         return { 
           insight: lastInsight, 
           isNew: false, 

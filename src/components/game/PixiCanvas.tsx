@@ -35,7 +35,7 @@ const getNextLevelXp = (currentXp: number) => {
 
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid } = useAppStore();
+    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid, statusBarMessage } = useAppStore();
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
@@ -315,7 +315,12 @@ export default function PixiCanvas() {
 
                     <div className="w-px h-6 bg-gray-300/30 shrink-0"></div>
 
-                    <div className="w-[120px] flex flex-col justify-center">
+                    <div className="w-[120px] flex flex-col justify-center relative">
+                        {statusBarMessage && (
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-xs animate-bounce whitespace-nowrap z-50">
+                                {statusBarMessage}
+                            </div>
+                        )}
                         <div className="flex justify-between text-[9px] font-bold mb-1">
                             <span className="text-muted-foreground flex items-center gap-0.5">
                                 <Zap className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />
@@ -329,6 +334,9 @@ export default function PixiCanvas() {
                                 style={{ width: `${progressPercent}%` }}
                             ></div>
                         </div>
+                        <p className="text-[7.5px] font-bold text-muted-foreground mt-1 text-center whitespace-nowrap">
+                            Kamu butuh {nextXp - xp} XP lagi untuk naik level
+                        </p>
                     </div>
 
                     <div className="w-px h-6 bg-gray-300/30 shrink-0"></div>

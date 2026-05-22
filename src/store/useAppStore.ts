@@ -45,6 +45,8 @@ interface AppState {
   monthlySavingsTarget: number;
   budgetResetDate: number; // 1-31
   hasCompletedTutorial: boolean;
+  activeToast: { message: string; type: 'success' | 'warning' | 'levelUp' | 'streak' | 'onboarding'; subtext?: string } | null;
+  statusBarMessage: string | null;
   
   completeTutorial: () => void;
   fetchUserData: (userId: string) => Promise<void>;
@@ -58,6 +60,13 @@ interface AppState {
   updateMainGoal: (userId: string, name: string, target: number) => Promise<void>;
   deleteMainGoal: (userId: string) => Promise<void>;
   loadDemoData: () => void;
+  showToast: (message: string, type: 'success' | 'warning' | 'levelUp' | 'streak' | 'onboarding', subtext?: string) => void;
+  clearToast: () => void;
+  showStatusBarMessage: (msg: string, duration?: number) => void;
+  triggerOnboardingSequence: (userId: string) => Promise<void>;
+  checkDailyLoginXP: (userId?: string) => Promise<void>;
+  triggerWeeklyReviewXP: (userId?: string) => Promise<void>;
+  checkStreakAndActivity: (userId?: string) => Promise<void>;
 }
 
 const LEVEL_NAMES = ['Bibit', 'Tunas', 'Pohon Muda', 'Hutan', 'Hutan Hujan', 'Ekosistem'];
@@ -71,12 +80,16 @@ export const calculateLevelFromXp = (xp: number) => {
   return Math.min(12, Math.floor(xp / 500) + 1);
 };
 
-export const calculateHealthFromTransactions = (transactions: Transaction[], resetDate: number = 1) => {
+export const calculateHealthFromTransactions = (
+  transactions: Transaction[], 
+  resetDate: number = 1,
+  monthlyIncomeTarget: number = 0,
+  monthlySavingsTarget: number = 0
+) => {
   const now = new Date();
   let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), resetDate);
   
   if (now.getDate() < resetDate) {
-    // We are still in the period that started last month
     startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
   }
   
@@ -88,12 +101,70 @@ export const calculateHealthFromTransactions = (transactions: Transaction[], res
     .filter(t => {
       const d = new Date(t.date);
       return d >= startOfPeriod && d < endOfPeriod;
-    })
-    .reduce((sum, t) => sum + t.amount, 0);
+    });
 
-  // Fallback budget if targets not set
-  const monthlyBudget = 2250000; 
-  return expensesThisPeriod > monthlyBudget ? 50 : 100;
+  const totalSpent = expensesThisPeriod.reduce((sum, t) => sum + t.amount, 0);
+
+  if (monthlyIncomeTarget === 0) {
+    const monthlyBudget = 2250000; 
+    return totalSpent > monthlyBudget ? 50 : 100;
+  }
+
+  const totalBudget = Math.max(0, monthlyIncomeTarget - monthlySavingsTarget);
+  const budgets: Record<string, number> = {
+    'Makanan': Math.round(totalBudget * 0.4),
+    'Transport': Math.round(totalBudget * 0.15),
+    'Belanja': Math.round(totalBudget * 0.15),
+    'Hiburan': Math.round(totalBudget * 0.1),
+    'Tagihan': Math.round(totalBudget * 0.15),
+    'Lainnya': Math.round(totalBudget * 0.05)
+  };
+
+  const categoryExpenses: Record<string, number> = {
+    'Makanan': 0, 'Transport': 0, 'Belanja': 0, 'Hiburan': 0, 'Tagihan': 0, 'Lainnya': 0
+  };
+  expensesThisPeriod.forEach(t => {
+    if (categoryExpenses[t.category] !== undefined) {
+      categoryExpenses[t.category] += t.amount;
+    }
+  });
+
+  let health = 100;
+  Object.keys(budgets).forEach(cat => {
+    const limit = budgets[cat];
+    const spent = categoryExpenses[cat];
+    if (spent > limit && limit > 0) {
+      health -= 15;
+    }
+  });
+
+  if (totalSpent > 0.9 * totalBudget) {
+    health -= 30;
+  }
+
+  // Check weekly saving rate
+  const startOfWeek = new Date();
+  startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+  startOfWeek.setHours(0,0,0,0);
+  
+  const weeklyTxs = transactions.filter(t => new Date(t.date) >= startOfWeek);
+  const weeklyIncome = weeklyTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const weeklyExpense = weeklyTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+  let weeklySavingRate = 0;
+  if (weeklyIncome > 0) {
+    weeklySavingRate = ((weeklyIncome - weeklyExpense) / weeklyIncome) * 100;
+  } else {
+    if (weeklyExpense <= (totalBudget / 4)) {
+      weeklySavingRate = 25; // Treat as positive
+    }
+  }
+
+  if (weeklySavingRate > 0) {
+    health += 10;
+  }
+
+  return Math.min(100, Math.max(0, health));
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -114,6 +185,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   monthlySavingsTarget: 0,
   budgetResetDate: 1,
   hasCompletedTutorial: false,
+  activeToast: null,
+  statusBarMessage: null,
 
   completeTutorial: () => set({ hasCompletedTutorial: true }),
 
@@ -246,6 +319,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         hasCompletedTutorial: profile?.has_completed_tutorial || false,
         isLoading: false
       });
+
+      if (userId) {
+        get().checkStreakAndActivity(userId);
+        get().checkDailyLoginXP(userId);
+      }
     } catch (err) {
       console.error("Error fetching user data:", err);
       set({ isLoading: false });
@@ -317,35 +395,93 @@ export const useAppStore = create<AppState>((set, get) => ({
         title: insertedTx.title,
         amount: Number(insertedTx.amount),
         category: insertedTx.category,
-        type: insertedTx.type,
+        type: insertedTx.type as any,
         date: insertedTx.date,
         is_auto_sync: insertedTx.is_auto_sync
       };
 
       // 2. Beri bonus XP per transaksi
       const state = get();
-      const xpReward = mappedNewTx.type === 'income' ? 50 : 5;
+      const isOnboarding = state.monthlyIncomeTarget === 0;
+      const xpReward = isOnboarding ? 0 : 10;
       const newXp = state.xp + xpReward;
       const newLevelNum = calculateLevelFromXp(newXp);
+      const isLevelUp = !isOnboarding && newLevelNum > state.levelNumber;
+
+      // Calculate new health
+      const newTxs = [mappedNewTx, ...state.transactions];
+      const newHealth = calculateHealthFromTransactions(newTxs, state.budgetResetDate, state.monthlyIncomeTarget, state.monthlySavingsTarget);
 
       // 3. Update state di DB Supabase
       await supabase
         .from('gamification_state')
         .update({
           xp: newXp,
-          level: newLevelNum
+          level: newLevelNum,
+          forest_health: newHealth
         })
         .eq('user_id', userId);
 
       // 4. Update Zustand State lokal
-      const newTxs = [mappedNewTx, ...state.transactions];
       set({
         transactions: newTxs,
         xp: newXp,
         levelNumber: newLevelNum,
         level: getLevelName(newLevelNum),
-        forestHealth: calculateHealthFromTransactions(newTxs)
+        forestHealth: newHealth
       });
+
+      // If not onboarding, run gamification triggers
+      if (!isOnboarding) {
+        // Floating status bar XP notification
+        get().showStatusBarMessage("+10 ✨");
+
+        // Trigger streak & activity update
+        get().checkStreakAndActivity(userId);
+
+        // Check for Level Up
+        if (isLevelUp) {
+          get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
+        }
+
+        // Check health warning
+        if (newHealth < 50 && state.forestHealth >= 50) {
+          get().showToast("Kesehatan Kritis! ⚠️", "warning", "Kesehatan hutanmu turun di bawah 50%. Kurangi pengeluaran non-primer agar tamanmu tetap subur!");
+        }
+
+        // Check category budget warnings
+        if (mappedNewTx.type === 'expense') {
+          const totalBudget = Math.max(0, state.monthlyIncomeTarget - state.monthlySavingsTarget);
+          if (totalBudget > 0) {
+            const budgets: Record<string, number> = {
+              'Makanan': Math.round(totalBudget * 0.4),
+              'Transport': Math.round(totalBudget * 0.15),
+              'Belanja': Math.round(totalBudget * 0.15),
+              'Hiburan': Math.round(totalBudget * 0.1),
+              'Tagihan': Math.round(totalBudget * 0.15),
+              'Lainnya': Math.round(totalBudget * 0.05)
+            };
+
+            const catLimit = budgets[mappedNewTx.category];
+            if (catLimit > 0) {
+              // Sum current category spent
+              const catSpent = newTxs
+                .filter(t => t.type === 'expense' && t.category === mappedNewTx.category)
+                .reduce((sum, t) => sum + t.amount, 0);
+
+              const previousSpent = catSpent - mappedNewTx.amount;
+              const previousPct = (previousSpent / catLimit) * 100;
+              const currentPct = (catSpent / catLimit) * 100;
+
+              if (currentPct > 100 && previousPct <= 100) {
+                get().showToast("Anggaran Melebihi Batas! ⚠️", "warning", `Pengeluaran untuk kategori ${mappedNewTx.category} telah melebihi budget bulanan!`);
+              } else if (currentPct > 80 && previousPct <= 80) {
+                get().showToast("Anggaran Hampir Habis! ⚠️", "warning", `Pengeluaran untuk kategori ${mappedNewTx.category} sudah terpakai lebih dari 80%!`);
+              }
+            }
+          }
+        }
+      }
 
     } catch (err) {
       console.error("Error saving transaction to DB:", err);
@@ -556,6 +692,292 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ mainGoal: null });
     } catch (err) {
       console.error("Error deleting main goal from DB:", err);
+    }
+  },
+
+  showToast: (message, type, subtext) => {
+    set({ activeToast: { message, type, subtext } });
+  },
+
+  clearToast: () => {
+    set({ activeToast: null });
+  },
+
+  showStatusBarMessage: (msg, duration = 3000) => {
+    set({ statusBarMessage: msg });
+    setTimeout(() => {
+      if (get().statusBarMessage === msg) {
+        set({ statusBarMessage: null });
+      }
+    }, duration);
+  },
+
+  triggerOnboardingSequence: async (userId: string) => {
+    if (!userId) return;
+    const supabase = createClient();
+    const state = get();
+    const currentXp = state.xp;
+    const newXp = currentXp + 70;
+    const newLevelNum = calculateLevelFromXp(newXp);
+
+    try {
+      await supabase
+        .from('gamification_state')
+        .update({
+          xp: newXp,
+          level: newLevelNum
+        })
+         .eq('user_id', userId);
+    } catch (err) {
+      console.error("Error updating gamification state in onboarding:", err);
+    }
+
+    set({
+      xp: newXp,
+      levelNumber: newLevelNum,
+      level: getLevelName(newLevelNum)
+    });
+
+    get().showToast(
+      "Selamat Datang! 🌳",
+      "onboarding",
+      "Akunmu berhasil dibuat dan hutanmu siap untuk tumbuh bersama finansialmu!"
+    );
+
+    get().showStatusBarMessage("🌱 Hutan dibuat... +50 XP");
+
+    setTimeout(() => {
+      get().showStatusBarMessage("🎯 Target diset... +20 XP");
+    }, 3000);
+
+    setTimeout(() => {
+      get().showStatusBarMessage("🔥 Streak dimulai!");
+    }, 6000);
+  },
+
+  checkDailyLoginXP: async (userId?: string) => {
+    const supabase = createClient();
+    let activeUserId = userId;
+    if (!activeUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      activeUserId = user?.id || '';
+    }
+    if (!activeUserId) return;
+
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    let lastLoginXpDate: string | null = null;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('last_login_xp_date')
+        .eq('id', activeUserId)
+        .single();
+      if (!error && data) {
+        lastLoginXpDate = data.last_login_xp_date;
+      }
+    } catch (e) {
+      console.warn("Could not query last_login_xp_date from DB", e);
+    }
+
+    if (!lastLoginXpDate) {
+      lastLoginXpDate = localStorage.getItem(`firest_last_login_xp_${activeUserId}`);
+    }
+
+    if (lastLoginXpDate !== todayStr) {
+      const state = get();
+      const newXp = state.xp + 5;
+      const newLevelNum = calculateLevelFromXp(newXp);
+      const isLevelUp = newLevelNum > state.levelNumber;
+
+      try {
+        await supabase
+          .from('gamification_state')
+          .update({
+            xp: newXp,
+            level: newLevelNum
+          })
+          .eq('user_id', activeUserId);
+
+        await supabase
+          .from('profiles')
+          .update({ last_login_xp_date: todayStr })
+          .eq('id', activeUserId);
+      } catch (err) {
+        console.error("Error updating daily login state:", err);
+      }
+
+      localStorage.setItem(`firest_last_login_xp_${activeUserId}`, todayStr);
+
+      set({
+        xp: newXp,
+        levelNumber: newLevelNum,
+        level: getLevelName(newLevelNum)
+      });
+
+      get().showStatusBarMessage("+5 XP Login Harian ☀️");
+
+      if (isLevelUp) {
+        get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
+      }
+    }
+  },
+
+  triggerWeeklyReviewXP: async (userId?: string) => {
+    const supabase = createClient();
+    let activeUserId = userId;
+    if (!activeUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      activeUserId = user?.id || '';
+    }
+    if (!activeUserId) return;
+
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    monday.setHours(0,0,0,0);
+    const currentWeekStr = monday.toISOString().split('T')[0];
+
+    const lastWeeklyReview = localStorage.getItem(`firest_last_weekly_review_${activeUserId}`);
+
+    if (lastWeeklyReview !== currentWeekStr) {
+      const state = get();
+      const newXp = state.xp + 15;
+      const newLevelNum = calculateLevelFromXp(newXp);
+      const isLevelUp = newLevelNum > state.levelNumber;
+
+      try {
+        await supabase
+          .from('gamification_state')
+          .update({
+            xp: newXp,
+            level: newLevelNum
+          })
+          .eq('user_id', activeUserId);
+      } catch (err) {
+        console.error("Error updating weekly review state in DB:", err);
+      }
+
+      localStorage.setItem(`firest_last_weekly_review_${activeUserId}`, currentWeekStr);
+
+      set({
+        xp: newXp,
+        levelNumber: newLevelNum,
+        level: getLevelName(newLevelNum)
+      });
+
+      get().showStatusBarMessage("+15 XP Weekly Review 📈");
+
+      get().showToast(
+        "Weekly Review! 📈",
+        "success",
+        "Selamat! Kamu mendapatkan +15 XP karena menganalisis keuanganmu minggu ini."
+      );
+
+      if (isLevelUp) {
+        get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
+      }
+    }
+  },
+
+  checkStreakAndActivity: async (userId?: string) => {
+    const supabase = createClient();
+    let activeUserId = userId;
+    if (!activeUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      activeUserId = user?.id || '';
+    }
+    if (!activeUserId) return;
+
+    const d = new Date();
+    const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    const yesterday = new Date(d);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+    let lastActivityDate: string | null = null;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('last_activity_date')
+        .eq('id', activeUserId)
+        .single();
+      if (!error && data) {
+        lastActivityDate = data.last_activity_date;
+      }
+    } catch (e) {
+      console.warn("Could not query last_activity_date from DB", e);
+    }
+
+    if (!lastActivityDate) {
+      lastActivityDate = localStorage.getItem(`firest_last_activity_${activeUserId}`);
+    }
+
+    const state = get();
+    let newStreak = state.currentStreak;
+    let newShield = state.streakShield;
+    let updateStreak = false;
+
+    if (!lastActivityDate) {
+      newStreak = 1;
+      updateStreak = true;
+    } else if (lastActivityDate === todayStr) {
+      return;
+    } else if (lastActivityDate === yesterdayStr) {
+      newStreak = state.currentStreak + 1;
+      updateStreak = true;
+    } else {
+      if (state.streakShield > 0) {
+        newShield = state.streakShield - 1;
+        updateStreak = true;
+        get().showToast(
+          "Streak Shield Digunakan! 🛡️",
+          "streak",
+          "Hampir saja! Streak kamu diselamatkan oleh Streak Shield."
+        );
+      } else {
+        newStreak = 1;
+        updateStreak = true;
+      }
+    }
+
+    if (updateStreak) {
+      try {
+        await supabase
+          .from('gamification_state')
+          .update({
+            current_streak: newStreak,
+            streak_shield: newShield
+          })
+          .eq('user_id', activeUserId);
+
+        await supabase
+          .from('profiles')
+          .update({ last_activity_date: todayStr })
+          .eq('id', activeUserId);
+      } catch (err) {
+        console.error("Error updating streak/activity state in DB:", err);
+      }
+
+      localStorage.setItem(`firest_last_activity_${activeUserId}`, todayStr);
+
+      set({
+        currentStreak: newStreak,
+        streakShield: newShield
+      });
+
+      get().showStatusBarMessage("Streak Terjaga! 🔥");
+
+      if (newStreak > 1 && newStreak % 7 === 0) {
+        get().showToast(
+          "Milestone Streak! 🔥",
+          "streak",
+          `Hebat! Kamu telah mempertahankan streak selama ${newStreak} hari berturut-turut! Keep it up!`
+        );
+      }
     }
   }
 }));

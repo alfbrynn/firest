@@ -65,8 +65,8 @@ export default function Home() {
 
     return (
         <main className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans">
-            {/* Tutorial Overlay */}
-            {!isLoading && !hasCompletedTutorial && monthlyIncomeTarget > 0 && <TutorialOverlay />}
+            {/* Toast Notifications */}
+            <ToastManager />
 
             {/* Onboarding Overlay */}
             {!isLoading && !isDemo && monthlyIncomeTarget === 0 && <OnboardingOverlay userId={user.id} />}
@@ -127,5 +127,111 @@ export default function Home() {
 
             </div>
         </main>
+    );
+}
+
+function ToastManager() {
+    const { activeToast, clearToast } = useAppStore();
+
+    useEffect(() => {
+        if (activeToast && activeToast.type !== 'levelUp' && activeToast.type !== 'onboarding') {
+            const timer = setTimeout(() => {
+                clearToast();
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [activeToast, clearToast]);
+
+    if (!activeToast) return null;
+
+    const { message, type, subtext } = activeToast;
+
+    if (type === 'levelUp') {
+        return (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-300">
+                <div className="bg-gradient-to-b from-amber-50 to-amber-100 dark:from-gray-900 dark:to-gray-800 w-full max-w-md p-8 rounded-[36px] shadow-[0_25px_60px_rgba(245,158,11,0.2)] border-2 border-amber-400 dark:border-amber-500/30 text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div className="absolute -top-10 -left-10 w-32 h-32 bg-amber-400/20 rounded-full blur-2xl pointer-events-none animate-pulse"></div>
+                    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-yellow-400/20 rounded-full blur-2xl pointer-events-none animate-pulse"></div>
+
+                    <div className="w-24 h-24 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-amber-500/20 border-4 border-white dark:border-gray-800 animate-bounce">
+                        <span className="text-4xl">👑</span>
+                    </div>
+
+                    <h2 className="text-3xl font-extrabold text-amber-900 dark:text-amber-300 tracking-tight leading-tight mb-2">
+                        {message}
+                    </h2>
+                    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-6 px-4">
+                        {subtext}
+                    </p>
+
+                    <button
+                        onClick={clearToast}
+                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-black py-4 rounded-2xl shadow-md transition-all active:scale-95 cursor-pointer text-sm tracking-wide"
+                    >
+                        Luar Biasa! ✨
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (type === 'onboarding') {
+        return (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                <div className="bg-white dark:bg-gray-900 w-full max-w-sm p-6 rounded-[28px] shadow-2xl border border-emerald-500/20 dark:border-emerald-500/10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/30">
+                        <span className="text-3xl">🌱</span>
+                    </div>
+                    <h3 className="text-xl font-black text-foreground mb-2">{message}</h3>
+                    <p className="text-xs text-muted-foreground font-medium leading-relaxed mb-6 px-2">
+                        {subtext}
+                    </p>
+                    <button
+                        onClick={clearToast}
+                        className="w-full bg-primary hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all active:scale-95 cursor-pointer text-xs"
+                    >
+                        Mulai Jelajahi
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    let icon = "✨";
+    let bgStyle = "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-foreground";
+    let iconBg = "bg-primary/10 text-primary";
+
+    if (type === 'warning') {
+        icon = "⚠️";
+        bgStyle = "bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/20 text-rose-950 dark:text-rose-200";
+        iconBg = "bg-rose-500/10 text-rose-500";
+    } else if (type === 'streak') {
+        icon = "🔥";
+        bgStyle = "bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/20 text-orange-950 dark:text-orange-200";
+        iconBg = "bg-orange-500/10 text-orange-500";
+    } else if (type === 'success') {
+        icon = "✅";
+        bgStyle = "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/20 text-emerald-950 dark:text-emerald-200";
+        iconBg = "bg-emerald-500/10 text-emerald-500";
+    }
+
+    return (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[120] w-full max-w-sm px-4 animate-in slide-in-from-top-4 duration-300">
+            <div className={`flex items-start gap-3 p-4 rounded-2xl shadow-xl border ${bgStyle} relative overflow-hidden`}>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold ${iconBg}`}>
+                    {icon}
+                </div>
+                <div className="flex-1 min-w-0 pr-4">
+                    <h4 className="text-xs font-bold leading-tight">{message}</h4>
+                    {subtext && <p className="text-[10px] opacity-80 mt-1 font-medium leading-normal">{subtext}</p>}
+                </div>
+                <button
+                    onClick={clearToast}
+                    className="absolute top-3 right-3 text-muted-foreground hover:text-foreground opacity-60 hover:opacity-100 transition-opacity text-xs font-bold"
+                >
+                    ✕
+                </button>
+            </div>
+        </div>
     );
 }
