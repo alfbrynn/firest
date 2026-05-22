@@ -51,6 +51,8 @@ interface AppState {
   updateMonthlyTargets: (userId: string, income: number, savings: number, resetDate: number) => Promise<void>;
   withdrawFromSavings: (userId: string, amount: number, reason: string) => Promise<void>;
   addTransaction: (tx: Omit<Transaction, 'id'>, userId: string) => Promise<void>;
+  updateTransaction: (txId: string, updatedFields: Partial<Transaction>, userId: string) => Promise<void>;
+  deleteTransaction: (txId: string, userId: string) => Promise<void>;
   updateGamificationState: (userId: string, updates: Partial<{ xp: number; levelNumber: number; forestHealth: number; currentStreak: number; streakShield: number }>) => Promise<void>;
   syncForestTile: (tile: Omit<ForestTile, 'id'>, userId: string) => Promise<void>;
   updateMainGoal: (userId: string, name: string, target: number) => Promise<void>;
@@ -226,6 +228,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const resetDate = profile?.budget_reset_date || 1;
 
       set({
+        isDemo: false,
         fullName: name,
         avatarUrl: avatar,
         xp: gameState.xp,
@@ -346,6 +349,89 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     } catch (err) {
       console.error("Error saving transaction to DB:", err);
+    }
+  },
+
+  updateTransaction: async (txId: string, updatedFields: Partial<Transaction>, userId: string) => {
+    const state = get();
+    if (state.isDemo) {
+      const newTxs = state.transactions.map(t => 
+        t.id === txId ? { ...t, ...updatedFields } : t
+      );
+      set({
+        transactions: newTxs,
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+      });
+      return;
+    }
+
+    const supabase = createClient();
+    try {
+      const { data: updatedTx } = await supabase
+        .from('transactions')
+        .update({
+          title: updatedFields.title,
+          amount: updatedFields.amount,
+          category: updatedFields.category,
+          type: updatedFields.type,
+          date: updatedFields.date,
+        })
+        .eq('id', txId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (!updatedTx) return;
+
+      const mappedUpdatedTx: Transaction = {
+        id: updatedTx.id,
+        title: updatedTx.title,
+        amount: Number(updatedTx.amount),
+        category: updatedTx.category,
+        type: updatedTx.type as any,
+        date: updatedTx.date,
+        is_auto_sync: updatedTx.is_auto_sync
+      };
+
+      const newTxs = state.transactions.map(t => 
+        t.id === txId ? mappedUpdatedTx : t
+      );
+
+      set({
+        transactions: newTxs,
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+      });
+    } catch (err) {
+      console.error("Error updating transaction in DB:", err);
+    }
+  },
+
+  deleteTransaction: async (txId: string, userId: string) => {
+    const state = get();
+    if (state.isDemo) {
+      const newTxs = state.transactions.filter(t => t.id !== txId);
+      set({
+        transactions: newTxs,
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+      });
+      return;
+    }
+
+    const supabase = createClient();
+    try {
+      await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', txId)
+        .eq('user_id', userId);
+
+      const newTxs = state.transactions.filter(t => t.id !== txId);
+      set({
+        transactions: newTxs,
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+      });
+    } catch (err) {
+      console.error("Error deleting transaction from DB:", err);
     }
   },
 

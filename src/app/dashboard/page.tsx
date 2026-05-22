@@ -5,13 +5,14 @@ import { createClient } from "@/src/utils/supabase/client";
 import DashboardPanel from "@/src/components/dashboard/DashboardPanel";
 import PixiCanvas from "@/src/components/game/PixiCanvas";
 import TutorialOverlay from "@/src/components/dashboard/TutorialOverlay";
+import OnboardingOverlay from "@/src/components/dashboard/OnboardingOverlay";
 import { Bell, Settings, Leaf } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
-    const { fetchUserData, fullName, avatarUrl, isLoading, hasCompletedTutorial } = useAppStore();
+    const { fetchUserData, fullName, avatarUrl, isLoading, hasCompletedTutorial, monthlyIncomeTarget, isDemo } = useAppStore();
     const [user, setUser] = useState<any>(null);
     const [isChecking, setIsChecking] = useState(true); // Tambahkan state loading
     const router = useRouter();
@@ -66,7 +67,10 @@ export default function Home() {
     return (
         <main className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground font-sans">
             {/* Tutorial Overlay */}
-            {!isLoading && !hasCompletedTutorial && <TutorialOverlay />}
+            {!isLoading && !hasCompletedTutorial && monthlyIncomeTarget > 0 && <TutorialOverlay />}
+
+            {/* Onboarding Overlay */}
+            {!isLoading && !isDemo && monthlyIncomeTarget === 0 && <OnboardingOverlay userId={user.id} />}
 
             {/* Navbar */}
             <header className="flex justify-between items-center px-4 sm:px-8 py-3 z-20 relative bg-background border-b border-gray-100 dark:border-gray-800 shadow-sm lg:shadow-none">

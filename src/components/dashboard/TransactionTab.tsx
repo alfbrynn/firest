@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X, Leaf } from "lucide-react";
-import { useAppStore } from "@/src/store/useAppStore";
+import { TrendingUp, Mail, Utensils, ShoppingBag, Car, Landmark, Plus, ChevronDown, ChevronRight, Search, Filter, RefreshCw, CheckCircle2, AlertCircle, X, Leaf, Edit2, Trash2 } from "lucide-react";
+import { useAppStore, Transaction } from "@/src/store/useAppStore";
 import { createClient } from "@/src/utils/supabase/client";
 
 // Fungsi bantuan untuk memilih ikon berdasarkan kategori
@@ -12,6 +12,17 @@ const getCategoryIcon = (category: string) => {
     case 'Tagihan': return <Landmark className="w-5 h-5" />;
     default: return <Plus className="w-5 h-5" />;
   }
+};
+
+// Fungsi bantuan untuk mendapatkan kategori berdasarkan tipe transaksi
+const getCategoriesForType = (type: string) => {
+  if (type === 'masuk' || type === 'income') {
+    return ['Uang Saku', 'Gaji', 'Bonus', 'Hasil Jualan', 'Lainnya'];
+  }
+  if (type === 'transfer') {
+    return ['Transfer', 'Lainnya'];
+  }
+  return ['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'];
 };
 
 // Fungsi bantuan untuk mendapatkan string YYYY-MM-DD dalam waktu lokal
@@ -30,13 +41,20 @@ export default function TransactionTab() {
   const [txAmount, setTxAmount] = useState("");
   const [txDate, setTxDate] = useState(getLocalDateString());
 
+  const handleTxTypeChange = (newType: string) => {
+    setTxType(newType);
+    const availableCategories = getCategoriesForType(newType);
+    setTxCat(availableCategories[0]);
+  };
+
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isGmailConnected, setIsGmailConnected] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const { addTransaction, transactions, isDemo, fetchUserData } = useAppStore();
+  const { addTransaction, updateTransaction, deleteTransaction, transactions, isDemo, fetchUserData } = useAppStore();
 
   // Ambil user ID untuk simpan transaksi di database
   useState(() => {
@@ -45,6 +63,8 @@ export default function TransactionTab() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
+        const connected = session.user.app_metadata?.provider === 'google' || session.user.user_metadata?.is_gmail_connected;
+        setIsGmailConnected(!!connected);
       }
     };
     fetchUser();
@@ -113,6 +133,98 @@ export default function TransactionTab() {
       setTxAmount(parseInt(numericValue).toLocaleString('id-ID'));
     } else {
       setTxAmount("");
+    }
+  };
+
+  // State for Editing
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTxId, setEditingTxId] = useState<string | null>(null);
+  const [editingTxTitle, setEditingTxTitle] = useState("");
+  const [editingTxAmount, setEditingTxAmount] = useState("");
+  const [editingTxType, setEditingTxType] = useState<'income' | 'expense' | 'transfer'>('expense');
+  const [editingTxCategory, setEditingTxCategory] = useState("Makanan");
+  const [editingTxDate, setEditingTxDate] = useState("");
+  const [editingTxIsAutoSync, setEditingTxIsAutoSync] = useState(false);
+
+  // State for Deleting
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingTxId, setDeletingTxId] = useState<string | null>(null);
+
+  const openEditModal = (item: any) => {
+    setEditingTxId(item.id);
+    setEditingTxTitle(item.title);
+    setEditingTxAmount(item.amount.toLocaleString('id-ID'));
+    setEditingTxType(item.type);
+    setEditingTxCategory(item.category);
+    const formattedDate = item.date ? item.date.substring(0, 10) : getLocalDateString();
+    setEditingTxDate(formattedDate);
+    setEditingTxIsAutoSync(item.is_auto_sync);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numericValue = e.target.value.replace(/[^0-9]/g, "");
+    if (numericValue) {
+      setEditingTxAmount(parseInt(numericValue).toLocaleString('id-ID'));
+    } else {
+      setEditingTxAmount("");
+    }
+  };
+
+  const handleSaveEditTransaction = async () => {
+    if (!editingTxId || !userId) return;
+    if (!editingTxTitle || !editingTxAmount) {
+      showToast("Nama dan nominal transaksi harus diisi.", "error");
+      return;
+    }
+
+    const cleanAmount = parseInt(editingTxAmount.replace(/[^0-9]/g, ""));
+    if (isNaN(cleanAmount)) {
+      showToast("Nominal transaksi tidak valid.", "error");
+      return;
+    }
+
+    const [year, month, day] = editingTxDate.split('-').map(Number);
+    const now = new Date();
+    const selectedDate = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds());
+
+    const updatedFields: Partial<Transaction> = {
+      title: editingTxTitle,
+      category: editingTxCategory,
+      type: editingTxType,
+    };
+
+    if (!editingTxIsAutoSync) {
+      updatedFields.amount = cleanAmount;
+      updatedFields.date = selectedDate.toISOString();
+    }
+
+    try {
+      await updateTransaction(editingTxId, updatedFields, userId);
+      setIsEditModalOpen(false);
+      showToast("Transaksi berhasil diperbarui!", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Gagal memperbarui transaksi.", "error");
+    }
+  };
+
+  const openDeleteModal = (id: string) => {
+    setDeletingTxId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!deletingTxId || !userId) return;
+
+    try {
+      await deleteTransaction(deletingTxId, userId);
+      setIsDeleteModalOpen(false);
+      setDeletingTxId(null);
+      showToast("Transaksi berhasil dihapus!", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Gagal menghapus transaksi.", "error");
     }
   };
 
@@ -191,6 +303,8 @@ export default function TransactionTab() {
             type: t.type,
             category: t.category,
             time: new Date(t.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            date: t.date,
+            is_auto_sync: t.is_auto_sync || false,
             source: t.is_auto_sync ? 'Auto Sync' : 'Manual',
             icon: getCategoryIcon(t.category)
           }))
@@ -368,19 +482,26 @@ export default function TransactionTab() {
         <div className="text-[10px] font-black text-gray-500 dark:text-gray-300 mb-4.5 uppercase tracking-widest">Catat Transaksi</div>
 
         <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl mb-4.5">
-          {['Keluar', 'Masuk', 'Transfer'].map((type) => (
-            <button
-              key={type}
-              onClick={() => setTxType(type.toLowerCase())}
-              disabled={isDemo}
-              className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === type.toLowerCase()
-                ? "bg-white dark:bg-gray-900 text-primary shadow-[0_2px_8px_rgba(42,106,85,0.04)] border border-primary/5 dark:border-primary/10"
-                : "text-gray-500 dark:text-gray-400 hover:text-foreground"
-                }`}
-            >
-              {type}
-            </button>
-          ))}
+          {['Keluar', 'Masuk', 'Transfer'].map((type) => {
+            const typeLower = type.toLowerCase();
+            return (
+              <button
+                key={type}
+                onClick={() => handleTxTypeChange(typeLower)}
+                disabled={isDemo}
+                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === typeLower
+                  ? typeLower === 'keluar'
+                    ? "bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]"
+                    : typeLower === 'masuk'
+                      ? "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
+                      : "bg-blue-500 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+                  : "text-gray-500 dark:text-gray-400 hover:text-foreground"
+                  }`}
+              >
+                {type}
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex gap-4 mb-4.5 border-b border-gray-100 dark:border-gray-800/80 pb-2.5">
@@ -410,7 +531,7 @@ export default function TransactionTab() {
         </div>
 
         <div className="flex gap-1.5 flex-wrap mb-4.5">
-          {['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Lainnya'].map((tag) => (
+          {getCategoriesForType(txType).map((tag) => (
             <button
               key={tag}
               onClick={() => setTxCat(tag)}
@@ -455,14 +576,25 @@ export default function TransactionTab() {
 
         <button
           onClick={handleAddTransaction}
-          className="w-full bg-primary text-white py-3 rounded-xl font-black text-xs hover:bg-primary-hover active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(42,106,85,0.15)] cursor-pointer"
+          className={`w-full text-white py-3 rounded-xl font-black text-xs active:scale-[0.98] transition-all cursor-pointer ${
+            txType === 'masuk'
+              ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_12px_rgba(16,185,129,0.25)]'
+              : txType === 'transfer'
+              ? 'bg-blue-600 hover:bg-blue-700 shadow-[0_4px_12px_rgba(37,99,235,0.25)]'
+              : 'bg-rose-600 hover:bg-rose-700 shadow-[0_4px_12px_rgba(225,29,72,0.25)]'
+          }`}
         >
-          + Simpan Transaksi
+          {txType === 'masuk'
+            ? '+ Simpan Pemasukan 💰'
+            : txType === 'transfer'
+            ? '+ Catat Transfer 🔄'
+            : '+ Catat Pengeluaran 💸'
+          }
         </button>
       </div>
 
       {/* Gmail Sync Section (Upgraded with Glows and Micro-Leaf theme details) */}
-      <div className="bg-[#e8f4ec]/80 dark:bg-emerald-950/20 border border-[#b6dfc2]/60 dark:border-emerald-900/30 rounded-[20px] p-4 mb-4.5 flex items-center justify-between group hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-300 relative overflow-hidden">
+      <div className={`bg-[#e8f4ec]/80 dark:bg-emerald-950/20 border border-[#b6dfc2]/60 dark:border-emerald-900/30 rounded-[20px] p-4 mb-4.5 flex items-center justify-between group hover:shadow-[0_8px_20px_rgba(42,106,85,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all duration-300 relative overflow-hidden ${!isGmailConnected ? 'opacity-80' : ''}`}>
         {/* Soft underlying glow gradient */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
 
@@ -472,20 +604,24 @@ export default function TransactionTab() {
           </div>
           <div>
             <p className="text-xs font-black text-primary leading-tight">Sinkronisasi Gmail</p>
-            <p className="text-[10px] font-bold text-gray-500 dark:text-emerald-200/50 mt-1">Tarik transaksi otomatis dari email</p>
+            <p className="text-[10px] font-bold text-gray-500 dark:text-emerald-200/50 mt-1">
+              {!isGmailConnected ? "Gmail belum terhubung. Aktifkan di Pengaturan." : "Tarik transaksi otomatis dari email"}
+            </p>
           </div>
         </div>
 
         <button
           onClick={handleSyncGmail}
-          disabled={isSyncing}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer ${isSyncing
-            ? "bg-gray-100 dark:bg-gray-800 text-gray-400"
+          disabled={isSyncing || !isGmailConnected}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black transition-all cursor-pointer ${isSyncing || !isGmailConnected
+            ? "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
             : "bg-primary text-white hover:bg-emerald-700 shadow-[0_4px_12px_rgba(42,106,85,0.1)] active:scale-[0.96]"
             }`}
         >
           {isSyncing ? (
             <>Memproses...</>
+          ) : !isGmailConnected ? (
+            <>Belum Terhubung</>
           ) : (
             <><RefreshCw className="w-3.5 h-3.5 animate-pulse" /> Sinkronkan</>
           )}
@@ -567,9 +703,33 @@ export default function TransactionTab() {
                                     </p>
                                   </div>
                                 </div>
-                                <p className={`text-xs font-black shrink-0 ${item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
-                                  {item.type === 'income' ? '+ ' : '- '} Rp {item.amount.toLocaleString('id-ID')}
-                                </p>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  <p className={`text-xs font-black ${item.type === 'income' ? 'text-primary' : 'text-red-500 dark:text-red-400'}`}>
+                                    {item.type === 'income' ? '+ ' : '- '} Rp {item.amount.toLocaleString('id-ID')}
+                                  </p>
+                                  <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openEditModal(item);
+                                      }}
+                                      className="p-1.5 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg text-gray-500 hover:text-primary transition-colors cursor-pointer"
+                                      title="Edit Transaksi"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openDeleteModal(item.id);
+                                      }}
+                                      className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
+                                      title="Hapus Transaksi"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -593,6 +753,213 @@ export default function TransactionTab() {
           )}
         </div>
       </div>
+
+      {/* Edit Transaction Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-950 rounded-[28px] border border-gray-100 dark:border-gray-800 shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-gray-900/20">
+              <div>
+                <h3 className="text-base font-black text-foreground">Edit Transaksi</h3>
+                <p className="text-[10px] font-bold text-gray-500 mt-1">
+                  {editingTxIsAutoSync ? "Transaksi Auto-Sync Gmail 🔒" : "Ubah detail transaksi Anda"}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form Content */}
+            <div className="p-6 space-y-4">
+              {editingTxIsAutoSync && (
+                <div className="bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-3 flex items-start gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 text-primary">
+                    <Mail className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-primary leading-normal">
+                      Transaksi Tersinkronisasi Otomatis
+                    </p>
+                    <p className="text-[9px] font-bold text-gray-500 dark:text-emerald-200/50 mt-0.5 leading-normal">
+                      Nominal & tanggal dikunci untuk menjaga validitas data dari Gmail. Kategori tetap dapat diubah.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Transaction Type */}
+              <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl">
+                {['Keluar', 'Masuk', 'Transfer'].map((type) => {
+                  const typeLower = type.toLowerCase();
+                  const typeValue = typeLower === 'keluar' ? 'expense' : typeLower === 'masuk' ? 'income' : 'transfer';
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      disabled={editingTxIsAutoSync}
+                      onClick={() => {
+                        setEditingTxType(typeValue);
+                        const cats = getCategoriesForType(typeValue);
+                        setEditingTxCategory(cats[0]);
+                      }}
+                      className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 active:scale-95 disabled:opacity-50 ${editingTxType === typeValue
+                        ? typeValue === 'expense'
+                          ? "bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]"
+                          : typeValue === 'income'
+                            ? "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
+                            : "bg-blue-500 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+                        : "text-gray-500 dark:text-gray-400 hover:text-foreground"
+                        }`}
+                    >
+                      {type}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Title & Amount */}
+              <div className="space-y-3">
+                <div className="flex flex-col">
+                  <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">Nama Transaksi</label>
+                  <input
+                    type="text"
+                    value={editingTxTitle}
+                    onChange={(e) => setEditingTxTitle(e.target.value)}
+                    placeholder="Nama transaksi..."
+                    className="w-full text-sm font-semibold text-foreground bg-slate-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-colors"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                    Nominal {editingTxIsAutoSync && "🔒"}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-sm font-black text-gray-400">Rp</span>
+                    <input
+                      type="text"
+                      value={editingTxAmount}
+                      onChange={handleEditAmountChange}
+                      disabled={editingTxIsAutoSync}
+                      placeholder="0"
+                      className="w-full text-sm font-black text-foreground bg-slate-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl pl-10 pr-4 py-3 outline-none focus:border-primary/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Kategori</label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {getCategoriesForType(editingTxType).map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setEditingTxCategory(tag)}
+                      className={`px-3.5 py-1 rounded-full text-[11px] font-bold border transition-all duration-200 cursor-pointer hover:-translate-y-0.25 ${editingTxCategory === tag
+                        ? 'border-primary bg-[#e8f4ec] dark:bg-emerald-950/40 text-primary'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date Selection */}
+              <div className="flex flex-col">
+                <label className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1.5">
+                  Tanggal {editingTxIsAutoSync && "🔒"}
+                </label>
+                <input
+                  type="date"
+                  value={editingTxDate}
+                  onChange={(e) => setEditingTxDate(e.target.value)}
+                  disabled={editingTxIsAutoSync}
+                  className="w-full text-xs font-extrabold text-foreground bg-slate-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-3 outline-none focus:border-primary/50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-4.5 bg-slate-50/50 dark:bg-gray-900/20 border-t border-gray-100 dark:border-gray-800/80 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1 py-3 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 font-black text-xs rounded-xl hover:bg-slate-50 dark:hover:bg-gray-900/50 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEditTransaction}
+                className={`flex-1 text-white py-3 rounded-xl font-black text-xs active:scale-[0.98] transition-all cursor-pointer ${
+                  editingTxType === 'income'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_12px_rgba(16,185,129,0.25)]'
+                    : editingTxType === 'transfer'
+                    ? 'bg-blue-600 hover:bg-blue-700 shadow-[0_4px_12px_rgba(37,99,235,0.25)]'
+                    : 'bg-rose-600 hover:bg-rose-700 shadow-[0_4px_12px_rgba(225,29,72,0.25)]'
+                }`}
+              >
+                {editingTxType === 'income'
+                  ? 'Simpan Pemasukan 💰'
+                  : editingTxType === 'transfer'
+                  ? 'Simpan Transfer 🔄'
+                  : 'Simpan Pengeluaran 💸'
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-950 rounded-[28px] border border-gray-100 dark:border-gray-800 shadow-[0_20px_50px_rgba(0,0,0,0.3)] w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Body */}
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-base font-black text-foreground">Hapus Transaksi?</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed px-2">
+                  Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan dan akan memengaruhi perhitungan saving rate serta kesehatan hutan Anda.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-4 bg-slate-50/50 dark:bg-gray-900/20 border-t border-gray-100 dark:border-gray-800/80 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeletingTxId(null);
+                }}
+                className="flex-1 py-3 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 font-black text-xs rounded-xl hover:bg-slate-50 dark:hover:bg-gray-900/50 active:scale-[0.98] transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteTransaction}
+                className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-black text-xs hover:bg-rose-600 active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(239,68,68,0.15)] cursor-pointer"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
