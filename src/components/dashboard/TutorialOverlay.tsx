@@ -20,23 +20,23 @@ export default function TutorialOverlay() {
 
     const steps = [
         {
-            title: "Selamat Datang di Firest: Financial Rainforest! 🌱",
-            desc: "Mari kita mulai perjalanan finansialmu. Firest bukan sekadar pencatat keuangan biasa, tapi ekosistem untuk membantumu mencapai impian.",
+            title: "Hutan Virtualmu Telah Lahir! 🌱",
+            desc: "Selamat! Berdasarkan data yang kamu masukkan, bibit pertamamu baru saja ditanam. Mari kenali cara kerja ekosistem Firest.",
             icon: <Sparkles className="w-8 h-8 text-emerald-500" />
         },
         {
-            title: "1. Pay Yourself First",
-            desc: "Di tab Goals, tentukan 1 impian utama dan sisihkan uangmu di awal bulan. Sisa uangmu akan otomatis menjadi batas budget belanja bulanan.",
+            title: "Sistem Pay Yourself First Aktif 🎯",
+            desc: "Coba cek tab Transaksi nanti. Kami sudah otomatis mencatat uang masukmu dan langsung memotong target tabunganmu di awal. Sisa uangmu sekarang adalah murni 'Nyawa Budget' untuk sebulan ke depan. Jangan sampai minus!",
             icon: <Target className="w-8 h-8 text-blue-500" />
         },
         {
-            title: "2. Hutan Virtualmu",
-            desc: "Jika kamu hemat, hutanmu akan dipenuhi pepohonan hijau dan hewan lucu. Tapi hati-hati, jika kamu boros, pohonmu akan layu dan mengering!",
+            title: "Jaga Nyawa Hutanmu 🦋",
+            desc: "Setiap kali kamu jajan, nyawa budgetmu berkurang. Jika kamu hemat (sesuai budget), hewan-hewan lucu akan datang. Jika kamu boros melewati batas, pohonmu akan layu dan gagak akan berdatangan!",
             icon: <Leaf className="w-8 h-8 text-emerald-600" />
         },
         {
-            title: "3. Sinkronisasi Otomatis",
-            desc: "Malas mencatat manual? Hubungkan akun Gmail-mu di tab Transaksi, dan Firest akan otomatis mencatat pengeluaran dari e-wallet-mu.",
+            title: "Biarkan AI yang Mencatat 🤖",
+            desc: "Agar kamu tidak malas mencatat jajan harianmu, hubungkan Gmail-mu di pengaturan. Firest akan otomatis menyedot dan mencatat notifikasi struk e-wallet-mu (QRIS/GoPay) tanpa repot ketik manual.",
             icon: <Mail className="w-8 h-8 text-orange-500" />
         }
     ];

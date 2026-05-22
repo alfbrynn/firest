@@ -1,5 +1,5 @@
 import { createClient } from "../supabase/server";
-import { GeminiProvider } from "../ai/GeminiProvider";
+import { GroqProvider } from "../ai/GroqProvider";
 import { differenceInDays } from "date-fns";
 
 export class InsightService {
@@ -31,7 +31,8 @@ export class InsightService {
 
     if (lastInsight) {
       const daysSinceLast = differenceInDays(new Date(), new Date(lastInsight.created_at));
-      if (daysSinceLast < 7) {
+      // Temporarily disabled cooldown for testing
+      if (false && daysSinceLast < 7) {
         return { 
           insight: lastInsight, 
           isNew: false, 
@@ -42,7 +43,7 @@ export class InsightService {
     }
 
     // Generate new insight
-    const insights = await GeminiProvider.generateFinancialInsight(data);
+    const insights = await GroqProvider.generateFinancialInsight(data);
     
     const supabase = await createClient();
     const { data: newInsight, error } = await supabase

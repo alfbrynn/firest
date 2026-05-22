@@ -15,7 +15,7 @@ export class SyncService {
        // 2. Cek DB via TransactionService apakah sudah pernah diproses
        if (await TransactionService.isExists(supabase, email.id)) continue;
 
-       // 3. Parsing via ParsingService (Regex + Gemini)
+       // 3. Parsing via ParsingService (Regex + Groq)
        const parsedData = await ParsingService.parseEmailToTransaction(email.body, email.date);
 
        

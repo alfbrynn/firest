@@ -126,7 +126,7 @@ export default function InsightTab() {
     }));
   }, [isDemo, cachedInsight]);
 
-  const isCooldown = nextAvailableDate && new Date() < new Date(nextAvailableDate) && !isDemo;
+  const isCooldown = false; // Temporarily disabled cooldown for testing
   const daysRemaining = nextAvailableDate ? Math.max(0, differenceInDays(new Date(nextAvailableDate), new Date())) : 0;
 
   if (isLoadingInitial) {
@@ -136,7 +136,7 @@ export default function InsightTab() {
           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           <Sparkles className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         </div>
-        <p className="text-sm font-black text-gray-700 dark:text-gray-300 animate-pulse">Menghubungkan ke Gemini AI...</p>
+        <p className="text-sm font-black text-gray-700 dark:text-gray-300 animate-pulse">Menghubungkan ke Groq AI...</p>
       </div>
     );
   }

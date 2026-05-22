@@ -8,13 +8,21 @@ describe('ParsingService Keyword Mapping Tests', () => {
       expect(ParsingService.detectCategoryFromKeywords('indomaret point', '')).toBe('Makanan');
       expect(ParsingService.detectCategoryFromKeywords('Makan siang di KFC', '')).toBe('Makanan');
       expect(ParsingService.detectCategoryFromKeywords('gofood order', '')).toBe('Makanan');
+      expect(ParsingService.detectCategoryFromKeywords('Order via Go-Food kemarin', '')).toBe('Makanan');
+      expect(ParsingService.detectCategoryFromKeywords('go food promo', '')).toBe('Makanan');
+      expect(ParsingService.detectCategoryFromKeywords('GrabFood dinner', '')).toBe('Makanan');
+      expect(ParsingService.detectCategoryFromKeywords('grab-food discount', '')).toBe('Makanan');
       expect(ParsingService.detectCategoryFromKeywords('Ice Tea Kelapa Gading', '')).toBe('Makanan');
       expect(ParsingService.detectCategoryFromKeywords('kopi susu senja', '')).toBe('Makanan');
     });
 
     it('should map transport-related keywords to Transport (case-insensitive)', () => {
       expect(ParsingService.detectCategoryFromKeywords('Gojek Ride', '')).toBe('Transport');
+      expect(ParsingService.detectCategoryFromKeywords('go-jek bike', '')).toBe('Transport');
+      expect(ParsingService.detectCategoryFromKeywords('go jek gocar', '')).toBe('Transport');
       expect(ParsingService.detectCategoryFromKeywords('grabcar billing', '')).toBe('Transport');
+      expect(ParsingService.detectCategoryFromKeywords('grabbike payment', '')).toBe('Transport');
+      expect(ParsingService.detectCategoryFromKeywords('grabexpress delivery', '')).toBe('Transport');
       expect(ParsingService.detectCategoryFromKeywords('Perjalanan Grab', '')).toBe('Transport');
     });
 

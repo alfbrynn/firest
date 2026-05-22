@@ -9,9 +9,10 @@ interface OnboardingOverlayProps {
 }
 
 export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
-  const { updateMonthlyTargets } = useAppStore();
+  const { updateMonthlyTargets, addTransaction } = useAppStore();
   const [income, setIncome] = useState("");
   const [savings, setSavings] = useState("");
+  const [currentBalance, setCurrentBalance] = useState("");
   const [resetDate, setResetDate] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -29,14 +30,23 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
     setSavings(formatCurrency(e.target.value));
   };
 
+  const handleCurrentBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentBalance(formatCurrency(e.target.value));
+  };
+
   const incomeVal = useMemo(() => parseInt(income.replace(/[^0-9]/g, "")) || 0, [income]);
   const savingsVal = useMemo(() => parseInt(savings.replace(/[^0-9]/g, "")) || 0, [savings]);
-  const remainingBudget = useMemo(() => Math.max(0, incomeVal - savingsVal), [incomeVal, savingsVal]);
+  const currentBalanceVal = useMemo(() => parseInt(currentBalance.replace(/[^0-9]/g, "")) || 0, [currentBalance]);
+  const remainingBudget = useMemo(() => Math.max(0, currentBalanceVal - savingsVal), [currentBalanceVal, savingsVal]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (incomeVal <= 0) {
       setErrorMsg("Estimasi pemasukan bulanan harus diisi!");
+      return;
+    }
+    if (currentBalanceVal < 0) {
+      setErrorMsg("Sisa uang saat ini tidak boleh kurang dari 0!");
       return;
     }
     if (savingsVal < 0) {
@@ -47,11 +57,37 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
       setErrorMsg("Target tabungan tidak boleh melebihi total pemasukan bulanan!");
       return;
     }
+    if (savingsVal > currentBalanceVal) {
+      setErrorMsg("Sisa uang saat ini tidak boleh kurang dari target tabungan agar alokasi tabungan awal dapat dipotong!");
+      return;
+    }
 
     try {
       setIsSaving(true);
       setErrorMsg("");
+      
+      // 1. Simpan target bulanan ke database & store
       await updateMonthlyTargets(userId, incomeVal, savingsVal, resetDate);
+      
+      // 2. Buat transaksi pertama: Sisa Uang Saat Ini
+      await addTransaction({
+        title: "Sisa Uang Saat Ini",
+        amount: currentBalanceVal,
+        category: "Lainnya",
+        type: "income",
+        date: new Date().toISOString()
+      }, userId);
+
+      // 3. Buat transaksi kedua: Alokasi Tabungan (Pay Yourself First)
+      if (savingsVal > 0) {
+        await addTransaction({
+          title: "Alokasi Tabungan (Pay Yourself First)",
+          amount: savingsVal,
+          category: "Tabungan",
+          type: "expense",
+          date: new Date().toISOString()
+        }, userId);
+      }
     } catch (err) {
       console.error("Error setting onboarding targets:", err);
       setErrorMsg("Terjadi kesalahan saat menyimpan data. Silakan coba lagi.");
@@ -62,7 +98,7 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-md p-6 sm:p-8 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-emerald-500/20 dark:border-emerald-500/10 relative overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-md max-h-[90vh] overflow-y-auto p-6 sm:p-8 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-emerald-500/20 dark:border-emerald-500/10 relative animate-in zoom-in-95 duration-300">
         
         {/* Glow Background */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
@@ -127,7 +163,25 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
             </div>
           </div>
 
-          {/* 3. Monthly Savings Target */}
+          {/* 3. Current Actual Balance */}
+          <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-primary/50 transition-colors">
+            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1.5 flex items-center gap-1.5">
+              <Coins className="w-3.5 h-3.5 text-primary" /> Berapa sisa uangmu saat ini?
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-muted-foreground text-sm">Rp</span>
+              <input
+                type="text"
+                value={currentBalance}
+                onChange={handleCurrentBalanceChange}
+                placeholder="0"
+                className="w-full bg-transparent text-base font-black outline-none text-foreground"
+                required
+              />
+            </div>
+          </div>
+
+          {/* 4. Monthly Savings Target */}
           <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-primary/50 transition-colors">
             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1.5 flex items-center gap-1.5">
               <Coins className="w-3.5 h-3.5 text-primary" /> Berapa target tabunganmu per bulan?
@@ -146,22 +200,26 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
           </div>
 
           {/* Dynamic "Pay Yourself First" Math Display */}
-          {incomeVal > 0 && (
+          {incomeVal > 0 && currentBalanceVal > 0 && (
             <div className="bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 space-y-2 animate-in fade-in duration-300">
               <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-muted-foreground">Pemasukan Bulanan:</span>
+                <span className="text-muted-foreground">Pemasukan Bulanan (Target):</span>
                 <span className="text-foreground">Rp {incomeVal.toLocaleString('id-ID')}</span>
               </div>
               <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-muted-foreground">Target Tabungan (Amankan dulu!):</span>
+                <span className="text-muted-foreground">Sisa Uang Saat Ini (Aktual):</span>
+                <span className="text-foreground">Rp {currentBalanceVal.toLocaleString('id-ID')}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-muted-foreground">Alokasi Tabungan (Amankan dulu!):</span>
                 <span className="text-rose-500">- Rp {savingsVal.toLocaleString('id-ID')}</span>
               </div>
               <div className="border-t border-dashed border-emerald-500/20 pt-2 flex justify-between items-center text-xs font-black">
-                <span className="text-primary flex items-center gap-1"><Heart className="w-3.5 h-3.5 fill-primary text-primary" /> Sisa Budget Belanja:</span>
+                <span className="text-primary flex items-center gap-1"><Heart className="w-3.5 h-3.5 fill-primary text-primary" /> Sisa Uang Belanja:</span>
                 <span className="text-primary text-sm">Rp {remainingBudget.toLocaleString('id-ID')}</span>
               </div>
               <p className="text-[9px] text-gray-500 dark:text-emerald-250/60 leading-normal text-center mt-1 font-semibold">
-                Sisa budget belanja ini akan otomatis dibagi secara ideal ke dalam kategori-kategori anggaran Anda!
+                Sisa uang belanja ini akan otomatis dibagi secara ideal ke dalam kategori-kategori anggaran Anda!
               </p>
             </div>
           )}
