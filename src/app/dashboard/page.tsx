@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/src/utils/supabase/client";
 import DashboardPanel from "@/src/components/dashboard/DashboardPanel";
 import PixiCanvas from "@/src/components/game/PixiCanvas";
-import TutorialOverlay from "@/src/components/dashboard/TutorialOverlay";
 import OnboardingOverlay from "@/src/components/dashboard/OnboardingOverlay";
 import { Bell, Settings, Leaf } from "lucide-react";
 import { useAppStore } from "@/src/store/useAppStore";
