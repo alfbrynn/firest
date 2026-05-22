@@ -75,8 +75,8 @@ export class ParsingService {
    * Deteksi kategori berdasarkan kata kunci di judul/keterangan email
    */
   static detectCategoryFromKeywords(title: string, emailBody: string): string {
-    const foodRegex = /Kopi|Resto|Kfc|GoFood|Ice/i;
-    const transportRegex = /Gojek|Grab/i;
+    const foodRegex = /\b(kopi|resto|kfc|gofood|go-food|go\s+food|ice|alfamart|indomaret)\b/i;
+    const transportRegex = /\b(gojek|go-jek|go\s+jek|grab)\b/i;
 
     const combinedText = `${title} ${emailBody}`;
 

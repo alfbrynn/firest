@@ -697,7 +697,14 @@ export default function TransactionTab() {
                                     {item.icon}
                                   </div>
                                   <div>
-                                    <p className="text-xs font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <p className="text-xs font-black text-foreground group-hover:text-primary transition-colors">{item.title}</p>
+                                      {item.is_auto_sync && item.category === 'Lainnya' && (
+                                        <span className="bg-amber-500/10 text-amber-600 dark:bg-amber-500/5 dark:text-amber-400 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider border border-amber-500/20">
+                                          Perlu Dikategorikan ⚠️
+                                        </span>
+                                      )}
+                                    </div>
                                     <p className="text-[9px] font-extrabold text-gray-500 dark:text-gray-300 mt-1 flex items-center gap-1.5">
                                       {item.time} <span className="bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 px-2 py-0.5 rounded-md text-[8px] uppercase font-black">{item.source}</span>
                                     </p>
