@@ -67,6 +67,7 @@ interface AppState {
   checkDailyLoginXP: (userId?: string) => Promise<void>;
   triggerWeeklyReviewXP: (userId?: string) => Promise<void>;
   checkStreakAndActivity: (userId?: string) => Promise<void>;
+  checkCycleRollover: (userId: string) => Promise<void>;
 }
 
 const LEVEL_NAMES = ['Bibit', 'Tunas', 'Pohon Muda', 'Hutan', 'Hutan Hujan', 'Ekosistem'];
@@ -323,6 +324,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (userId) {
         get().checkStreakAndActivity(userId);
         get().checkDailyLoginXP(userId);
+        get().checkCycleRollover(userId);
       }
     } catch (err) {
       console.error("Error fetching user data:", err);
@@ -994,6 +996,80 @@ export const useAppStore = create<AppState>((set, get) => ({
           `Hebat! Kamu telah mempertahankan streak selama ${newStreak} hari berturut-turut! Keep it up!`
         );
       }
+    }
+  },
+
+  checkCycleRollover: async (userId: string) => {
+    const state = get();
+    const now = new Date();
+    const resetDate = state.budgetResetDate;
+    
+    // Tentukan bulan siklus saat ini sebagai string (misal: "2026-05")
+    let currentCycleMonth = now.getMonth();
+    let currentCycleYear = now.getFullYear();
+    if (now.getDate() < resetDate) {
+      currentCycleMonth -= 1;
+      if (currentCycleMonth < 0) {
+        currentCycleMonth = 11;
+        currentCycleYear -= 1;
+      }
+    }
+    const cycleKey = `${currentCycleYear}-${currentCycleMonth}`;
+
+    const lastRollover = localStorage.getItem(state.isDemo ? `firest_last_rollover_demo` : `firest_last_rollover_${userId}`);
+    
+    if (lastRollover !== cycleKey && state.mainGoal) {
+      // Calculate start of current cycle (which is the end of the previous cycle)
+      let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), resetDate);
+      if (now.getDate() < resetDate) {
+        startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+      }
+      
+      // Calculate start of previous cycle
+      const startOfPrevPeriod = new Date(startOfPeriod);
+      startOfPrevPeriod.setMonth(startOfPrevPeriod.getMonth() - 1);
+      
+      // Filter transactions that belong to the previous cycle
+      const prevTxs = state.transactions.filter(t => {
+        const d = new Date(t.date);
+        return d >= startOfPrevPeriod && d < startOfPeriod;
+      });
+
+      const totalIncome = prevTxs
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const totalExpense = prevTxs
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const sisaUang = totalIncome - totalExpense;
+
+      if (sisaUang > 0) {
+        const newCurrentGoal = (state.mainGoal.current || 0) + sisaUang;
+        
+        // Update local state
+        set({
+          mainGoal: { ...state.mainGoal, current: newCurrentGoal }
+        });
+
+        // Update database if not in demo mode
+        if (!state.isDemo) {
+          const supabase = createClient();
+          await supabase
+            .from('goals')
+            .update({ current: newCurrentGoal })
+            .eq('user_id', userId);
+        }
+          
+        get().showToast(
+          "Siklus Baru! 🌟", 
+          "success", 
+          `Sisa anggaran bulan lalu sebesar Rp ${sisaUang.toLocaleString('id-ID')} otomatis dimasukkan ke target ${state.mainGoal.name} kamu!`
+        );
+      }
+
+      localStorage.setItem(state.isDemo ? `firest_last_rollover_demo` : `firest_last_rollover_${userId}`, cycleKey);
     }
   }
 }));
