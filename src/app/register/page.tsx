@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Lock, UserPlus, ShieldCheck } from "lucide-react";
+import { Mail, Lock, UserPlus, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/src/utils/supabase/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const supabase = createClient();
     const router = useRouter();
@@ -33,13 +34,13 @@ export default function RegisterPage() {
 
         // 1. Validasi Kecocokan Password
         if (password !== confirmPassword) {
-            setError("Konfirmasi password tidak cocok.");
+            setError("Konfirmasi kata sandi tidak cocok.");
             return;
         }
 
         // 2. Validasi Kekuatan Password
         if (!validatePassword(password)) {
-            setError("Password harus minimal 8 karakter dengan kombinasi huruf besar, kecil, dan angka.");
+            setError("Kata sandi harus minimal 8 karakter dengan kombinasi huruf besar, kecil, dan angka.");
             return;
         }
 
@@ -57,8 +58,7 @@ export default function RegisterPage() {
                 },
             });
             if (error) throw error;
-            alert("Registrasi berhasil! Silakan cek email Anda untuk verifikasi.");
-            router.push("/login");
+            setShowSuccessModal(true);
         } catch (error: any) {
             setError(error.message);
         } finally {
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Kata Sandi"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -114,7 +114,7 @@ export default function RegisterPage() {
                     <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type="password"
-                        placeholder="Konfirmasi Password"
+                        placeholder="Konfirmasi Kata Sandi"
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -152,6 +152,45 @@ export default function RegisterPage() {
             >
                 Sudah punya akun? Masuk
             </Link>
+
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-gray-950 w-full max-w-md p-6 sm:p-8 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-emerald-500/20 dark:border-emerald-500/10 text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
+                        {/* Glow Backgrounds */}
+                        <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+                        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/50 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-emerald-100 dark:border-emerald-900/30 shadow-inner animate-bounce">
+                            <CheckCircle2 className="w-8 h-8 text-primary" />
+                        </div>
+
+                        <h3 className="text-xl sm:text-2xl font-black text-foreground mb-3 tracking-tight">Verifikasi Email Dikirim! 📧</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-8 leading-relaxed px-2 font-medium">
+                            Registrasi berhasil! Kami telah mengirimkan email konfirmasi ke <strong>{email}</strong>. Silakan periksa inbox atau spam folder Gmail Anda untuk mengaktifkan akun Anda.
+                        </p>
+
+                        <div className="flex flex-col gap-3">
+                            <a
+                                href="https://mail.google.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 text-sm cursor-pointer"
+                            >
+                                Buka Gmail 📥
+                            </a>
+                            <button
+                                onClick={() => {
+                                    setShowSuccessModal(false);
+                                    router.push("/login");
+                                }}
+                                className="w-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-foreground font-bold py-3 rounded-xl transition-all active:scale-[0.98] text-xs cursor-pointer"
+                            >
+                                Kembali ke Halaman Masuk
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AuthLayout>
     );
 }

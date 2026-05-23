@@ -61,18 +61,18 @@ export class GroqProvider {
             KONTEKS: Data yang kamu analisis adalah ringkasan mingguan. Gunakan framing waktu "minggu ini", "7 hari terakhir", "pekan ini" — BUKAN "bulan ini" atau "siklus ini".
 
             ATURAN KERAS:
-            1. DILARANG membuka insight dengan kata: "Kamu", "Pengeluaran", "Budget", "Berdasarkan", "Minggu ini". Variasikan pembukaannya.
+            1. DILARANG membuka insight dengan kata: "Kamu", "Pengeluaran", "Anggaran", "Berdasarkan", "Minggu ini". Variasikan pembukaannya.
             2. DILARANG menyebut angka mentah tanpa konteks. Selalu terjemahkan ke dampak nyata. Contoh SALAH: "Pengeluaran makanmu Rp 120.000". Contoh BENAR: "Dalam 7 hari terakhir kamu sudah habis Rp 120.000 hanya untuk makan — kalau minggu depan sama, sebulan penuh kamu butuh Rp 480.000 cuma buat isi perut."
             3. WAJIB ada minimal 1 insight yang menyebut nama kategori spesifik dari data (bukan kategori generik).
-            4. Jika saving rate > 30%: beri apresiasi tulus + ingatkan pertahankan streak hutan virtual minggu depan.
-            5. Jika ada kategori yang > 80% dari budget: berikan peringatan dengan nada serius tapi solutif, bukan menghakimi.
+            4. Jika rasio hemat > 30%: beri apresiasi tulus + ingatkan pertahankan streak hutan virtual minggu depan.
+            5. Jika ada kategori yang > 80% dari anggaran: berikan peringatan dengan nada serius tapi solutif, bukan menghakimi.
             6. Jika transaksi sedikit (< 5): komentari kebiasaan pencatatan minggu ini, bukan hanya pola belanja.
             7. Gunakan bahasa Gen-Z Indonesia yang natural: "sih", "nih", "lho", "banget", tapi tetap mudah dipahami. Sesekali boleh pakai analogi lucu yang relevan.
             8. Setiap insight harus standalone — bisa dibaca terpisah dan tetap bermakna.
 
             Prioritas topik per insight (urutan ini):
             - Insight 1: Evaluasi kecepatan belanja minggu ini + proyeksi jika pola berlanjut minggu depan
-            - Insight 2: Kesehatan finansial minggu ini (saving rate, saldo vs target North Star Goal)
+            - Insight 2: Kesehatan finansial minggu ini (rasio hemat, saldo vs target North Star Goal)
             - Insight 3: Satu tantangan/misi spesifik yang bisa dicoba minggu depan berdasarkan kelemahan minggu ini
 
             WAJIB kembalikan JSON persis:

@@ -133,7 +133,7 @@ export default function BudgetTab() {
       tips.push({
         type: 'danger',
         title: '⚠️ Total Anggaran Jebol!',
-        text: `Total pengeluaran belanjamu sudah melebihi budget bulanan sebesar Rp ${(totalSpent - totalBudget).toLocaleString('id-ID')}. Untuk menjaga Financial Rainforest-mu tetap lestari, segera batasi pengeluaran non-primer dan alihkan sisa uang ke kebutuhan pokok saja!`,
+        text: `Total pengeluaran belanjamu sudah melebihi anggaran bulanan sebesar Rp ${(totalSpent - totalBudget).toLocaleString('id-ID')}. Untuk menjaga Financial Rainforest-mu tetap lestari, segera batasi pengeluaran non-primer dan alihkan sisa uang ke kebutuhan pokok saja!`,
         icon: 'AlertCircle'
       });
     }
@@ -157,7 +157,7 @@ export default function BudgetTab() {
 
       tips.push({
         type: 'danger',
-        title: `⚠️ Budget ${c.cat} Terlewati!`,
+        title: `⚠️ Anggaran ${c.cat} Terlewati!`,
         text: `Pengeluaran ${c.cat}-mu sudah melewati batas alokasi sebesar Rp ${c.overAmount.toLocaleString('id-ID')}. ${advice}`,
         icon: 'AlertCircle'
       });
@@ -182,7 +182,7 @@ export default function BudgetTab() {
 
       tips.push({
         type: 'warning',
-        title: `💡 Budget ${c.cat} Kritis (${c.pct}%)`,
+        title: `💡 Anggaran ${c.cat} Kritis (${c.pct}%)`,
         text: `Kategori ${c.cat} telah terpakai sebanyak Rp ${c.spent.toLocaleString('id-ID')} dari Rp ${c.limit.toLocaleString('id-ID')}. ${advice} 🌿`,
         icon: 'Info'
       });
@@ -195,7 +195,7 @@ export default function BudgetTab() {
         tips.push({
           type: 'success',
           title: '🎉 Hutan Virtual Tumbuh Subur!',
-          text: `Luar biasa! Pengeluaranmu baru terpakai ${totalPct}% dari total budget belanja. Hutan di Financial Rainforest-mu sangat rindang. Pertahankan kedisiplinan hebat ini demi mencapai target menabung Rp ${monthlySavingsTarget.toLocaleString('id-ID')} bulan ini!`,
+          text: `Luar biasa! Pengeluaranmu baru terpakai ${totalPct}% dari total anggaran belanja. Hutan di Financial Rainforest-mu sangat rindang. Pertahankan kedisiplinan hebat ini demi mencapai target menabung Rp ${monthlySavingsTarget.toLocaleString('id-ID')} bulan ini!`,
           icon: 'Sparkles'
         });
       } else if (totalBudget > 0) {
@@ -209,7 +209,7 @@ export default function BudgetTab() {
         tips.push({
           type: 'info',
           title: '🌱 Mulai Perjalanan Financial Rainforest-mu',
-          text: 'Atur target pemasukan dan tabungan bulananmu di tab Target agar Firest dapat membagi alokasi budget belanja belanjamu secara otomatis secara ideal!',
+          text: 'Atur target pemasukan dan tabungan bulananmu di tab Target agar Firest dapat membagi alokasi anggaran belanja belanjamu secara otomatis secara ideal!',
           icon: 'Sparkles'
         });
       }

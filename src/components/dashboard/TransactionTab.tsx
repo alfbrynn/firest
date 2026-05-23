@@ -427,10 +427,10 @@ export default function TransactionTab() {
           {/* Gamified Narrative Feedback */}
           <p className="text-[11px] text-emerald-50/95 leading-relaxed font-semibold mb-4 bg-emerald-950/25 dark:bg-emerald-950/45 p-2.5 px-3.5 rounded-2xl border border-white/5 shadow-inner">
             🌿 {currentMonthSummary.progressRate >= 50
-              ? `Luar biasa! Saving Rate ${currentMonthSummary.savingRate} sangat menyehatkan ekosistem. Pohon-pohon bertumbuh 2x lebih cepat!`
+              ? `Luar biasa! Rasio Hemat ${currentMonthSummary.savingRate} sangat menyehatkan ekosistem. Pohon-pohon bertumbuh 2x lebih cepat!`
               : currentMonthSummary.progressRate > 0
                 ? `Kerja bagus! Sisa tabungan Anda berada di zona aman. Teruskan berhemat agar pohon tidak layu.`
-                : `Peringatan: Saving Rate Anda di bawah batas minimal. Pemasukan bulanan habis terpakai. Hemat segera untuk menyiram hutan!`
+                : `Peringatan: Rasio Hemat Anda di bawah batas minimal. Pemasukan bulanan habis terpakai. Hemat segera untuk menyiram hutan!`
             }
           </p>
 
@@ -944,7 +944,7 @@ export default function TransactionTab() {
               <div className="space-y-1.5">
                 <h3 className="text-base font-black text-foreground">Hapus Transaksi?</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed px-2">
-                  Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan dan akan memengaruhi perhitungan saving rate serta kesehatan hutan Anda.
+                  Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan dan akan memengaruhi perhitungan rasio hemat serta kesehatan hutan Anda.
                 </p>
               </div>
             </div>
