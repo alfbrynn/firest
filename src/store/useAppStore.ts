@@ -459,7 +459,7 @@ export const useAppStore = create<AppState>((set, get) => ({
               const currentPct = (catSpent / catLimit) * 100;
 
               if (currentPct > 100 && previousPct <= 100) {
-                get().showToast("Anggaran Melebihi Batas! ⚠️", "warning", `Pengeluaran untuk kategori ${mappedNewTx.category} telah melebihi budget bulanan!`);
+                get().showToast("Anggaran Melebihi Batas! ⚠️", "warning", `Pengeluaran untuk kategori ${mappedNewTx.category} telah melebihi anggaran bulanan!`);
               } else if (currentPct > 80 && previousPct <= 80) {
                 get().showToast("Anggaran Hampir Habis! ⚠️", "warning", `Pengeluaran untuk kategori ${mappedNewTx.category} sudah terpakai lebih dari 80%!`);
               }

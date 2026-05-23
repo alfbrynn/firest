@@ -60,7 +60,7 @@ export default function LoginPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Password"
+                        placeholder="Kata Sandi"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -80,7 +80,7 @@ export default function LoginPage() {
                         href="/forgot-password"
                         className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors"
                     >
-                        Lupa Password?
+                        Lupa Kata Sandi?
                     </Link>
                 </div>
 

@@ -33,13 +33,13 @@ export default function RegisterPage() {
 
         // 1. Validasi Kecocokan Password
         if (password !== confirmPassword) {
-            setError("Konfirmasi password tidak cocok.");
+            setError("Konfirmasi kata sandi tidak cocok.");
             return;
         }
 
         // 2. Validasi Kekuatan Password
         if (!validatePassword(password)) {
-            setError("Password harus minimal 8 karakter dengan kombinasi huruf besar, kecil, dan angka.");
+            setError("Kata sandi harus minimal 8 karakter dengan kombinasi huruf besar, kecil, dan angka.");
             return;
         }
 
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Kata Sandi"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -114,7 +114,7 @@ export default function RegisterPage() {
                     <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                     <input
                         type="password"
-                        placeholder="Konfirmasi Password"
+                        placeholder="Konfirmasi Kata Sandi"
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}

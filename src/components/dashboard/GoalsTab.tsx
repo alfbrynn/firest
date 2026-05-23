@@ -180,7 +180,7 @@ export default function GoalsTab() {
               <div className="flex items-center gap-2">
                 <div>
                   <p className="text-emerald-100 font-extrabold text-[9px] uppercase tracking-widest mb-0.5 leading-none">Siklus Aktif</p>
-                  <h3 className="text-white text-lg sm:text-xl font-black mt-1">Budget {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
+                  <h3 className="text-white text-lg sm:text-xl font-black mt-1">Anggaran {new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
                 </div>
                 {isDemo && (
                   <span className="bg-white/20 text-white text-[8px] font-black px-1.5 py-0.5 rounded border border-white/20">DEMO</span>
@@ -204,7 +204,7 @@ export default function GoalsTab() {
                 <p className="text-white text-base sm:text-lg font-black">Rp {monthlySavingsTarget.toLocaleString('id-ID')}</p>
               </div>
               <div>
-                <p className="text-emerald-200 font-extrabold text-[9px] uppercase tracking-widest mb-1.5 leading-none">Budget Belanja</p>
+                <p className="text-emerald-200 font-extrabold text-[9px] uppercase tracking-widest mb-1.5 leading-none">Anggaran Belanja</p>
                 <p className="text-white text-base sm:text-lg font-black">Rp {(monthlyIncomeTarget - monthlySavingsTarget).toLocaleString('id-ID')}</p>
               </div>
             </div>
@@ -390,7 +390,7 @@ export default function GoalsTab() {
         <div>
           <p className="text-xs font-black text-indigo-900 dark:text-indigo-250 uppercase tracking-widest mb-1.5 leading-none">Saldo Bulan Lalu Masuk Otomatis</p>
           <p className="text-[12px] text-indigo-950 dark:text-indigo-200 leading-relaxed font-semibold">
-            Sisa budget dari bulan lalu tidak hangus, tapi otomatis ditambahkan ke <strong className="text-indigo-900 dark:text-indigo-100 underline decoration-indigo-300 dark:decoration-indigo-500">Kas Tersedia</strong> bulan baru. Hemat hari ini = modal lebih besar untuk impianmu besok!
+            Sisa anggaran dari bulan lalu tidak hangus, tapi otomatis ditambahkan ke <strong className="text-indigo-900 dark:text-indigo-100 underline decoration-indigo-300 dark:decoration-indigo-500">Kas Tersedia</strong> bulan baru. Hemat hari ini = modal lebih besar untuk impianmu besok!
           </p>
         </div>
       </div>

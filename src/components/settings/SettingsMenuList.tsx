@@ -21,7 +21,7 @@ const settingsMenu = [
         id: "notification",
         icon: <Bell className="w-5 h-5 text-amber-500" />,
         title: "Notifikasi",
-        desc: "Sesuaikan peringatan pengeluaran & pengingat budget harian"
+        desc: "Sesuaikan peringatan pengeluaran & pengingat anggaran harian"
     },
     {
         id: "sync",
@@ -278,7 +278,7 @@ export default function SettingsMenuList() {
                                 <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 shadow-xs space-y-3">
                                     {[
                                         { id: 'spending', label: 'Peringatan Pengeluaran', desc: 'Beri tahu jika jajan sudah mendekati limit.' },
-                                        { id: 'budget', label: 'Pengingat Budget Harian', desc: 'Saran budget harian setiap pagi.' },
+                                        { id: 'budget', label: 'Pengingat Anggaran Harian', desc: 'Saran anggaran harian setiap pagi.' },
                                         { id: 'ai', label: 'Insight AI Mingguan', desc: 'Analisis mendalam setiap Senin.' }
                                     ].map((n) => (
                                         <div key={n.id} className="flex items-center justify-between gap-4">

@@ -229,7 +229,7 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
                     <span className="text-rose-500">- Rp {savingsVal.toLocaleString('id-ID')}</span>
                   </div>
                   <div className="border-t border-dashed border-emerald-500/30 pt-2 flex justify-between items-center">
-                    <span className="text-[10px] font-black text-primary flex items-center gap-1"><Heart className="w-3 h-3 fill-primary" /> NYAWA BUDGET:</span>
+                    <span className="text-[10px] font-black text-primary flex items-center gap-1"><Heart className="w-3 h-3 fill-primary" /> NYAWA ANGGARAN:</span>
                     <span className="font-black text-primary">Rp {remainingBudget.toLocaleString('id-ID')}</span>
                   </div>
                 </div>

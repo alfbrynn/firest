@@ -144,7 +144,7 @@ export default function LandingPage() {
               <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-lg font-bold text-foreground mb-2">1. Pay Yourself First</h3>
-            <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm">Amankan target tabunganmu di awal bulan secara otomatis dari total pemasukan. Sisa dana bersih langsung dikonversi menjadi batas aman nyawa budget-mu.</p>
+            <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm">Amankan target tabunganmu di awal bulan secara otomatis dari total pemasukan. Sisa dana bersih langsung dikonversi menjadi batas aman nyawa anggaranmu.</p>
           </div>
 
           {/* Fitur 2 */}
@@ -194,7 +194,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex gap-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   <span className="text-rose-500 font-bold shrink-0">✕</span>
-                  <span>Tidak ada batasan budget harian yang tegas, sehingga pengeluaran selalu bocor.</span>
+                  <span>Tidak ada batasan anggaran harian yang tegas, sehingga pengeluaran selalu bocor.</span>
                 </li>
               </ul>
             </div>
@@ -343,7 +343,7 @@ export default function LandingPage() {
               <ChevronDown className="w-4 h-4 text-muted-foreground group-open:-rotate-180 transition-transform duration-300" />
             </summary>
             <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Kesehatan hutan dihitung secara matematis berdasarkan tingkat realisasi pengeluaran Anda. Jika total pengeluaran bulanan masih di bawah batas aman budget Anda, hutan akan berada dalam status hijau subur (100% sehat) dan memicu fauna berdatangan. Namun, jika budget jebol, kesehatan hutan menyusut dan memicu tampilan tanaman layu kecokelatan serta burung gagak bertengger.
+              Kesehatan hutan dihitung secara matematis berdasarkan tingkat realisasi pengeluaran Anda. Jika total pengeluaran bulanan masih di bawah batas aman anggaran Anda, hutan akan berada dalam status hijau subur (100% sehat) dan memicu fauna berdatangan. Namun, jika anggaran jebol, kesehatan hutan menyusut dan memicu tampilan tanaman layu kecokelatan serta burung gagak bertengger.
             </p>
           </details>
 

@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
                         <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <p className="text-[11px] text-center text-muted-foreground leading-relaxed px-4">
-                        Jika email <strong>{email}</strong> terdaftar, Anda akan menerima petunjuk untuk mereset password dalam beberapa menit.
+                        Jika email <strong>{email}</strong> terdaftar, Anda akan menerima petunjuk untuk mereset kata sandi dalam beberapa menit.
                     </p>
                     <Link 
                         href="/login" 
@@ -58,8 +58,8 @@ export default function ForgotPasswordPage() {
 
     return (
         <AuthLayout 
-            title="Lupa Password?" 
-            subtitle="Jangan khawatir! Masukkan email Anda dan kami akan mengirimkan tautan untuk mereset password."
+            title="Lupa Kata Sandi?" 
+            subtitle="Jangan khawatir! Masukkan email Anda dan kami akan mengirimkan tautan untuk mereset kata sandi."
             error={error}
             isLoading={isLoading}
         >

@@ -93,7 +93,7 @@ export default function InsightTab() {
           icon: <TrendingUp className="w-5 h-5 text-orange-600" />,
           bg: "bg-orange-50 dark:bg-orange-950/20",
           border: "border-orange-100 dark:border-orange-900/30",
-          content: "Kategori Belanja kamu sudah over budget Rp 30.000. Pengeluaran Shopee kemarin jadi penyebab utamanya. Tahan diri dulu ya!"
+          content: "Kategori Belanja kamu sudah melebihi anggaran Rp 30.000. Pengeluaran Shopee kemarin jadi penyebab utamanya. Tahan diri dulu ya!"
         },
         {
           id: 2,
@@ -101,7 +101,7 @@ export default function InsightTab() {
           icon: <Leaf className="w-5 h-5 text-primary" />,
           bg: "bg-emerald-50 dark:bg-emerald-950/30",
           border: "border-emerald-100 dark:border-emerald-900/30",
-          content: "Budget Makanan sisa Rp 20.000 lagi. Hindari Grab Food minggu ini dan coba masak sendiri agar tanaman tetap sehat."
+          content: "Anggaran Makanan sisa Rp 20.000 lagi. Hindari Grab Food minggu ini dan coba masak sendiri agar tanaman tetap sehat."
         },
         {
           id: 3,
@@ -160,7 +160,7 @@ export default function InsightTab() {
           </div>
 
           <p className="text-[12.5px] text-gray-700 dark:text-gray-250 leading-relaxed mb-4.5 font-semibold">
-            Dapatkan analisis personal berdasarkan pola transaksi, budget harian, dan streak kamu.
+            Dapatkan analisis personal berdasarkan pola transaksi, anggaran harian, dan streak kamu.
           </p>
 
           <button
