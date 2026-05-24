@@ -50,6 +50,8 @@ export default function SettingsMenuList() {
 
     const [isGmailConnected, setIsGmailConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isGmailTester, setIsGmailTester] = useState(false);
+    const [userEmail, setUserEmail] = useState("");
 
     // State untuk Notifikasi (Asli dari DB)
     const [notifSettings, setNotifSettings] = useState({
@@ -64,8 +66,9 @@ export default function SettingsMenuList() {
         const checkConnection = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const connected = user.app_metadata?.provider === 'google' || user.user_metadata?.is_gmail_connected;
+                const connected = user.user_metadata?.is_gmail_connected;
                 setIsGmailConnected(!!connected);
+                setUserEmail(user.email || "");
 
                 // Ambil preferensi notifikasi
                 const prefResult = await getUserPreferencesAction();
@@ -75,6 +78,7 @@ export default function SettingsMenuList() {
                         budget: prefResult.data.notif_budget_reminder,
                         ai: prefResult.data.notif_ai_insight
                     });
+                    setIsGmailTester(!!(prefResult.data as any).is_gmail_tester);
                 }
             }
         };
@@ -130,13 +134,38 @@ export default function SettingsMenuList() {
                         access_type: 'offline',
                         prompt: 'consent',
                     },
-                    redirectTo: `${window.location.origin}/auth/callback?next=/settings`,
+                    redirectTo: `${window.location.origin}/auth/callback?next=/settings&gmail_connect=true`,
                 }
             });
             if (error) throw error;
         } catch (error: any) {
             console.error("Gagal koneksi Gmail:", error.message);
             alert("Gagal menghubungkan Gmail: " + error.message);
+        } finally {
+            setIsConnecting(false);
+        }
+    };
+
+    const handleDisconnectGmail = async () => {
+        try {
+            setIsConnecting(true);
+            const { error } = await supabase.auth.updateUser({
+                data: { is_gmail_connected: false }
+            });
+            if (error) throw error;
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                await supabase
+                    .from('profiles')
+                    .update({ is_gmail_connected: false })
+                    .eq('id', user.id);
+            }
+
+            setIsGmailConnected(false);
+        } catch (error: any) {
+            console.error("Gagal menonaktifkan Gmail:", error.message);
+            alert("Gagal menonaktifkan Gmail: " + error.message);
         } finally {
             setIsConnecting(false);
         }
@@ -210,7 +239,9 @@ export default function SettingsMenuList() {
                                         {item.title}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground truncate max-w-[220px] sm:max-w-md">
-                                        {isSyncItem && isGmailConnected ? "Terhubung ke Gmail ✅" : item.desc}
+                                        {isSyncItem ? (
+                                            isGmailConnected ? "Terhubung ke Gmail ✅" : "Akses Terkunci 🔒 (Masa Uji Coba)"
+                                        ) : item.desc}
                                     </p>
                                 </div>
                             </div>
@@ -220,6 +251,11 @@ export default function SettingsMenuList() {
                                     <span className="flex items-center gap-1.5 text-[9px] uppercase font-bold tracking-wider bg-[#e8f4ec] dark:bg-emerald-950/40 text-[#2A6A55] dark:text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-100/50 dark:border-emerald-900/30">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Aktif
+                                    </span>
+                                )}
+                                {isSyncItem && !isGmailConnected && !isGmailTester && (
+                                    <span className="flex items-center gap-1.5 text-[9px] uppercase font-bold tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-md border border-amber-500/20">
+                                        Terkunci
                                     </span>
                                 )}
                                 <ChevronRight className={`w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500 transition-all ${isOpen ? 'rotate-90 text-primary' : 'group-hover:translate-x-1'}`} />
@@ -309,22 +345,62 @@ export default function SettingsMenuList() {
                                         Hubungkan Gmail Anda agar Firest bisa otomatis mencatat pengeluaran dari email bank & e-wallet.
                                     </p>
 
-                                    <button
-                                        onClick={handleConnectGmail}
-                                        disabled={isConnecting || isGmailConnected}
-                                        className={`w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${isGmailConnected
-                                            ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 cursor-default"
-                                            : "bg-primary text-white hover:bg-emerald-700 active:scale-[0.98]"
-                                            }`}
-                                    >
-                                        {isConnecting ? (
-                                            <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                        ) : isGmailConnected ? (
-                                            <>✅ Gmail Sudah Terhubung</>
-                                        ) : (
-                                            <><LinkIcon className="w-3.5 h-3.5" /> Hubungkan Gmail Sekarang</>
-                                        )}
-                                    </button>
+                                    {!isGmailTester ? (
+                                        <div className="space-y-3 animate-fade-in">
+                                            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 text-amber-800 dark:text-amber-300">
+                                                <Shield className="w-5 h-5 shrink-0 text-amber-500 mt-0.5" />
+                                                <div className="text-[10px] font-semibold leading-relaxed">
+                                                    <p className="font-black text-[11px] mb-1">Akses Terbatas (Masa Uji Coba)</p>
+                                                    Fitur ini membaca notifikasi e-wallet dari Gmail. Sesuai standar keamanan, fitur ini sedang dalam masa uji coba terbatas. Hubungi Developer untuk meminta akses fitur ini.
+                                                </div>
+                                            </div>
+                                            <a
+                                                href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                                                    `Halo Developer, saya ingin meminta akses fitur Auto-Sync Gmail di Firest untuk akun: ${userEmail}`
+                                                )}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs text-center"
+                                            >
+                                                Minta Akses via WhatsApp
+                                            </a>
+                                        </div>
+                                    ) : isGmailConnected ? (
+                                        <div className="space-y-3 animate-fade-in">
+                                            <div className="flex items-center justify-between gap-4 p-2.5 rounded-lg bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100/50 dark:border-emerald-900/30">
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-bold leading-tight text-emerald-800 dark:text-emerald-300">Gmail Terhubung & Aktif</p>
+                                                    <p className="text-[9px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">
+                                                        Firest mendeteksi pengeluaran otomatis dari email Anda.
+                                                    </p>
+                                                </div>
+                                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                                            </div>
+                                            <button
+                                                onClick={handleDisconnectGmail}
+                                                disabled={isConnecting}
+                                                className="w-full py-2 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isConnecting ? (
+                                                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                                ) : (
+                                                    "Nonaktifkan Hubungan Gmail"
+                                                )}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={handleConnectGmail}
+                                            disabled={isConnecting}
+                                            className="w-full py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer bg-primary text-white hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isConnecting ? (
+                                                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                            ) : (
+                                                <><LinkIcon className="w-3.5 h-3.5" /> Hubungkan Gmail Sekarang</>
+                                            )}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         )}

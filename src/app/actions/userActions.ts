@@ -32,7 +32,7 @@ export async function getUserPreferencesAction() {
 
     const { data, error } = await supabase
         .from("profiles")
-        .select("notif_spending_alert, notif_budget_reminder, notif_ai_insight")
+        .select("notif_spending_alert, notif_budget_reminder, notif_ai_insight, is_gmail_tester")
         .eq("id", user.id)
         .single();
 

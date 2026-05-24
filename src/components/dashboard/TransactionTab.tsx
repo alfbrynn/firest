@@ -64,7 +64,7 @@ export default function TransactionTab() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUserId(session.user.id);
-        const connected = session.user.app_metadata?.provider === 'google' || session.user.user_metadata?.is_gmail_connected;
+        const connected = session.user.user_metadata?.is_gmail_connected;
         setIsGmailConnected(!!connected);
       }
     };
