@@ -7,15 +7,20 @@ export async function GET(request: Request) {
   // Setelah sukses login, arahkan ke dashboard
   const next = searchParams.get('next') ?? '/dashboard'
 
+  const gmailConnect = searchParams.get('gmail_connect') === 'true'
+
   if (code) {
     const supabase = await createClient()
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.user) {
-      // Jika login via Google, set flag is_gmail_connected
-      if (data.user.app_metadata?.provider === 'google' || data.user.app_metadata?.providers?.includes('google')) {
+      if (gmailConnect) {
         await supabase.auth.updateUser({
           data: { is_gmail_connected: true }
         });
+        await supabase
+          .from('profiles')
+          .update({ is_gmail_connected: true })
+          .eq('id', data.user.id);
       }
 
       const forwardedHost = request.headers.get('x-forwarded-host')

@@ -12,6 +12,25 @@ export async function POST() {
       return NextResponse.json({ error: "Silakan login terlebih dahulu." }, { status: 401 });
     }
 
+    if (!user.user_metadata?.is_gmail_connected) {
+      return NextResponse.json({ 
+        error: "Koneksi Gmail dinonaktifkan. Silakan aktifkan kembali di halaman Pengaturan." 
+      }, { status: 400 });
+    }
+
+    // Pengecekan ekstra: Pastikan pengguna terdaftar sebagai tester di tabel profiles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_gmail_tester')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || !profile.is_gmail_tester) {
+      return NextResponse.json({ 
+        error: "Akun Anda belum disetujui sebagai tester fitur Gmail. Hubungi Developer." 
+      }, { status: 403 });
+    }
+
     const providerToken = session.provider_token;
 
     if (!providerToken) {

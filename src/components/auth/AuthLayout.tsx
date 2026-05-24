@@ -40,11 +40,6 @@ export default function AuthLayout({ children, title, subtitle, error, isLoading
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    scopes: 'https://www.googleapis.com/auth/gmail.readonly',
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
                     redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
                 }
             });
