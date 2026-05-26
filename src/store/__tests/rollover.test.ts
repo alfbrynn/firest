@@ -123,7 +123,7 @@ describe('useAppStore checkCycleRollover', () => {
     // 2. mainGoal.target should be 0 (reset)
     // 3. mainGoal.current should be excess savings: 11,000,000 - 10,000,000 = 1,000,000
     // 4. xp should increase by +200 to 1400
-    // 5. levelNumber should be calculateLevelFromXp(1400) = 3
+    // 5. levelNumber should be calculateLevelFromXp(1400) = 8
     // 6. forestHealth should be restored to 100
     // 7. transactions category should be converted from 'Tabungan' to 'Tabungan Terpakai'
     const finalState = useAppStore.getState();
@@ -131,7 +131,7 @@ describe('useAppStore checkCycleRollover', () => {
     expect(finalState.mainGoal?.target).toBe(0);
     expect(finalState.mainGoal?.current).toBe(1000000);
     expect(finalState.xp).toBe(1400);
-    expect(finalState.levelNumber).toBe(3);
+    expect(finalState.levelNumber).toBe(8);
     expect(finalState.forestHealth).toBe(100);
     expect(finalState.transactions[0].category).toBe('Tabungan Terpakai');
   });

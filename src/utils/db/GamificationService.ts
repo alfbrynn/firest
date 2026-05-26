@@ -12,8 +12,8 @@ export class GamificationService {
     const XP_REWARD = transactionType === 'income' ? 50 : 5;
     const newXp = currentXp + XP_REWARD;
     
-    // Hitung level baru (500 XP per level, max 12)
-    const newLevel = Math.min(12, Math.floor(newXp / 500) + 1);
+    // Hitung level baru (200 XP per level, max 12)
+    const newLevel = Math.min(12, Math.floor(newXp / 200) + 1);
     const isLevelUp = newLevel > (gameState?.level || 1);
 
     if (gameState) {
