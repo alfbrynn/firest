@@ -48,7 +48,7 @@ interface AppState {
   isStreakDead: boolean;
   activeToast: { message: string; type: 'success' | 'warning' | 'levelUp' | 'streak' | 'onboarding'; subtext?: string } | null;
   statusBarMessage: string | null;
-  
+
   completeTutorial: () => void;
   fetchUserData: (userId: string) => Promise<void>;
   updateMonthlyTargets: (userId: string, income: number, savings: number, resetDate: number) => Promise<void>;
@@ -101,18 +101,18 @@ export const calculateIsStreakDead = (transactions: Transaction[], hasCompletedT
 };
 
 export const calculateHealthFromTransactions = (
-  transactions: Transaction[], 
+  transactions: Transaction[],
   resetDate: number = 1,
   monthlyIncomeTarget: number = 0,
   monthlySavingsTarget: number = 0
 ) => {
   const now = new Date();
   let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), resetDate);
-  
+
   if (now.getDate() < resetDate) {
     startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
   }
-  
+
   const endOfPeriod = new Date(startOfPeriod);
   endOfPeriod.setMonth(endOfPeriod.getMonth() + 1);
 
@@ -126,7 +126,7 @@ export const calculateHealthFromTransactions = (
   const totalSpent = expensesThisPeriod.reduce((sum, t) => sum + t.amount, 0);
 
   if (monthlyIncomeTarget === 0) {
-    const monthlyBudget = 2250000; 
+    const monthlyBudget = 2250000;
     return totalSpent > monthlyBudget ? 50 : 100;
   }
 
@@ -165,8 +165,8 @@ export const calculateHealthFromTransactions = (
   // Check weekly saving rate
   const startOfWeek = new Date();
   startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-  startOfWeek.setHours(0,0,0,0);
-  
+  startOfWeek.setHours(0, 0, 0, 0);
+
   const weeklyTxs = transactions.filter(t => new Date(t.date) >= startOfWeek);
   const weeklyIncome = weeklyTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const weeklyExpense = weeklyTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
@@ -235,11 +235,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       isDemo: true,
       fullName: "Demo Mahasiswa",
       avatarUrl: "https://ui-avatars.com/api/?name=Demo+Mahasiswa&background=2A6A55&color=fff",
-      xp: 2200,
-      levelNumber: 5,
-      level: 'Pohon Muda',
-      forestHealth: 72,
-      currentStreak: 4,
+      xp: 1850,
+      levelNumber: 10,
+      level: 'Ekosistem',
+      forestHealth: 80,
+      currentStreak: 30,
       monthlyIncomeTarget: 1500000,
       monthlySavingsTarget: 300000,
       budgetResetDate: 1,
@@ -305,7 +305,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (!grid || grid.length < 5) {
         const currentGrid = grid || [];
-        const missingCoords = defaultCoords.filter(coord => 
+        const missingCoords = defaultCoords.filter(coord =>
           !currentGrid.some(g => g.grid_x === coord.grid_x && g.grid_y === coord.grid_y)
         );
 
@@ -527,7 +527,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateTransaction: async (txId: string, updatedFields: Partial<Transaction>, userId: string) => {
     const state = get();
     if (state.isDemo) {
-      const newTxs = state.transactions.map(t => 
+      const newTxs = state.transactions.map(t =>
         t.id === txId ? { ...t, ...updatedFields } : t
       );
       const isStreakDead = calculateIsStreakDead(newTxs, state.hasCompletedTutorial);
@@ -567,7 +567,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         is_auto_sync: updatedTx.is_auto_sync
       };
 
-      const newTxs = state.transactions.map(t => 
+      const newTxs = state.transactions.map(t =>
         t.id === txId ? mappedUpdatedTx : t
       );
 
@@ -800,7 +800,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           xp: newXp,
           level: newLevelNum
         })
-         .eq('user_id', userId);
+        .eq('user_id', userId);
     } catch (err) {
       console.error("Error updating gamification state in onboarding:", err);
     }
@@ -920,7 +920,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(d.setDate(diff));
-    monday.setHours(0,0,0,0);
+    monday.setHours(0, 0, 0, 0);
     const currentWeekStr = monday.toISOString().split('T')[0];
 
     const lastWeeklyReview = localStorage.getItem(`firest_last_weekly_review_${activeUserId}`);
@@ -1069,7 +1069,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     const now = new Date();
     const resetDate = state.budgetResetDate;
-    
+
     // Tentukan bulan siklus saat ini sebagai string (misal: "2026-05")
     let currentCycleMonth = now.getMonth();
     let currentCycleYear = now.getFullYear();
@@ -1083,18 +1083,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     const cycleKey = `${currentCycleYear}-${currentCycleMonth}`;
 
     const lastRollover = localStorage.getItem(state.isDemo ? `firest_last_rollover_demo` : `firest_last_rollover_${userId}`);
-    
+
     if (lastRollover !== cycleKey && state.mainGoal) {
       // Calculate start of current cycle (which is the end of the previous cycle)
       let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), resetDate);
       if (now.getDate() < resetDate) {
         startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
       }
-      
+
       // Calculate start of previous cycle
       const startOfPrevPeriod = new Date(startOfPeriod);
       startOfPrevPeriod.setMonth(startOfPrevPeriod.getMonth() - 1);
-      
+
       // Filter transactions that belong to the previous cycle
       const prevTxs = state.transactions.filter(t => {
         const d = new Date(t.date);
@@ -1113,7 +1113,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (sisaUang > 0) {
         const newCurrentGoal = (state.mainGoal.current || 0) + sisaUang;
-        
+
         // Update local state
         set({
           mainGoal: { ...state.mainGoal, current: newCurrentGoal }
@@ -1127,10 +1127,10 @@ export const useAppStore = create<AppState>((set, get) => ({
             .update({ current: newCurrentGoal })
             .eq('user_id', userId);
         }
-          
+
         get().showToast(
-          "Siklus Baru! 🌟", 
-          "success", 
+          "Siklus Baru! 🌟",
+          "success",
           `Sisa anggaran bulan lalu sebesar Rp ${sisaUang.toLocaleString('id-ID')} otomatis dimasukkan ke target ${state.mainGoal.name} kamu!`
         );
       }
@@ -1160,7 +1160,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const totalSavings = (state.mainGoal.current || 0) + savingsThisCycle;
     const targetCost = state.mainGoal.target;
-    
+
     // Kelebihan tabungan yang tersisa untuk dialihkan ke impian baru berikutnya
     const excessSavings = Math.max(0, totalSavings - targetCost);
 
@@ -1170,7 +1170,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     if (state.isDemo || !userId) {
       // Perbarui state lokal demo
-      const updatedTxs = state.transactions.map(t => 
+      const updatedTxs = state.transactions.map(t =>
         t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
       );
       const isStreakDead = calculateIsStreakDead(updatedTxs, state.hasCompletedTutorial);
@@ -1188,7 +1188,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         },
         transactions: updatedTxs
       });
-      
+
       get().showToast(
         "Impian Tercapai! 🎉",
         "levelUp",
@@ -1228,7 +1228,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         .eq('user_id', userId);
 
       // 6. Update local state
-      const updatedTxs = state.transactions.map(t => 
+      const updatedTxs = state.transactions.map(t =>
         t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
       );
       const isStreakDead = calculateIsStreakDead(updatedTxs, state.hasCompletedTutorial);
@@ -1286,7 +1286,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     if (state.isDemo || !userId) {
       set((state) => {
-        const filtered = state.forestGrid.filter(f => 
+        const filtered = state.forestGrid.filter(f =>
           !defaultCoords.some(c => c.grid_x === f.grid_x && c.grid_y === f.grid_y)
         );
         const newTiles = defaultCoords.map(coord => {
@@ -1325,7 +1325,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (data) {
         set((state) => {
-          const filtered = state.forestGrid.filter(f => 
+          const filtered = state.forestGrid.filter(f =>
             !defaultCoords.some(c => c.grid_x === f.grid_x && c.grid_y === f.grid_y)
           );
           const newTiles = data.map(d => ({
