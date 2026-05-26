@@ -68,6 +68,7 @@ interface AppState {
   triggerWeeklyReviewXP: (userId?: string) => Promise<void>;
   checkStreakAndActivity: (userId?: string) => Promise<void>;
   checkCycleRollover: (userId: string) => Promise<void>;
+  claimCompletedGoal: (userId: string) => Promise<void>;
 }
 
 const LEVEL_NAMES = ['Bibit', 'Tunas', 'Pohon Muda', 'Hutan', 'Hutan Hujan', 'Ekosistem'];
@@ -630,9 +631,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         mainGoal: {
           name: name,
           target: target,
-          color: 'bg-primary'
+          color: 'bg-primary',
+          current: 0
         }
       });
+      get().checkCycleRollover('demo');
       return;
     }
     const supabase = createClient();
@@ -658,6 +661,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             color: data.color || 'bg-primary'
           }
         });
+        await get().checkCycleRollover(userId);
       }
     } catch (err) {
       console.error("Error updating main goal in DB:", err);
@@ -1040,7 +1044,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         .reduce((sum, t) => sum + t.amount, 0);
 
       const totalExpense = prevTxs
-        .filter(t => t.type === 'expense')
+        .filter(t => t.type === 'expense' && t.category !== 'Tabungan')
         .reduce((sum, t) => sum + t.amount, 0);
 
       const sisaUang = totalIncome - totalExpense;
@@ -1070,6 +1074,120 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
 
       localStorage.setItem(state.isDemo ? `firest_last_rollover_demo` : `firest_last_rollover_${userId}`, cycleKey);
+    }
+  },
+
+  claimCompletedGoal: async (userId: string) => {
+    const state = get();
+    if (!state.mainGoal) return;
+
+    // 1. Hitung total tabungan berjalan (sama seperti di UI)
+    const now = new Date();
+    let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), state.budgetResetDate);
+    if (now.getDate() < state.budgetResetDate) {
+      startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+    }
+    startOfPeriod.setHours(0, 0, 0, 0);
+
+    const savingsThisCycle = state.transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        return d >= startOfPeriod && t.type === 'expense' && t.category === 'Tabungan';
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalSavings = (state.mainGoal.current || 0) + savingsThisCycle;
+    const targetCost = state.mainGoal.target;
+    
+    // Kelebihan tabungan yang tersisa untuk dialihkan ke impian baru berikutnya
+    const excessSavings = Math.max(0, totalSavings - targetCost);
+
+    // 2. Berikan bonus XP + pulihkan kesehatan hutan (Gamifikasi)
+    const newXp = state.xp + 200;
+    const newLevel = calculateLevelFromXp(newXp);
+
+    if (state.isDemo || !userId) {
+      // Perbarui state lokal demo
+      set({
+        xp: newXp,
+        levelNumber: newLevel,
+        level: getLevelName(newLevel),
+        forestHealth: 100,
+        mainGoal: {
+          ...state.mainGoal,
+          name: '',
+          target: 0,
+          current: excessSavings
+        },
+        transactions: state.transactions.map(t => 
+          t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
+        )
+      });
+      
+      get().showToast(
+        "Impian Tercapai! 🎉",
+        "levelUp",
+        `Kamu mendapatkan +200 XP dan Hutanmu kembali sehat 100%! Sisa tabungan Rp ${excessSavings.toLocaleString('id-ID')} disimpan.`
+      );
+      return;
+    }
+
+    const supabase = createClient();
+    try {
+      // 3. Update gamification state di DB
+      await supabase
+        .from('gamification_state')
+        .update({
+          xp: newXp,
+          level: newLevel,
+          forest_health: 100
+        })
+        .eq('user_id', userId);
+
+      // 4. Ubah kategori transaksi 'Tabungan' menjadi 'Tabungan Terpakai' di DB agar tidak dihitung ganda
+      await supabase
+        .from('transactions')
+        .update({ category: 'Tabungan Terpakai' })
+        .eq('user_id', userId)
+        .eq('category', 'Tabungan');
+
+      // 5. Reset impian utama di DB dengan mengosongkan target dan nama, tapi mempertahankan sisa tabungan
+      await supabase
+        .from('goals')
+        .update({
+          name: '',
+          target: 0,
+          current: excessSavings
+        })
+        .eq('user_id', userId);
+
+      // 6. Update local state
+      const updatedTxs = state.transactions.map(t => 
+        t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
+      );
+
+      set({
+        xp: newXp,
+        levelNumber: newLevel,
+        level: getLevelName(newLevel),
+        forestHealth: 100,
+        mainGoal: {
+          ...state.mainGoal,
+          name: '',
+          target: 0,
+          current: excessSavings
+        },
+        transactions: updatedTxs
+      });
+
+      get().showToast(
+        "Impian Tercapai! 🎉",
+        "levelUp",
+        `Selamat! Kamu mendapatkan +200 XP dan Hutanmu kembali subur 100%! Sisa tabungan Rp ${excessSavings.toLocaleString('id-ID')} disimpan.`
+      );
+    } catch (err) {
+      console.error("Error claiming completed goal:", err);
+      get().showToast("Gagal memproses klaim impian", "warning");
     }
   }
 }));
