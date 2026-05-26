@@ -34,11 +34,11 @@ const getNextLevelXp = (currentXp: number) => {
 };
 
 const getTileUnlockLevel = (gridX: number, gridY: number): number => {
-    if (gridX === 0 && gridY === 0) return 1;
-    if (gridX === 1 && gridY === 0) return 2;
-    if (gridX === 0 && gridY === 1) return 3;
-    if (gridX === -1 && gridY === 0) return 4;
-    if (gridX === 0 && gridY === -1) return 5;
+    if (gridX === 0 && gridY === 0) return 1;    // Tengah (Level 1)
+    if (gridX === -1 && gridY === 0) return 6;   // Belakang-Kiri (Level 6)
+    if (gridX === 0 && gridY === -1) return 7;   // Belakang-Kanan (Level 7)
+    if (gridX === 0 && gridY === 1) return 8;    // Depan-Kiri (Level 8)
+    if (gridX === 1 && gridY === 0) return 9;    // Depan-Kanan (Level 9)
     return 999;
 };
 
@@ -102,10 +102,10 @@ export default function PixiCanvas() {
 
             // Map untuk menyimpan texture pohon
             const loadedTreeTextures: Record<string, PIXI.Texture> = {};
-            const uniqueTreeTypesInGrid = Array.from(new Set(forestGrid.map(t => t.item_type)));
+            const healthyTypes = ['tree_1', 'tree_2', 'tree_3', 'tree_4', 'tree_5', 'tree_6'];
             const dryTypes = ['tree_dry_1', 'tree_dry_2', 'tree_dry_3', 'tree_dry_4'];
 
-            const healthyPromises = uniqueTreeTypesInGrid.map(async (type) => {
+            const healthyPromises = healthyTypes.map(async (type) => {
                 const tex = await PIXI.Assets.load(treeAssetMap[type].src).catch(() => null);
                 if (tex) loadedTreeTextures[type] = tex;
             });
@@ -167,10 +167,26 @@ export default function PixiCanvas() {
                 if (gridX === 0 && gridY === 0) return { x: 0, y: -10 };       // Tengah (Level 1)
                 if (gridX === 1 && gridY === 0) return { x: 220, y: 70 };     // Depan-Kanan (Level 2)
                 if (gridX === 0 && gridY === 1) return { x: -220, y: 70 };    // Depan-Kiri (Level 3)
-                if (gridX === -1 && gridY === 0) return { x: -180, y: -90 };   // Belakang-Kiri (Level 4)
-                if (gridX === 0 && gridY === -1) return { x: 180, y: -80 };    // Belakang-Kanan (Level 5)
+                if (gridX === -1 && gridY === 0) return { x: -210, y: -90 };   // Belakang-Kiri (Level 4) - Digeser keluar sedikit agar lebih kelihatan peeking out
+                if (gridX === 0 && gridY === -1) return { x: 210, y: -80 };    // Belakang-Kanan (Level 5) - Digeser keluar sedikit agar lebih kelihatan peeking out
                 return { x: 0, y: 0 };
             };
+
+            // Dapatkan ubin yang terbuka dan hitung ubin yang harus kering secara bertahap berdasarkan forestHealth
+            const unlockedTiles = forestGrid.filter(t => levelNumber >= getTileUnlockLevel(t.grid_x, t.grid_y));
+            const vulnerabilitySorted = [...unlockedTiles].sort((a, b) => {
+                return getTileUnlockLevel(b.grid_x, b.grid_y) - getTileUnlockLevel(a.grid_x, a.grid_y);
+            });
+
+            let dryCount = 0;
+            if (forestHealth < 100) {
+                if (forestHealth >= 80) dryCount = 1;
+                else if (forestHealth >= 60) dryCount = 2;
+                else if (forestHealth >= 40) dryCount = 3;
+                else if (forestHealth >= 20) dryCount = 4;
+                else dryCount = 5;
+            }
+            const dryTiles = vulnerabilitySorted.slice(0, dryCount);
 
             const sortedGrid = [...forestGrid].sort((a, b) => {
                 const offsetA = getTreeOffset(a.grid_x, a.grid_y);
@@ -189,13 +205,19 @@ export default function PixiCanvas() {
                 // --- 2. GAMBAR POHON & HEWAN (Hanya jika tile sudah terbuka) ---
                 if (!isLocked) {
                     // 1. Logika Variasi Pohon
-                    let finalTreeType = tile.item_type;
-                    const tileHash = Math.abs(Math.sin(tile.grid_x * 12.9898 + tile.grid_y * 78.233)) % 1;
-                    const dryThreshold = forestHealth < 50 ? (50 - forestHealth) / 50 : 0;
-                    const isDry = tile.status === 'dry' || isStreakDead || (forestHealth < 50 && tileHash < dryThreshold);
+                    const isCenter = tile.grid_x === 0 && tile.grid_y === 0;
+                    const tileUnlockLvl = getTileUnlockLevel(tile.grid_x, tile.grid_y);
+                    const calculatedTreeLvl = isCenter 
+                        ? Math.min(6, Math.max(1, levelNumber))
+                        : Math.min(6, Math.max(1, levelNumber - tileUnlockLvl + 1));
+                    
+                    let finalTreeType = `tree_${calculatedTreeLvl}`;
+                    
+                    // Tentukan apakah pohon ini harus kering (isDry)
+                    const isDry = isStreakDead || dryTiles.some(dt => dt.grid_x === tile.grid_x && dt.grid_y === tile.grid_y);
 
                     if (isDry) {
-                        const dryLevel = Math.min(4, Math.max(1, Math.ceil(parseInt(tile.item_type.split('_')[1]) / 1.5)));
+                        const dryLevel = Math.min(4, Math.max(1, Math.ceil(calculatedTreeLvl / 1.5)));
                         finalTreeType = `tree_dry_${dryLevel}`;
                     }
 
@@ -208,9 +230,8 @@ export default function PixiCanvas() {
                         tree.x = posX;
                         tree.y = posY + 15; // Turunkan sedikit agar akar menancap pas di tanah
                         
-                        // Skala dinamis: pohon tengah sedikit lebih kecil agar tidak terpotong di layar, samping disesuaikan
-                        const isCenter = tile.grid_x === 0 && tile.grid_y === 0;
-                        const posScaleFactor = isCenter ? 0.42 : 0.28;
+                        // Skala yang sama rata untuk semua pohon agar seragam dan rapi
+                        const posScaleFactor = 0.38;
                         tree.scale.set(treeData.scale * posScaleFactor);
                         
                         tree.zIndex = tree.y; // Urutan kedalaman berdasarkan posisi Y
@@ -351,7 +372,7 @@ export default function PixiCanvas() {
                 }
             }
         };
-    }, [forestGrid]);
+    }, [forestGrid, levelNumber, forestHealth, isStreakDead]);
 
     return (
         <div className="w-full h-full relative bg-linear-to-b from-background to-[#dcece3] dark:to-slate-950/20 overflow-hidden">

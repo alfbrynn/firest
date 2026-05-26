@@ -17,9 +17,26 @@ export async function GET(request: Request) {
         await supabase.auth.updateUser({
           data: { is_gmail_connected: true }
         });
+
+        const updateData: any = {
+          is_gmail_connected: true,
+        };
+
+        if (data.session) {
+          const expiresAt = new Date();
+          expiresAt.setSeconds(expiresAt.getSeconds() + (data.session.expires_in || 3600));
+
+          updateData.gmail_access_token = data.session.provider_token;
+          updateData.gmail_token_expires_at = expiresAt.toISOString();
+
+          if (data.session.provider_refresh_token) {
+            updateData.gmail_refresh_token = data.session.provider_refresh_token;
+          }
+        }
+
         await supabase
           .from('profiles')
-          .update({ is_gmail_connected: true })
+          .update(updateData)
           .eq('id', data.user.id);
       }
 

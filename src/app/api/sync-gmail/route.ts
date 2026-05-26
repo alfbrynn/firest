@@ -18,10 +18,10 @@ export async function POST() {
       }, { status: 400 });
     }
 
-    // Pengecekan ekstra: Pastikan pengguna terdaftar sebagai tester di tabel profiles
+    // Pengecekan ekstra: Pastikan pengguna terdaftar sebagai tester di tabel profiles dan ambil token
     const { data: profile } = await supabase
       .from('profiles')
-      .select('is_gmail_tester')
+      .select('is_gmail_tester, is_gmail_connected, gmail_access_token, gmail_refresh_token, gmail_token_expires_at')
       .eq('id', user.id)
       .single();
 
@@ -31,11 +31,69 @@ export async function POST() {
       }, { status: 403 });
     }
 
-    const providerToken = session.provider_token;
+    if (!profile.is_gmail_connected || !profile.gmail_access_token) {
+      return NextResponse.json({ 
+        error: "Gmail belum terhubung. Silakan hubungkan Gmail Anda di halaman Pengaturan." 
+      }, { status: 401 });
+    }
+
+    let providerToken = profile.gmail_access_token;
+    
+    // Auto-refresh token if expired (or expires within 1 minute)
+    const expiresAt = profile.gmail_token_expires_at ? new Date(profile.gmail_token_expires_at) : null;
+    const isExpired = expiresAt ? expiresAt.getTime() <= Date.now() + 60000 : true;
+
+    if (isExpired && profile.gmail_refresh_token) {
+      try {
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+        
+        if (!clientId || !clientSecret) {
+          console.error("GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET missing from environment");
+          throw new Error("Client credentials missing");
+        }
+
+        const response = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            refresh_token: profile.gmail_refresh_token,
+            grant_type: "refresh_token"
+          })
+        });
+
+        const tokenData = await response.json();
+        if (!response.ok) {
+          throw new Error(tokenData.error_description || tokenData.error || "Google API refresh failed");
+        }
+
+        providerToken = tokenData.access_token;
+        const newExpiresAt = new Date();
+        newExpiresAt.setSeconds(newExpiresAt.getSeconds() + (tokenData.expires_in || 3600));
+
+        await supabase
+          .from('profiles')
+          .update({
+            gmail_access_token: providerToken,
+            gmail_token_expires_at: newExpiresAt.toISOString()
+          })
+          .eq('id', user.id);
+          
+      } catch (refreshErr: any) {
+        console.error("Gmail token refresh failed:", refreshErr.message);
+        return NextResponse.json({ 
+          error: "Koneksi Gmail Anda telah kedaluwarsa. Silakan sambungkan kembali di halaman Pengaturan." 
+        }, { status: 401 });
+      }
+    }
 
     if (!providerToken) {
       return NextResponse.json({ 
-        error: "Gmail belum terhubung. Silakan hubungkan Gmail Anda di halaman Pengaturan." 
+        error: "Gmail belum terhubung atau sesi kedaluwarsa. Silakan hubungkan kembali di halaman Pengaturan." 
       }, { status: 401 });
     }
 
