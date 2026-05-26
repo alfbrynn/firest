@@ -18,10 +18,16 @@ export async function generateInsightAction(data: {
   budgetCategories: any;
   streakDays: number;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Unauthorized");
+    if (!user) return { success: false, error: "Unauthorized" };
 
-  return await InsightService.generateInsightIfNeeded(user.id, data);
+    const result = await InsightService.generateInsightIfNeeded(user.id, data);
+    return { success: true, ...result };
+  } catch (err: any) {
+    console.error("Error in generateInsightAction server action:", err);
+    return { success: false, error: err.message || "Gagal menganalisis data keuangan saat ini." };
+  }
 }

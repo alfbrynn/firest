@@ -74,10 +74,15 @@ export default function InsightTab() {
         streakDays: currentStreak
       });
 
-      if (result.insight) {
-        setCachedInsight(result.insight);
-        setNextAvailableDate(result.nextAvailableDate);
-        await triggerWeeklyReviewXP();
+      if (result.success) {
+        const res = result as any;
+        if (res.insight) {
+          setCachedInsight(res.insight);
+          setNextAvailableDate(res.nextAvailableDate);
+          await triggerWeeklyReviewXP();
+        }
+      } else {
+        setErrorMessage((result as any).error || "Gagal menganalisis data keuangan saat ini. Silakan coba lagi nanti.");
       }
     } catch (err: any) {
       console.error("Error generating insight:", err);
