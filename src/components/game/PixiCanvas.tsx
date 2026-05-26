@@ -179,12 +179,20 @@ export default function PixiCanvas() {
             });
 
             let dryCount = 0;
-            if (forestHealth < 100) {
-                if (forestHealth >= 80) dryCount = 1;
-                else if (forestHealth >= 60) dryCount = 2;
-                else if (forestHealth >= 40) dryCount = 3;
-                else if (forestHealth >= 20) dryCount = 4;
-                else dryCount = 5;
+            if (levelNumber < 6) {
+                // Jika masih satu tanaman (Level 1-5), kering hanya jika kesehatan di bawah 30%
+                if (forestHealth < 30) {
+                    dryCount = 1;
+                }
+            } else {
+                // Jika sudah level ekosistem (Level 6+), gunakan logika bertahap mulai dari 80%
+                if (forestHealth < 100) {
+                    if (forestHealth >= 80) dryCount = 1;
+                    else if (forestHealth >= 60) dryCount = 2;
+                    else if (forestHealth >= 40) dryCount = 3;
+                    else if (forestHealth >= 20) dryCount = 4;
+                    else dryCount = 5;
+                }
             }
             const dryTiles = vulnerabilitySorted.slice(0, dryCount);
 
