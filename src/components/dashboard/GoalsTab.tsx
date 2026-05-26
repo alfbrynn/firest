@@ -13,7 +13,8 @@ export default function GoalsTab() {
     transactions,
     mainGoal,
     updateMainGoal,
-    deleteMainGoal
+    deleteMainGoal,
+    claimCompletedGoal
   } = useAppStore();
 
   const [income, setIncome] = useState("");
@@ -21,6 +22,7 @@ export default function GoalsTab() {
   const [resetDate, setResetDate] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
 
@@ -48,10 +50,10 @@ export default function GoalsTab() {
 
   // Pre-fill values when editing the dream goal
   useEffect(() => {
-    if (showGoalModal && mainGoal) {
+    if (showGoalModal && mainGoal && mainGoal.target > 0 && mainGoal.name !== "") {
       setNewGoalName(mainGoal.name);
       setNewGoalPrice(mainGoal.target.toString());
-    } else if (showGoalModal && !mainGoal) {
+    } else if (showGoalModal) {
       setNewGoalName("");
       setNewGoalPrice("");
     }
@@ -66,6 +68,17 @@ export default function GoalsTab() {
     await updateMonthlyTargets(userId, incomeVal, savingsVal, resetDate);
     setIsSaving(false);
     setIsEditing(false);
+  };
+
+  const handleClaimGoal = async () => {
+    if (isDemo) {
+      await claimCompletedGoal('demo');
+      return;
+    }
+    if (!userId) return;
+    setIsClaiming(true);
+    await claimCompletedGoal(userId);
+    setIsClaiming(false);
   };
 
 
@@ -84,8 +97,29 @@ export default function GoalsTab() {
 
   const currentSavings = useMemo(() => {
     if (isDemo) return 850000;
-    return monthlySavingsTarget;
-  }, [monthlySavingsTarget, isDemo]);
+    const now = new Date();
+    let startOfPeriod = new Date(now.getFullYear(), now.getMonth(), budgetResetDate);
+    if (now.getDate() < budgetResetDate) {
+      startOfPeriod.setMonth(startOfPeriod.getMonth() - 1);
+    }
+    startOfPeriod.setHours(0, 0, 0, 0);
+
+    const savingsThisCycle = transactions
+      .filter(t => {
+        const d = new Date(t.date);
+        return d >= startOfPeriod && t.type === 'expense' && t.category === 'Tabungan';
+      })
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    if (mainGoal) {
+      return (mainGoal.current || 0) + savingsThisCycle;
+    }
+    return monthlySavingsTarget + savingsThisCycle;
+  }, [mainGoal, monthlySavingsTarget, budgetResetDate, transactions, isDemo]);
+
+  const isGoalAchieved = useMemo(() => {
+    return !!(mainGoal && mainGoal.target > 0 && mainGoal.name !== "" && currentSavings >= mainGoal.target);
+  }, [mainGoal, currentSavings]);
 
   return (
     <div className="flex flex-col text-foreground font-sans relative">
@@ -314,23 +348,39 @@ export default function GoalsTab() {
           Impian Utama Anda
         </h3>
 
-        {mainGoal ? (
-          <div className="bg-white dark:bg-gray-900 p-5 sm:p-6 rounded-[28px] border border-gray-100 dark:border-gray-800/80 shadow-[0_8px_30px_rgba(42,106,85,0.06)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] relative overflow-hidden group hover:shadow-[0_12px_32px_rgba(42,106,85,0.12)] hover:-translate-y-0.5 transition-all duration-300">
+        {mainGoal && mainGoal.target > 0 && mainGoal.name !== "" ? (
+          <div className={`p-5 sm:p-6 rounded-[28px] border transition-all duration-300 relative overflow-hidden group hover:-translate-y-0.5 ${
+            isGoalAchieved
+              ? "bg-gradient-to-br from-amber-500/10 via-emerald-500/5 to-transparent dark:from-amber-950/20 dark:via-emerald-950/10 dark:to-transparent border-amber-400 dark:border-amber-500/40 shadow-[0_10px_35px_rgba(245,158,11,0.15)]"
+              : "bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800/80 shadow-[0_8px_30px_rgba(42,106,85,0.06)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] hover:shadow-[0_12px_32px_rgba(42,106,85,0.12)]"
+          }`}>
             {/* Glowing spot underlying */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
+            <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none ${
+              isGoalAchieved ? "bg-amber-500/15" : "bg-primary/5"
+            }`} />
 
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-4.5">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100/10 shadow-inner">
-                    <Target className="w-5 h-5 text-primary" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-inner ${
+                    isGoalAchieved
+                      ? "bg-amber-500/10 border-amber-500/20"
+                      : "bg-primary/10 border-emerald-100/10"
+                  }`}>
+                    <Target className={`w-5 h-5 ${isGoalAchieved ? "text-amber-500 animate-pulse" : "text-primary"}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="text-base sm:text-lg font-black text-foreground leading-none">{mainGoal.name}</h4>
-                      <span className="text-[8px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-250/20 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse leading-none">
-                        🔥 Target Utama
-                      </span>
+                      {isGoalAchieved ? (
+                        <span className="text-[8px] font-black text-amber-800 dark:text-amber-300 bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider animate-bounce leading-none inline-flex items-center gap-1 shrink-0">
+                          🎉 Impian Tercapai!
+                        </span>
+                      ) : (
+                        <span className="text-[8px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-250/20 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse leading-none">
+                          🔥 Target Utama
+                        </span>
+                      )}
                     </div>
                     <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mt-2 leading-none">Target: Rp {mainGoal.target.toLocaleString('id-ID')}</p>
                   </div>
@@ -339,13 +389,19 @@ export default function GoalsTab() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-end px-0.5">
                     <p className="text-[9px] font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">Progress Tabungan</p>
-                    <p className="text-lg sm:text-xl font-black text-primary leading-none">{Math.round((currentSavings / mainGoal.target) * 100)}%</p>
+                    <p className={`text-lg sm:text-xl font-black leading-none ${isGoalAchieved ? "text-amber-500" : "text-primary"}`}>
+                      {Math.round((currentSavings / mainGoal.target) * 100)}%
+                    </p>
                   </div>
 
                   {/* Shimmering Emerald Target Quest Progress Bar */}
                   <div className="h-3.5 w-full bg-slate-100 dark:bg-gray-800/80 rounded-full overflow-hidden border border-gray-100 dark:border-gray-800/80 shadow-inner relative">
                     <div
-                      className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 rounded-full transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-shimmer"
+                      className={`h-full rounded-full transition-all duration-1000 ease-out shadow-inner ${
+                        isGoalAchieved
+                          ? "bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-shimmer"
+                          : "bg-gradient-to-r from-emerald-400 to-teal-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-shimmer"
+                      }`}
                       style={{ width: `${Math.min(100, (currentSavings / mainGoal.target) * 100)}%` }}
                     />
                   </div>
@@ -357,6 +413,19 @@ export default function GoalsTab() {
               </div>
 
               <div className="flex flex-col gap-2 shrink-0 md:min-w-[130px]">
+                {isGoalAchieved && (
+                  <button
+                    onClick={handleClaimGoal}
+                    disabled={isClaiming}
+                    className="w-full bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 text-white font-black py-2.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-amber-400/20"
+                  >
+                    {isClaiming ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <><Sparkles className="w-3.5 h-3.5 text-amber-250 animate-pulse" /> Selesaikan & Klaim</>
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={() => setShowGoalModal(true)}
                   className="bg-slate-50 dark:bg-gray-800/60 hover:bg-slate-100 dark:hover:bg-gray-700/80 text-foreground font-black py-2.5 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-gray-100 dark:border-gray-700/50"
