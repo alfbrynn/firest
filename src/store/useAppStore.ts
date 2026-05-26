@@ -217,7 +217,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       { grid_x: 1, grid_y: 0, item_type: 'tree_3', status: 'healthy' },
       { grid_x: 0, grid_y: 1, item_type: 'tree_2', status: 'dry' },
       { grid_x: -1, grid_y: 0, item_type: 'tree_1', status: 'healthy' },
-      { grid_x: 1, grid_y: 1, item_type: 'tree_2', status: 'healthy' },
+      { grid_x: 0, grid_y: -1, item_type: 'tree_2', status: 'healthy' },
     ];
 
     const demoTxs: Transaction[] = [
@@ -300,7 +300,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         { grid_x: 1, grid_y: 0 },
         { grid_x: 0, grid_y: 1 },
         { grid_x: -1, grid_y: 0 },
-        { grid_x: 1, grid_y: 1 }
+        { grid_x: 0, grid_y: -1 }
       ];
 
       if (!grid || grid.length < 5) {
@@ -1271,7 +1271,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       { grid_x: 1, grid_y: 0 },
       { grid_x: 0, grid_y: 1 },
       { grid_x: -1, grid_y: 0 },
-      { grid_x: 1, grid_y: 1 }
+      { grid_x: 0, grid_y: -1 }
     ];
 
     // Check if all main 5 tiles are already of targetItemType
