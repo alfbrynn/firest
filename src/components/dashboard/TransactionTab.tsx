@@ -20,9 +20,6 @@ const getCategoriesForType = (type: string) => {
   if (type === 'masuk' || type === 'income') {
     return ['Uang Saku', 'Gaji', 'Bonus', 'Hasil Jualan', 'Lainnya'];
   }
-  if (type === 'transfer') {
-    return ['Transfer', 'Lainnya'];
-  }
   return ['Makanan', 'Transport', 'Belanja', 'Hiburan', 'Tagihan', 'Tabungan', 'Lainnya'];
 };
 
@@ -119,7 +116,7 @@ export default function TransactionTab() {
       title: txTitle,
       amount: cleanAmount,
       category: txCat,
-      type: (txType === "masuk" ? "income" : "expense") as "income" | "expense" | "transfer",
+      type: (txType === "masuk" ? "income" : "expense") as "income" | "expense",
       date: selectedDate.toISOString(),
     };
 
@@ -142,7 +139,7 @@ export default function TransactionTab() {
   const [editingTxId, setEditingTxId] = useState<string | null>(null);
   const [editingTxTitle, setEditingTxTitle] = useState("");
   const [editingTxAmount, setEditingTxAmount] = useState("");
-  const [editingTxType, setEditingTxType] = useState<'income' | 'expense' | 'transfer'>('expense');
+  const [editingTxType, setEditingTxType] = useState<'income' | 'expense'>('expense');
   const [editingTxCategory, setEditingTxCategory] = useState("Makanan");
   const [editingTxDate, setEditingTxDate] = useState("");
   const [editingTxIsAutoSync, setEditingTxIsAutoSync] = useState(false);
@@ -483,7 +480,7 @@ export default function TransactionTab() {
         <div className="text-[10px] font-black text-gray-500 dark:text-gray-300 mb-4.5 uppercase tracking-widest">Catat Transaksi</div>
 
         <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl mb-4.5">
-          {['Keluar', 'Masuk', 'Transfer'].map((type) => {
+          {['Keluar', 'Masuk'].map((type) => {
             const typeLower = type.toLowerCase();
             return (
               <button
@@ -493,9 +490,7 @@ export default function TransactionTab() {
                 className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 cursor-pointer active:scale-95 ${txType === typeLower
                   ? typeLower === 'keluar'
                     ? "bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]"
-                    : typeLower === 'masuk'
-                      ? "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
-                      : "bg-blue-500 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+                    : "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
                   : "text-gray-500 dark:text-gray-400 hover:text-foreground"
                   }`}
               >
@@ -580,15 +575,11 @@ export default function TransactionTab() {
           className={`w-full text-white py-3 rounded-xl font-black text-xs active:scale-[0.98] transition-all cursor-pointer ${
             txType === 'masuk'
               ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_12px_rgba(16,185,129,0.25)]'
-              : txType === 'transfer'
-              ? 'bg-blue-600 hover:bg-blue-700 shadow-[0_4px_12px_rgba(37,99,235,0.25)]'
               : 'bg-rose-600 hover:bg-rose-700 shadow-[0_4px_12px_rgba(225,29,72,0.25)]'
           }`}
         >
           {txType === 'masuk'
             ? '+ Simpan Pemasukan 💰'
-            : txType === 'transfer'
-            ? '+ Catat Transfer 🔄'
             : '+ Catat Pengeluaran 💸'
           }
         </button>
@@ -806,9 +797,9 @@ export default function TransactionTab() {
 
               {/* Transaction Type */}
               <div className="flex bg-slate-100/70 dark:bg-gray-800/60 p-1 rounded-xl">
-                {['Keluar', 'Masuk', 'Transfer'].map((type) => {
+                {['Keluar', 'Masuk'].map((type) => {
                   const typeLower = type.toLowerCase();
-                  const typeValue = typeLower === 'keluar' ? 'expense' : typeLower === 'masuk' ? 'income' : 'transfer';
+                  const typeValue = typeLower === 'keluar' ? 'expense' : 'income';
                   return (
                     <button
                       key={type}
@@ -822,9 +813,7 @@ export default function TransactionTab() {
                       className={`flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 active:scale-95 disabled:opacity-50 ${editingTxType === typeValue
                         ? typeValue === 'expense'
                           ? "bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.3)]"
-                          : typeValue === 'income'
-                            ? "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
-                            : "bg-blue-500 text-white shadow-[0_2px_8px_rgba(59,130,246,0.3)]"
+                          : "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
                         : "text-gray-500 dark:text-gray-400 hover:text-foreground"
                         }`}
                     >
@@ -915,15 +904,11 @@ export default function TransactionTab() {
                 className={`flex-1 text-white py-3 rounded-xl font-black text-xs active:scale-[0.98] transition-all cursor-pointer ${
                   editingTxType === 'income'
                     ? 'bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_12px_rgba(16,185,129,0.25)]'
-                    : editingTxType === 'transfer'
-                    ? 'bg-blue-600 hover:bg-blue-700 shadow-[0_4px_12px_rgba(37,99,235,0.25)]'
                     : 'bg-rose-600 hover:bg-rose-700 shadow-[0_4px_12px_rgba(225,29,72,0.25)]'
                 }`}
               >
                 {editingTxType === 'income'
                   ? 'Simpan Pemasukan 💰'
-                  : editingTxType === 'transfer'
-                  ? 'Simpan Transfer 🔄'
                   : 'Simpan Pengeluaran 💸'
                 }
               </button>

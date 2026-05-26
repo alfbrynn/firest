@@ -46,6 +46,8 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
       }
       setStep(2);
     } else if (step === 2) {
+      if (currentBalance.trim() === "") { setErrorMsg("Sisa uang saat ini harus diisi!"); return; }
+      if (savings.trim() === "") { setErrorMsg("Target tabungan harus diisi! (Tulis 0 jika tidak ada target)"); return; }
       if (currentBalanceVal < 0) { setErrorMsg("Sisa uang saat ini tidak boleh kurang dari 0!"); return; }
       if (savingsVal < 0) { setErrorMsg("Target tabungan tidak boleh kurang dari 0!"); return; }
       if (savingsVal > incomeVal) { setErrorMsg("Target tabungan tidak logis jika melebihi total pemasukan!"); return; }
@@ -163,58 +165,76 @@ export default function OnboardingOverlay({ userId }: OnboardingOverlayProps) {
 
           {/* STEP 0: Tanggal Siklus */}
           {step === 0 && (
-            <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-primary/50 transition-colors animate-in fade-in slide-in-from-bottom-2">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1.5">Pilih Tanggal Mulai Siklus</label>
-              <select
-                value={resetDate}
-                onChange={(e) => setResetDate(parseInt(e.target.value))}
-                className="w-full bg-transparent text-lg font-black outline-none cursor-pointer text-foreground"
-              >
-                {[...Array(31)].map((_, i) => (
-                  <option key={i + 1} value={i + 1} className="bg-white dark:bg-gray-900">Tanggal {i + 1}</option>
-                ))}
-              </select>
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+              <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-primary/50 transition-colors">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1.5">Pilih Tanggal Mulai Siklus</label>
+                <select
+                  value={resetDate}
+                  onChange={(e) => setResetDate(parseInt(e.target.value))}
+                  className="w-full bg-transparent text-lg font-black outline-none cursor-pointer text-foreground"
+                >
+                  {[...Array(31)].map((_, i) => (
+                    <option key={i + 1} value={i + 1} className="bg-white dark:bg-gray-900">Tanggal {i + 1}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-left">
+                <p className="text-[10px] font-black text-primary uppercase tracking-wider mb-1 flex items-center gap-1">💡 Kenapa tanggal ini penting?</p>
+                <p className="text-[9.5px] text-muted-foreground leading-relaxed font-semibold">
+                  Tanggal ini adalah awal siklus keuangan bulananmu. Setiap tanggal ini tiba, sisa anggaran belanjamu akan di-reset (dihitung ulang) dan kesehatan hutan virtualmu akan diperbarui.
+                </p>
+              </div>
             </div>
           )}
 
           {/* STEP 1: Pemasukan Bulanan */}
           {step === 1 && (
-            <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-blue-500/50 transition-colors animate-in fade-in slide-in-from-bottom-2">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1.5">Total Pemasukan Sebulan</label>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-muted-foreground text-base">Rp</span>
-                <input
-                  type="text"
-                  value={income}
-                  onChange={(e) => setIncome(formatCurrency(e.target.value))}
-                  placeholder="0"
-                  className="w-full bg-transparent text-2xl font-black outline-none text-foreground"
-                  autoFocus
-                />
+            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+              <div className="bg-slate-50 dark:bg-gray-800 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-blue-500/50 transition-colors">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1.5">Total Pemasukan Sebulan</label>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-muted-foreground text-base">Rp</span>
+                  <input
+                    type="text"
+                    value={income}
+                    onChange={(e) => setIncome(formatCurrency(e.target.value))}
+                    placeholder="0"
+                    className="w-full bg-transparent text-2xl font-black outline-none text-foreground"
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-left">
+                <p className="text-[10px] font-black text-blue-700 dark:text-blue-300 uppercase tracking-wider mb-1">💡 Apa itu total pemasukan?</p>
+                <p className="text-[9.5px] text-muted-foreground leading-relaxed font-semibold">
+                  Masukkan seluruh uang bulananmu (gaji, uang jajan dari ortu, beasiswa, atau hasil jualan). Ini digunakan sebagai dasar batas maksimal anggaran belanjamu bulan ini.
+                </p>
               </div>
             </div>
           )}
 
           {/* STEP 2: Sisa Uang & Tabungan */}
           {step === 2 && (
-            <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+            <div className="space-y-3.5 animate-in fade-in slide-in-from-bottom-2">
               <div className="bg-slate-50 dark:bg-gray-800 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-orange-500/50 transition-colors">
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Sisa Uang Saat Ini</label>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-muted-foreground text-sm">Rp</span>
                   <input type="text" value={currentBalance} onChange={(e) => setCurrentBalance(formatCurrency(e.target.value))} placeholder="0" className="w-full bg-transparent text-xl font-black outline-none text-foreground" />
                 </div>
+                <p className="text-[9px] text-muted-foreground mt-1 pl-0.5 font-semibold">Total uang tunai, e-wallet, dan isi rekening bank aktifmu saat ini.</p>
               </div>
 
               <div className="bg-slate-50 dark:bg-gray-800 p-3.5 rounded-2xl border border-gray-100 dark:border-gray-800 focus-within:border-orange-500/50 transition-colors">
                 <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-1 flex justify-between">
                   Target Tabungan
-                  <span className="text-[9px] text-primary normal-case">Amankan dulu!</span>
+                  <span className="text-[9px] text-primary normal-case font-black">Amankan dulu!</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-muted-foreground text-sm">Rp</span>
                   <input type="text" value={savings} onChange={(e) => setSavings(formatCurrency(e.target.value))} placeholder="0" className="w-full bg-transparent text-xl font-black outline-none text-foreground" />
                 </div>
+                <p className="text-[9px] text-muted-foreground mt-1 pl-0.5 font-semibold">Bagian dari pemasukan yang ingin langsung kamu simpan/tabung. (Tulis 0 jika tidak ada target)</p>
               </div>
 
               {/* Dynamic Math */}
