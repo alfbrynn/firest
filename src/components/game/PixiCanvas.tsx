@@ -33,9 +33,18 @@ const getNextLevelXp = (currentXp: number) => {
     return currentLevelNum * 200;
 };
 
+const getTileUnlockLevel = (gridX: number, gridY: number): number => {
+    if (gridX === 0 && gridY === 0) return 1;
+    if (gridX === 1 && gridY === 0) return 2;
+    if (gridX === 0 && gridY === 1) return 3;
+    if (gridX === -1 && gridY === 0) return 4;
+    if (gridX === 0 && gridY === -1) return 5;
+    return 999;
+};
+
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid, statusBarMessage } = useAppStore();
+    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid, statusBarMessage, isStreakDead } = useAppStore();
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
@@ -86,6 +95,7 @@ export default function PixiCanvas() {
 
             const assetPromises: Promise<any>[] = [
                 PIXI.Assets.load('/assets/land.png').catch(() => null),
+                PIXI.Assets.load('/assets/grass.png').catch(() => null),
                 PIXI.Assets.load(rabbitSrc).catch(() => null),
                 ...airAnimalSrcs.map(src => PIXI.Assets.load(src).catch(() => null))
             ];
@@ -105,7 +115,7 @@ export default function PixiCanvas() {
                 if (tex) loadedTreeTextures[type] = tex;
             });
 
-            const [bgTexture, rabbitTexture, ...airAnimalTextures] = await Promise.all(assetPromises);
+            const [bgTexture, grassTexture, rabbitTexture, ...airAnimalTextures] = await Promise.all(assetPromises);
             await Promise.all([...healthyPromises, ...dryPromises]);
 
             // Map textures to names
@@ -116,146 +126,192 @@ export default function PixiCanvas() {
 
             if (isDestroyed) return;
 
+            const landLayer = new PIXI.Container();
+            const grassLayer = new PIXI.Container();
+            const treeLayer = new PIXI.Container();
+            treeLayer.sortableChildren = true;
+
             const mainContainer = new PIXI.Container();
+            mainContainer.addChild(landLayer);
+            mainContainer.addChild(grassLayer);
+            mainContainer.addChild(treeLayer);
             app.stage.addChild(mainContainer);
 
-            const gapX = 400;
-            const gapY = 200;
+            // --- 1. GAMBAR TANAH UTAMA (Hanya 1 pulau di tengah) ---
+            if (bgTexture) {
+                const island = new PIXI.Sprite(bgTexture);
+                island.anchor.set(0.5);
+                island.x = 0;
+                island.y = 0;
+                landLayer.addChild(island);
+            }
 
-            const sortedGrid = [...forestGrid].sort((a, b) => (a.grid_x + a.grid_y) - (b.grid_x + b.grid_y));
+            // --- 1.5 GAMBAR RUMPUT DI ATAS TANAH (Rumput berayun) ---
+            if (grassTexture) {
+                const grass = new PIXI.Sprite(grassTexture);
+                grass.anchor.set(0.5);
+                grass.x = 0;
+                grass.y = 0;
+                grassLayer.addChild(grass);
 
-            sortedGrid.forEach((tile) => {
-                const islandGroup = new PIXI.Container();
-                islandGroup.x = (tile.grid_x - tile.grid_y) * gapX;
-                islandGroup.y = (tile.grid_x + tile.grid_y) * gapY;
-
-                if (bgTexture) {
-                    const island = new PIXI.Sprite(bgTexture);
-                    island.anchor.set(0.5);
-                    islandGroup.addChild(island);
-                }
-
-                // 1. Logika Variasi Pohon
-                let finalTreeType = tile.item_type;
-                const tileHash = Math.abs(Math.sin(tile.grid_x * 12.9898 + tile.grid_y * 78.233)) % 1;
-                const dryThreshold = forestHealth < 50 ? (50 - forestHealth) / 50 : 0;
-                const isDry = tile.status === 'dry' || (forestHealth < 50 && tileHash < dryThreshold);
-
-                if (isDry) {
-                    const dryLevel = Math.min(4, Math.max(1, Math.ceil(parseInt(tile.item_type.split('_')[1]) / 1.5)));
-                    finalTreeType = `tree_dry_${dryLevel}`;
-                }
-
-                const treeData = treeAssetMap[finalTreeType];
-                const treeTex = loadedTreeTextures[finalTreeType];
-
-                if (treeTex) {
-                    const tree = new PIXI.Sprite(treeTex);
-                    tree.anchor.set(0.5, 1);
-                    tree.y = 20;
-                    tree.scale.set(treeData.scale);
-                    islandGroup.addChild(tree);
-
-                    if (!isDry) {
-                        let elapsed = Math.random() * 10;
-                        app.ticker.add((ticker) => {
-                            elapsed += ticker.deltaTime * 0.02;
-                            tree.skew.x = Math.sin(elapsed * 2) * 0.02;
-                            tree.scale.set(treeData.scale * (1 + Math.sin(elapsed) * 0.01));
-                        });
-                    } else {
-                        let elapsed = Math.random() * 10;
-                        app.ticker.add((ticker) => {
-                            elapsed += ticker.deltaTime * 0.01;
-                            tree.skew.x = Math.sin(elapsed) * 0.01;
-                        });
-                    }
-                }
-
-                // 2. Tentukan Hewan per-tile berdasarkan status pohon
-                let tileAnimals: string[] = [];
-                if (isDry) {
-                    tileAnimals = ['crow'];
-                } else if (finalTreeType === 'tree_6') {
-                    tileAnimals = ['bee', 'butterfly', 'bird'];
-                } else {
-                    tileAnimals = ['bee', 'butterfly'];
-                }
-
-                // A. HEWAN DARAT (Kelinci) - Muncul di pohon sehat (kecuali bibit)
-                if (!isDry && finalTreeType !== 'tree_1' && rabbitTexture && Math.random() > 0.3) {
-                    const rabbit = new PIXI.Sprite(rabbitTexture);
-                    rabbit.anchor.set(0.5, 1);
-                    // Sesuaikan posisi agar tetap di atas pulau land.png
-                    const baseX = (Math.random() > 0.5 ? -80 : 80) + (Math.random() * 30);
-                    const baseY = 60 + (Math.random() * 15);
-                    rabbit.x = baseX;
-                    rabbit.y = baseY;
-                    rabbit.scale.set(0.10);
-                    islandGroup.addChild(rabbit);
-
-                    let t = Math.random() * 10;
-                    app.ticker.add((ticker) => {
-                        t += ticker.deltaTime * 0.05;
-                        rabbit.x = baseX + Math.cos(t * 0.5) * 15;
-                        rabbit.y = baseY - Math.abs(Math.sin(t * 2.5)) * 25;
-                        const jumpFactor = Math.abs(Math.sin(t * 2.5));
-                        rabbit.scale.y = 0.10 * (1 - jumpFactor * 0.1);
-                        rabbit.scale.x = 0.10 * (1 + jumpFactor * 0.05);
-                    });
-                }
-
-                // B. HEWAN UDARA per-tile
-                tileAnimals.forEach((animalName, aIndex) => {
-                    const tex = animalTextureMap[animalName];
-                    if (tex) {
-                        const animal = new PIXI.Sprite(tex);
-                        animal.anchor.set(0.5);
-
-                        const angle = (aIndex / tileAnimals.length) * Math.PI * 2;
-                        const dist = animalName === 'bird' ? 120 + Math.random() * 60 : 70 + Math.random() * 40;
-                        let baseX = Math.cos(angle) * dist;
-                        let baseY = -60;
-
-                        if (animalName === 'bird') baseY = -220 - Math.random() * 80;
-                        else if (animalName === 'crow') baseY = -140 - Math.random() * 50;
-                        else baseY = -40 - Math.random() * 30;
-
-                        const levelNum = parseInt(finalTreeType.split('_').pop() || '1') || 1;
-                        const treeHeightOffset = (levelNum - 1) * 45;
-                        baseY -= treeHeightOffset;
-
-                        animal.x = baseX;
-                        animal.y = baseY;
-
-                        // SKALA DINAMIS BERDASARKAN JENIS HEWAN
-                        const baseScale = (animalName === 'bird' || animalName === 'crow') ? 0.10 : 0.05;
-                        animal.scale.set(baseScale);
-                        islandGroup.addChild(animal);
-
-                        let time = Math.random() * 100;
-                        app.ticker.add((ticker) => {
-                            time += ticker.deltaTime * 0.05;
-                            animal.x = baseX + Math.sin(time * 0.7) * 35;
-                            animal.y = baseY + Math.sin(time) * 15;
-                            animal.rotation = Math.sin(time * 0.7) * 0.1;
-                            const wingSpeed = animalName === 'bee' ? 12 : animalName === 'butterfly' ? 6 : 8;
-                            const flap = 1 + Math.sin(time * wingSpeed) * 0.15;
-                            animal.scale.y = baseScale * flap;
-                        });
-                    }
+                // Animasi rumput berayun ditiup angin lembut (mengikuti gaya ayunan tanaman)
+                let elapsedGrass = Math.random() * 10;
+                app.ticker.add((ticker) => {
+                    elapsedGrass += ticker.deltaTime * 0.02;
+                    grass.skew.x = Math.sin(elapsedGrass * 2) * 0.035; // Amplitudo diperbesar agar terlihat jelas
                 });
+            }
 
-                mainContainer.addChild(islandGroup);
+            // Pemetaan posisi pohon di atas pulau tunggal (0,0) agar menyebar secara rapi ke sudut-sudut pulau
+            const getTreeOffset = (gridX: number, gridY: number) => {
+                if (gridX === 0 && gridY === 0) return { x: 0, y: -10 };       // Tengah (Level 1)
+                if (gridX === 1 && gridY === 0) return { x: 220, y: 70 };     // Depan-Kanan (Level 2)
+                if (gridX === 0 && gridY === 1) return { x: -220, y: 70 };    // Depan-Kiri (Level 3)
+                if (gridX === -1 && gridY === 0) return { x: -180, y: -90 };   // Belakang-Kiri (Level 4)
+                if (gridX === 0 && gridY === -1) return { x: 180, y: -80 };    // Belakang-Kanan (Level 5)
+                return { x: 0, y: 0 };
+            };
+
+            const sortedGrid = [...forestGrid].sort((a, b) => {
+                const offsetA = getTreeOffset(a.grid_x, a.grid_y);
+                const offsetB = getTreeOffset(b.grid_x, b.grid_y);
+                return offsetA.y - offsetB.y; // Urutkan dari belakang ke depan untuk rendering depth order
             });
 
+            sortedGrid.forEach((tile) => {
+                const offset = getTreeOffset(tile.grid_x, tile.grid_y);
+                const posX = offset.x;
+                const posY = offset.y;
 
-            // Skala dinamis bergantung jumlah grid (Diperbesar/Zoom In agar terlihat lebih detail & premium)
-            const coordList = forestGrid.map(f => Math.max(Math.abs(f.grid_x), Math.abs(f.grid_y)));
-            const maxCoordVal = coordList.length > 0 ? Math.max(...coordList) : 0;
-            const maxCoords = maxCoordVal + 1;
-            const globalScale = maxCoords >= 3 ? 0.18 : maxCoords >= 2 ? 0.28 : 0.45;
+                const unlockLevel = getTileUnlockLevel(tile.grid_x, tile.grid_y);
+                const isLocked = levelNumber < unlockLevel;
 
+                // --- 2. GAMBAR POHON & HEWAN (Hanya jika tile sudah terbuka) ---
+                if (!isLocked) {
+                    // 1. Logika Variasi Pohon
+                    let finalTreeType = tile.item_type;
+                    const tileHash = Math.abs(Math.sin(tile.grid_x * 12.9898 + tile.grid_y * 78.233)) % 1;
+                    const dryThreshold = forestHealth < 50 ? (50 - forestHealth) / 50 : 0;
+                    const isDry = tile.status === 'dry' || isStreakDead || (forestHealth < 50 && tileHash < dryThreshold);
+
+                    if (isDry) {
+                        const dryLevel = Math.min(4, Math.max(1, Math.ceil(parseInt(tile.item_type.split('_')[1]) / 1.5)));
+                        finalTreeType = `tree_dry_${dryLevel}`;
+                    }
+
+                    const treeData = treeAssetMap[finalTreeType];
+                    const treeTex = loadedTreeTextures[finalTreeType];
+
+                    if (treeTex) {
+                        const tree = new PIXI.Sprite(treeTex);
+                        tree.anchor.set(0.5, 1);
+                        tree.x = posX;
+                        tree.y = posY + 15; // Turunkan sedikit agar akar menancap pas di tanah
+                        
+                        // Skala dinamis: pohon tengah sedikit lebih kecil agar tidak terpotong di layar, samping disesuaikan
+                        const isCenter = tile.grid_x === 0 && tile.grid_y === 0;
+                        const posScaleFactor = isCenter ? 0.42 : 0.28;
+                        tree.scale.set(treeData.scale * posScaleFactor);
+                        
+                        tree.zIndex = tree.y; // Urutan kedalaman berdasarkan posisi Y
+                        treeLayer.addChild(tree);
+
+                        if (!isDry) {
+                            let elapsed = Math.random() * 10;
+                            app.ticker.add((ticker) => {
+                                elapsed += ticker.deltaTime * 0.02;
+                                tree.skew.x = Math.sin(elapsed * 2) * 0.02;
+                                tree.scale.set(treeData.scale * posScaleFactor * (1 + Math.sin(elapsed) * 0.01));
+                            });
+                        } else {
+                            let elapsed = Math.random() * 10;
+                            app.ticker.add((ticker) => {
+                                elapsed += ticker.deltaTime * 0.01;
+                                tree.skew.x = Math.sin(elapsed) * 0.01;
+                            });
+                        }
+                    }
+
+                    // 2. Tentukan Hewan per-tile berdasarkan status pohon
+                    let tileAnimals: string[] = [];
+                    if (isDry) {
+                        tileAnimals = ['crow'];
+                    } else if (finalTreeType === 'tree_6') {
+                        tileAnimals = ['bee', 'butterfly', 'bird'];
+                    } else {
+                        tileAnimals = ['bee', 'butterfly'];
+                    }
+
+                    // A. HEWAN DARAT (Kelinci) - Muncul di pohon sehat (kecuali bibit)
+                    if (!isDry && finalTreeType !== 'tree_1' && rabbitTexture && Math.random() > 0.3) {
+                        const rabbit = new PIXI.Sprite(rabbitTexture);
+                        rabbit.anchor.set(0.5, 1);
+                        // Sesuaikan posisi agar tetap di atas pulau utama (skala offset lebih kecil agar tidak jatuh dari ubin tunggal)
+                        const baseX = (Math.random() > 0.5 ? -35 : 35) + (Math.random() * 10);
+                        const baseY = 25 + (Math.random() * 10);
+                        rabbit.x = posX + baseX;
+                        rabbit.y = posY + baseY;
+                        rabbit.scale.set(0.08);
+                        rabbit.zIndex = rabbit.y; // Urutan kedalaman relatif
+                        treeLayer.addChild(rabbit);
+
+                        let t = Math.random() * 10;
+                        app.ticker.add((ticker) => {
+                            t += ticker.deltaTime * 0.05;
+                            rabbit.x = posX + baseX + Math.cos(t * 0.5) * 10;
+                            rabbit.y = posY + baseY - Math.abs(Math.sin(t * 2.5)) * 15;
+                            const jumpFactor = Math.abs(Math.sin(t * 2.5));
+                            rabbit.scale.y = 0.08 * (1 - jumpFactor * 0.1);
+                            rabbit.scale.x = 0.08 * (1 + jumpFactor * 0.05);
+                        });
+                    }
+
+                    // B. HEWAN UDARA per-tile
+                    tileAnimals.forEach((animalName, aIndex) => {
+                        const tex = animalTextureMap[animalName];
+                        if (tex) {
+                            const animal = new PIXI.Sprite(tex);
+                            animal.anchor.set(0.5);
+
+                            const angle = (aIndex / tileAnimals.length) * Math.PI * 2;
+                            const dist = animalName === 'bird' ? 80 + Math.random() * 40 : 45 + Math.random() * 25;
+                            let baseX = Math.cos(angle) * dist;
+                            let baseY = -40;
+
+                            if (animalName === 'bird') baseY = -140 - Math.random() * 40;
+                            else if (animalName === 'crow') baseY = -90 - Math.random() * 30;
+                            else baseY = -25 - Math.random() * 20;
+
+                            const levelNum = parseInt(finalTreeType.split('_').pop() || '1') || 1;
+                            const treeHeightOffset = (levelNum - 1) * 25;
+                            baseY -= treeHeightOffset;
+
+                            animal.x = posX + baseX;
+                            animal.y = posY + baseY;
+
+                            // SKALA DINAMIS BERDASARKAN JENIS HEWAN
+                            const baseScale = (animalName === 'bird' || animalName === 'crow') ? 0.08 : 0.04;
+                            animal.scale.set(baseScale);
+                            animal.zIndex = posY + 500; // Terbang di atas pohon
+                            treeLayer.addChild(animal);
+
+                            let time = Math.random() * 100;
+                            app.ticker.add((ticker) => {
+                                time += ticker.deltaTime * 0.05;
+                                animal.x = posX + baseX + Math.sin(time * 0.7) * 20;
+                                animal.y = posY + baseY + Math.sin(time) * 10;
+                                animal.rotation = Math.sin(time * 0.7) * 0.1;
+                                const wingSpeed = animalName === 'bee' ? 12 : animalName === 'butterfly' ? 6 : 8;
+                                const flap = 1 + Math.sin(time * wingSpeed) * 0.15;
+                                animal.scale.y = baseScale * flap;
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Skala tetap optimal untuk 1 pulau tunggal agar terlihat premium & besar
+            const globalScale = 0.65;
             mainContainer.scale.set(globalScale);
 
             // Centering function that remains responsive to window resizing

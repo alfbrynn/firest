@@ -100,7 +100,7 @@ describe('useAppStore checkCycleRollover', () => {
       },
       xp: 1200,
       levelNumber: 3,
-      level: 'Tunas',
+      level: 'Pohon Muda',
       forestHealth: 50,
       budgetResetDate: 1
     });

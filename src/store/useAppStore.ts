@@ -45,6 +45,7 @@ interface AppState {
   monthlySavingsTarget: number;
   budgetResetDate: number; // 1-31
   hasCompletedTutorial: boolean;
+  isStreakDead: boolean;
   activeToast: { message: string; type: 'success' | 'warning' | 'levelUp' | 'streak' | 'onboarding'; subtext?: string } | null;
   statusBarMessage: string | null;
   
@@ -69,17 +70,34 @@ interface AppState {
   checkStreakAndActivity: (userId?: string) => Promise<void>;
   checkCycleRollover: (userId: string) => Promise<void>;
   claimCompletedGoal: (userId: string) => Promise<void>;
+  upgradeForestTreeForLevel: (userId: string, levelNum: number) => Promise<void>;
 }
 
 const LEVEL_NAMES = ['Bibit', 'Tunas', 'Pohon Muda', 'Hutan', 'Hutan Hujan', 'Ekosistem'];
 export const getLevelName = (levelNum: number) => {
-  const nameIndex = Math.min(Math.max(Math.ceil(levelNum / 2) - 1, 0), 5);
+  const nameIndex = Math.min(Math.max(levelNum - 1, 0), 5);
   return LEVEL_NAMES[nameIndex];
 };
 
 export const calculateLevelFromXp = (xp: number) => {
   // Every 200 XP is 1 level, up to level 12 max
   return Math.min(12, Math.floor(xp / 200) + 1);
+};
+
+export const calculateIsStreakDead = (transactions: Transaction[], hasCompletedTutorial: boolean) => {
+  if (transactions.length === 0) {
+    return false;
+  }
+  const now = new Date();
+  const todayStr = now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  return !transactions.some(tx => {
+    const txDateStr = new Date(tx.date).toDateString();
+    return txDateStr === todayStr || txDateStr === yesterdayStr;
+  });
 };
 
 export const calculateHealthFromTransactions = (
@@ -187,6 +205,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   monthlySavingsTarget: 0,
   budgetResetDate: 1,
   hasCompletedTutorial: false,
+  isStreakDead: false,
   activeToast: null,
   statusBarMessage: null,
 
@@ -198,7 +217,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       { grid_x: 1, grid_y: 0, item_type: 'tree_3', status: 'healthy' },
       { grid_x: 0, grid_y: 1, item_type: 'tree_2', status: 'dry' },
       { grid_x: -1, grid_y: 0, item_type: 'tree_1', status: 'healthy' },
-      { grid_x: 1, grid_y: 1, item_type: 'tree_2', status: 'healthy' },
+      { grid_x: 0, grid_y: -1, item_type: 'tree_2', status: 'healthy' },
     ];
 
     const demoTxs: Transaction[] = [
@@ -227,6 +246,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       transactions: demoTxs,
       forestGrid: demoGrid,
+      isStreakDead: false,
       mainGoal: {
         name: "Sepatu Compass Baru",
         target: 1200000,
@@ -275,10 +295,31 @@ export const useAppStore = create<AppState>((set, get) => ({
       }));
 
       let { data: grid } = await supabase.from('forest_grid').select('*').eq('user_id', userId);
-      if (!grid || grid.length === 0) {
-        const defaultTile = { user_id: userId, grid_x: 0, grid_y: 0, item_type: 'tree_1', status: 'healthy' };
-        const { data: insertedTile } = await supabase.from('forest_grid').insert(defaultTile).select();
-        grid = insertedTile || [defaultTile];
+      const defaultCoords = [
+        { grid_x: 0, grid_y: 0 },
+        { grid_x: 1, grid_y: 0 },
+        { grid_x: 0, grid_y: 1 },
+        { grid_x: -1, grid_y: 0 },
+        { grid_x: 0, grid_y: -1 }
+      ];
+
+      if (!grid || grid.length < 5) {
+        const currentGrid = grid || [];
+        const missingCoords = defaultCoords.filter(coord => 
+          !currentGrid.some(g => g.grid_x === coord.grid_x && g.grid_y === coord.grid_y)
+        );
+
+        if (missingCoords.length > 0) {
+          const insertPayload = missingCoords.map(coord => ({
+            user_id: userId,
+            grid_x: coord.grid_x,
+            grid_y: coord.grid_y,
+            item_type: `tree_${Math.min(6, Math.max(1, gameState?.level || 1))}`,
+            status: 'healthy'
+          }));
+          const { data: insertedTiles } = await supabase.from('forest_grid').insert(insertPayload).select();
+          grid = insertedTiles ? [...currentGrid, ...insertedTiles] : [...currentGrid, ...insertPayload];
+        }
       }
 
       const mappedGrid: ForestTile[] = (grid || []).map(tile => ({
@@ -301,6 +342,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       } : null;
 
       const resetDate = profile?.budget_reset_date || 1;
+      const isStreakDead = calculateIsStreakDead(mappedTxs, profile?.has_completed_tutorial || false);
 
       set({
         isDemo: false,
@@ -309,7 +351,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         xp: gameState.xp,
         levelNumber: gameState.level,
         level: getLevelName(gameState.level),
-        forestHealth: calculateHealthFromTransactions(mappedTxs, resetDate),
+        forestHealth: calculateHealthFromTransactions(mappedTxs, resetDate, Number(profile?.monthly_income_target || 0), Number(profile?.monthly_savings_target || 0)),
         currentStreak: gameState.current_streak,
         streakShield: gameState.streak_shield,
         transactions: mappedTxs,
@@ -319,10 +361,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         monthlySavingsTarget: Number(profile?.monthly_savings_target || 0),
         budgetResetDate: resetDate,
         hasCompletedTutorial: profile?.has_completed_tutorial || false,
+        isStreakDead,
         isLoading: false
       });
 
       if (userId) {
+        await get().upgradeForestTreeForLevel(userId, gameState.level);
         get().checkStreakAndActivity(userId);
         get().checkDailyLoginXP(userId);
         get().checkCycleRollover(userId);
@@ -410,13 +454,16 @@ export const useAppStore = create<AppState>((set, get) => ({
         })
         .eq('user_id', userId);
 
+      const isStreakDead = calculateIsStreakDead(newTxs, state.hasCompletedTutorial);
+
       // 4. Update Zustand State lokal
       set({
         transactions: newTxs,
         xp: newXp,
         levelNumber: newLevelNum,
         level: getLevelName(newLevelNum),
-        forestHealth: newHealth
+        forestHealth: newHealth,
+        isStreakDead
       });
 
       // If not onboarding, run gamification triggers
@@ -430,6 +477,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         // Check for Level Up
         if (isLevelUp) {
           get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
+          await get().upgradeForestTreeForLevel(userId, newLevelNum);
         }
 
         // Check health warning
@@ -482,9 +530,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       const newTxs = state.transactions.map(t => 
         t.id === txId ? { ...t, ...updatedFields } : t
       );
+      const isStreakDead = calculateIsStreakDead(newTxs, state.hasCompletedTutorial);
       set({
         transactions: newTxs,
-        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate, state.monthlyIncomeTarget, state.monthlySavingsTarget),
+        isStreakDead
       });
       return;
     }
@@ -521,9 +571,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         t.id === txId ? mappedUpdatedTx : t
       );
 
+      const isStreakDead = calculateIsStreakDead(newTxs, state.hasCompletedTutorial);
       set({
         transactions: newTxs,
-        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate, state.monthlyIncomeTarget, state.monthlySavingsTarget),
+        isStreakDead
       });
     } catch (err) {
       console.error("Error updating transaction in DB:", err);
@@ -534,9 +586,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     if (state.isDemo) {
       const newTxs = state.transactions.filter(t => t.id !== txId);
+      const isStreakDead = calculateIsStreakDead(newTxs, state.hasCompletedTutorial);
       set({
         transactions: newTxs,
-        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate, state.monthlyIncomeTarget, state.monthlySavingsTarget),
+        isStreakDead
       });
       return;
     }
@@ -550,9 +604,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         .eq('user_id', userId);
 
       const newTxs = state.transactions.filter(t => t.id !== txId);
+      const isStreakDead = calculateIsStreakDead(newTxs, state.hasCompletedTutorial);
       set({
         transactions: newTxs,
-        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate)
+        forestHealth: calculateHealthFromTransactions(newTxs, state.budgetResetDate, state.monthlyIncomeTarget, state.monthlySavingsTarget),
+        isStreakDead
       });
     } catch (err) {
       console.error("Error deleting transaction from DB:", err);
@@ -586,6 +642,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           streakShield: updates.streakShield !== undefined ? updates.streakShield : state.streakShield,
         };
       });
+
+      if (updates.levelNumber !== undefined) {
+        await get().upgradeForestTreeForLevel(userId, updates.levelNumber);
+      }
     } catch (err) {
       console.error("Error updating gamification state in DB:", err);
     }
@@ -842,6 +902,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (isLevelUp) {
         get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
+        await get().upgradeForestTreeForLevel(userId || 'demo', newLevelNum);
       }
     }
   },
@@ -900,6 +961,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       if (isLevelUp) {
         get().showToast("Level Up! 👑", "levelUp", `Selamat! Tamanmu berkembang ke level baru: ${getLevelName(newLevelNum)}.`);
+        await get().upgradeForestTreeForLevel(activeUserId, newLevelNum);
       }
     }
   },
@@ -1108,20 +1170,23 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     if (state.isDemo || !userId) {
       // Perbarui state lokal demo
+      const updatedTxs = state.transactions.map(t => 
+        t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
+      );
+      const isStreakDead = calculateIsStreakDead(updatedTxs, state.hasCompletedTutorial);
       set({
         xp: newXp,
         levelNumber: newLevel,
         level: getLevelName(newLevel),
         forestHealth: 100,
+        isStreakDead,
         mainGoal: {
           ...state.mainGoal,
           name: '',
           target: 0,
           current: excessSavings
         },
-        transactions: state.transactions.map(t => 
-          t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
-        )
+        transactions: updatedTxs
       });
       
       get().showToast(
@@ -1129,6 +1194,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         "levelUp",
         `Kamu mendapatkan +200 XP dan Hutanmu kembali sehat 100%! Sisa tabungan Rp ${excessSavings.toLocaleString('id-ID')} disimpan.`
       );
+      await get().upgradeForestTreeForLevel('', newLevel);
       return;
     }
 
@@ -1165,12 +1231,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       const updatedTxs = state.transactions.map(t => 
         t.category === 'Tabungan' ? { ...t, category: 'Tabungan Terpakai' } : t
       );
+      const isStreakDead = calculateIsStreakDead(updatedTxs, state.hasCompletedTutorial);
 
       set({
         xp: newXp,
         levelNumber: newLevel,
         level: getLevelName(newLevel),
         forestHealth: 100,
+        isStreakDead,
         mainGoal: {
           ...state.mainGoal,
           name: '',
@@ -1185,9 +1253,95 @@ export const useAppStore = create<AppState>((set, get) => ({
         "levelUp",
         `Selamat! Kamu mendapatkan +200 XP dan Hutanmu kembali subur 100%! Sisa tabungan Rp ${excessSavings.toLocaleString('id-ID')} disimpan.`
       );
+
+      await get().upgradeForestTreeForLevel(userId, newLevel);
     } catch (err) {
       console.error("Error claiming completed goal:", err);
       get().showToast("Gagal memproses klaim impian", "warning");
+    }
+  },
+
+  upgradeForestTreeForLevel: async (userId: string, levelNum: number) => {
+    const state = get();
+    const treeLevel = Math.min(6, Math.max(1, levelNum));
+    const targetItemType = `tree_${treeLevel}`;
+
+    const defaultCoords = [
+      { grid_x: 0, grid_y: 0 },
+      { grid_x: 1, grid_y: 0 },
+      { grid_x: 0, grid_y: 1 },
+      { grid_x: -1, grid_y: 0 },
+      { grid_x: 0, grid_y: -1 }
+    ];
+
+    // Check if all main 5 tiles are already of targetItemType
+    const allMatching = defaultCoords.every(coord => {
+      const tile = state.forestGrid.find(f => f.grid_x === coord.grid_x && f.grid_y === coord.grid_y);
+      return tile && tile.item_type === targetItemType;
+    });
+
+    if (allMatching) {
+      return;
+    }
+
+    if (state.isDemo || !userId) {
+      set((state) => {
+        const filtered = state.forestGrid.filter(f => 
+          !defaultCoords.some(c => c.grid_x === f.grid_x && c.grid_y === f.grid_y)
+        );
+        const newTiles = defaultCoords.map(coord => {
+          const existing = state.forestGrid.find(f => f.grid_x === coord.grid_x && f.grid_y === coord.grid_y);
+          return {
+            grid_x: coord.grid_x,
+            grid_y: coord.grid_y,
+            item_type: targetItemType,
+            status: existing?.status || 'healthy'
+          };
+        });
+        return {
+          forestGrid: [...filtered, ...newTiles]
+        };
+      });
+      return;
+    }
+
+    const supabase = createClient();
+    try {
+      const upsertData = defaultCoords.map(coord => {
+        const existing = state.forestGrid.find(f => f.grid_x === coord.grid_x && f.grid_y === coord.grid_y);
+        return {
+          user_id: userId,
+          grid_x: coord.grid_x,
+          grid_y: coord.grid_y,
+          item_type: targetItemType,
+          status: existing?.status || 'healthy'
+        };
+      });
+
+      const { data } = await supabase
+        .from('forest_grid')
+        .upsert(upsertData, { onConflict: 'user_id,grid_x,grid_y' })
+        .select();
+
+      if (data) {
+        set((state) => {
+          const filtered = state.forestGrid.filter(f => 
+            !defaultCoords.some(c => c.grid_x === f.grid_x && c.grid_y === f.grid_y)
+          );
+          const newTiles = data.map(d => ({
+            id: d.id,
+            grid_x: d.grid_x,
+            grid_y: d.grid_y,
+            item_type: d.item_type,
+            status: d.status
+          }));
+          return {
+            forestGrid: [...filtered, ...newTiles]
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Error upgrading forest tree:", err);
     }
   }
 }));
