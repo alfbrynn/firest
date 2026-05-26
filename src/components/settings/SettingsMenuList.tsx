@@ -354,16 +354,28 @@ export default function SettingsMenuList() {
                                                     Fitur ini membaca notifikasi e-wallet dari Gmail. Sesuai standar keamanan, fitur ini sedang dalam masa uji coba terbatas. Hubungi Developer untuk meminta akses fitur ini.
                                                 </div>
                                             </div>
-                                            <a
-                                                href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                                                    `Halo Developer, saya ingin meminta akses fitur Auto-Sync Gmail di Firest untuk akun: ${userEmail}`
-                                                )}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs text-center"
-                                            >
-                                                Minta Akses via WhatsApp
-                                            </a>
+                                            <div className="flex flex-col gap-2">
+                                                <a
+                                                    href={`https://wa.me/6285733373451?text=${encodeURIComponent(
+                                                        `Halo Developer, saya ingin meminta akses fitur Auto-Sync Gmail di Firest untuk akun: ${userEmail}`
+                                                    )}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs text-center"
+                                                >
+                                                    Minta Akses via WhatsApp
+                                                </a>
+                                                <a
+                                                    href={`mailto:aliffebriansyah1074@gmail.com?subject=${encodeURIComponent(
+                                                        "Request Access Auto-Sync Gmail Firest"
+                                                    )}&body=${encodeURIComponent(
+                                                        `Halo Developer, saya ingin meminta akses fitur Auto-Sync Gmail di Firest untuk akun: ${userEmail}`
+                                                    )}`}
+                                                    className="w-full py-2 bg-[#ea4335] hover:bg-[#d93025] active:scale-[0.98] text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs text-center"
+                                                >
+                                                    Minta Akses via Email (Gmail)
+                                                </a>
+                                            </div>
                                         </div>
                                     ) : isGmailConnected ? (
                                         <div className="space-y-3 animate-fade-in">
