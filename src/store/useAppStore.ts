@@ -78,8 +78,8 @@ export const getLevelName = (levelNum: number) => {
 };
 
 export const calculateLevelFromXp = (xp: number) => {
-  // Every 500 XP is 1 level, up to level 12 max
-  return Math.min(12, Math.floor(xp / 500) + 1);
+  // Every 200 XP is 1 level, up to level 12 max
+  return Math.min(12, Math.floor(xp / 200) + 1);
 };
 
 export const calculateHealthFromTransactions = (

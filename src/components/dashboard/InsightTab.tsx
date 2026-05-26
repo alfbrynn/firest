@@ -37,7 +37,6 @@ export default function InsightTab() {
           const nextDate = new Date(new Date(last.created_at).getTime() + 7 * 24 * 60 * 60 * 1000);
           setNextAvailableDate(nextDate.toISOString());
         }
-        await triggerWeeklyReviewXP();
       } catch (err) {
         console.error("Failed to load insight:", err);
       } finally {

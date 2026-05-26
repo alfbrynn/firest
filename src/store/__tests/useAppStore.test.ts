@@ -32,28 +32,28 @@ describe('Firest Gamification & Core Financial Logic Unit Tests', () => {
       expect(calculateLevelFromXp(0)).toBe(1);
     });
 
-    it('should return level 1 for 499 XP (just below threshold)', () => {
-      expect(calculateLevelFromXp(499)).toBe(1);
+    it('should return level 1 for 199 XP (just below threshold)', () => {
+      expect(calculateLevelFromXp(199)).toBe(1);
     });
 
-    it('should return level 2 for exactly 500 XP (threshold met)', () => {
-      expect(calculateLevelFromXp(500)).toBe(2);
+    it('should return level 2 for exactly 200 XP (threshold met)', () => {
+      expect(calculateLevelFromXp(200)).toBe(2);
     });
 
-    it('should return level 2 for 999 XP', () => {
-      expect(calculateLevelFromXp(999)).toBe(2);
+    it('should return level 2 for 399 XP', () => {
+      expect(calculateLevelFromXp(399)).toBe(2);
     });
 
-    it('should return level 3 for exactly 1000 XP', () => {
-      expect(calculateLevelFromXp(1000)).toBe(3);
+    it('should return level 3 for exactly 400 XP', () => {
+      expect(calculateLevelFromXp(400)).toBe(3);
     });
 
-    it('should return level 3 for realistic student XP (e.g., 1200 XP)', () => {
-      expect(calculateLevelFromXp(1200)).toBe(3);
+    it('should return level 3 for realistic student XP (e.g., 500 XP)', () => {
+      expect(calculateLevelFromXp(500)).toBe(3);
     });
 
-    it('should cap at level 12 for high XP amounts (e.g., 5500 XP)', () => {
-      expect(calculateLevelFromXp(5500)).toBe(12);
+    it('should cap at level 12 for high XP amounts (e.g., 2500 XP)', () => {
+      expect(calculateLevelFromXp(2500)).toBe(12);
     });
 
     it('should cap at level 12 even for extremely high XP amounts (e.g., 10000 XP)', () => {

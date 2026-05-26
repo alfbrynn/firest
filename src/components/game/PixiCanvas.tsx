@@ -29,8 +29,8 @@ const animalAssets = {
 };
 
 const getNextLevelXp = (currentXp: number) => {
-    const currentLevelNum = Math.floor(currentXp / 500) + 1;
-    return currentLevelNum * 500;
+    const currentLevelNum = Math.floor(currentXp / 200) + 1;
+    return currentLevelNum * 200;
 };
 
 export default function PixiCanvas() {
@@ -39,7 +39,7 @@ export default function PixiCanvas() {
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
-    const progressPercent = xp >= 6000 ? 100 : Math.round(((xp % 500) / 500) * 100);
+    const progressPercent = xp >= 2200 ? 100 : Math.round(((xp % 200) / 200) * 100);
 
     useEffect(() => {
         const timer = setTimeout(() => setShowHint(false), 5000);
@@ -137,7 +137,9 @@ export default function PixiCanvas() {
 
                 // 1. Logika Variasi Pohon
                 let finalTreeType = tile.item_type;
-                const isDry = tile.status === 'dry' || (forestHealth < 40 && Math.random() > (forestHealth / 100));
+                const tileHash = Math.abs(Math.sin(tile.grid_x * 12.9898 + tile.grid_y * 78.233)) % 1;
+                const dryThreshold = forestHealth < 50 ? (50 - forestHealth) / 50 : 0;
+                const isDry = tile.status === 'dry' || (forestHealth < 50 && tileHash < dryThreshold);
 
                 if (isDry) {
                     const dryLevel = Math.min(4, Math.max(1, Math.ceil(parseInt(tile.item_type.split('_')[1]) / 1.5)));

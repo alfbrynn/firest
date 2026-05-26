@@ -6,25 +6,54 @@ import { useState, useEffect, useCallback } from "react";
 import { getNotificationsAction, markAllReadAction, deleteNotificationAction } from "@/src/app/actions/notificationActions";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { useAppStore } from "@/src/store/useAppStore";
 
 export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { isDemo } = useAppStore();
 
     const fetchNotifications = useCallback(async () => {
         setIsLoading(true);
+        if (isDemo) {
+            setNotifications([
+                {
+                    id: "demo-1",
+                    type: "system",
+                    title: "Selamat datang di Firest! 🌳",
+                    content: "Mulailah menabung untuk impian utamamu dan rawat hutanmu dengan menjaga keuanganmu agar tetap sehat.",
+                    is_read: false,
+                    created_at: new Date(Date.now() - 3600000).toISOString()
+                },
+                {
+                    id: "demo-2",
+                    type: "insight",
+                    title: "Pola Belanja Sehat 📈",
+                    content: "Kerja bagus! Pengeluaran Makanan kamu masih di bawah batas anggaran minggu ini.",
+                    is_read: true,
+                    created_at: new Date(Date.now() - 24 * 3600000).toISOString()
+                }
+            ]);
+            setIsLoading(false);
+            return;
+        }
+
         const result = await getNotificationsAction();
         if (result.success) {
             setNotifications(result.data || []);
         }
         setIsLoading(false);
-    }, []);
+    }, [isDemo]);
 
     useEffect(() => {
         fetchNotifications();
     }, [fetchNotifications]);
 
     const handleMarkAllRead = async () => {
+        if (isDemo) {
+            setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+            return;
+        }
         const result = await markAllReadAction();
         if (result.success) {
             setNotifications(notifications.map(n => ({ ...n, is_read: true })));
@@ -32,6 +61,10 @@ export default function NotificationsPage() {
     };
 
     const handleDeleteNotif = async (id: string) => {
+        if (isDemo) {
+            setNotifications(notifications.filter(n => n.id !== id));
+            return;
+        }
         const result = await deleteNotificationAction(id);
         if (result.success) {
             setNotifications(notifications.filter(n => n.id !== id));
@@ -126,7 +159,7 @@ export default function NotificationsPage() {
 
                                     <button 
                                         onClick={() => handleDeleteNotif(notif.id)}
-                                        className="opacity-0 group-hover:opacity-100 p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
+                                        className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all shrink-0"
                                         title="Hapus"
                                     >
                                         <Trash2 className="w-4 h-4" />
