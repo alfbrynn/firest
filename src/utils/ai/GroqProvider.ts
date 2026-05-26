@@ -101,7 +101,9 @@ export class GroqProvider {
       });
 
       const responseText = response.choices[0]?.message?.content;
-      if (!responseText) return ["Gagal menganalisis data keuangan saat ini. Coba lagi nanti."];
+      if (!responseText) {
+        throw new Error("Gagal menganalisis data keuangan saat ini. Coba lagi nanti.");
+      }
 
       const parsed = JSON.parse(responseText);
       if (parsed && Array.isArray(parsed.insights)) {
@@ -110,10 +112,10 @@ export class GroqProvider {
       if (Array.isArray(parsed)) {
         return parsed;
       }
-      return ["Gagal menganalisis data keuangan saat ini. Coba lagi nanti."];
-    } catch (error) {
+      throw new Error("Gagal menganalisis data keuangan saat ini. Coba lagi nanti.");
+    } catch (error: any) {
       console.error("Gagal generate insight dengan Groq:", error);
-      return ["Gagal menganalisis data keuangan saat ini. Coba lagi nanti."];
+      throw new Error(error.message || "Gagal menganalisis data keuangan saat ini. Coba lagi nanti.");
     }
   }
 }

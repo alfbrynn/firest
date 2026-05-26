@@ -21,6 +21,7 @@ export default function InsightTab() {
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const [cachedInsight, setCachedInsight] = useState<any>(null);
   const [nextAvailableDate, setNextAvailableDate] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isDemo) {
@@ -64,6 +65,7 @@ export default function InsightTab() {
     }
 
     setIsGenerating(true);
+    setErrorMessage(null);
     try {
       const result = await generateInsightAction({
         transactions: transactions.slice(0, 20),
@@ -77,8 +79,9 @@ export default function InsightTab() {
         setNextAvailableDate(result.nextAvailableDate);
         await triggerWeeklyReviewXP();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error generating insight:", err);
+      setErrorMessage(err.message || "Gagal menganalisis data keuangan saat ini. Silakan coba lagi nanti.");
     } finally {
       setIsGenerating(false);
     }
@@ -178,6 +181,13 @@ export default function InsightTab() {
             )}
             {isGenerating ? "Menganalisis..." : (isCooldown ? `Buka Analisis (${daysRemaining} hari lagi)` : "Generate Analisis Baru")}
           </button>
+
+          {errorMessage && (
+            <div className="mt-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-900/30 rounded-xl p-3 flex items-start gap-2.5 animate-in shake">
+              <AlertTriangle className="w-4.5 h-4.5 text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-[11px] font-bold text-rose-900 dark:text-rose-200 leading-normal">{errorMessage}</p>
+            </div>
+          )}
         </div>
 
         {/* Background Decorative Element */}
