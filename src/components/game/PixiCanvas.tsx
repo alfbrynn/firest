@@ -35,7 +35,7 @@ const getNextLevelXp = (currentXp: number) => {
 
 export default function PixiCanvas() {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid, statusBarMessage } = useAppStore();
+    const { level, levelNumber, xp, forestHealth, currentStreak, forestGrid, statusBarMessage, isStreakDead } = useAppStore();
     const [showHint, setShowHint] = useState(true);
 
     const nextXp = getNextLevelXp(xp);
@@ -139,7 +139,7 @@ export default function PixiCanvas() {
                 let finalTreeType = tile.item_type;
                 const tileHash = Math.abs(Math.sin(tile.grid_x * 12.9898 + tile.grid_y * 78.233)) % 1;
                 const dryThreshold = forestHealth < 50 ? (50 - forestHealth) / 50 : 0;
-                const isDry = tile.status === 'dry' || (forestHealth < 50 && tileHash < dryThreshold);
+                const isDry = tile.status === 'dry' || isStreakDead || (forestHealth < 50 && tileHash < dryThreshold);
 
                 if (isDry) {
                     const dryLevel = Math.min(4, Math.max(1, Math.ceil(parseInt(tile.item_type.split('_')[1]) / 1.5)));

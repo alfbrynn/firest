@@ -62,33 +62,28 @@ describe('Firest Gamification & Core Financial Logic Unit Tests', () => {
   });
 
   describe('getLevelName', () => {
-    it('should return Bibit for level 1 and 2', () => {
+    it('should return Bibit for level 1', () => {
       expect(getLevelName(1)).toBe('Bibit');
-      expect(getLevelName(2)).toBe('Bibit');
     });
 
-    it('should return Tunas for level 3 and 4', () => {
-      expect(getLevelName(3)).toBe('Tunas');
-      expect(getLevelName(4)).toBe('Tunas');
+    it('should return Tunas for level 2', () => {
+      expect(getLevelName(2)).toBe('Tunas');
     });
 
-    it('should return Pohon Muda for level 5 and 6', () => {
-      expect(getLevelName(5)).toBe('Pohon Muda');
-      expect(getLevelName(6)).toBe('Pohon Muda');
+    it('should return Pohon Muda for level 3', () => {
+      expect(getLevelName(3)).toBe('Pohon Muda');
     });
 
-    it('should return Hutan for level 7 and 8', () => {
-      expect(getLevelName(7)).toBe('Hutan');
-      expect(getLevelName(8)).toBe('Hutan');
+    it('should return Hutan for level 4', () => {
+      expect(getLevelName(4)).toBe('Hutan');
     });
 
-    it('should return Hutan Hujan for level 9 and 10', () => {
-      expect(getLevelName(9)).toBe('Hutan Hujan');
-      expect(getLevelName(10)).toBe('Hutan Hujan');
+    it('should return Hutan Hujan for level 5', () => {
+      expect(getLevelName(5)).toBe('Hutan Hujan');
     });
 
-    it('should return Ekosistem for level 11 and 12', () => {
-      expect(getLevelName(11)).toBe('Ekosistem');
+    it('should return Ekosistem for level 6 and above', () => {
+      expect(getLevelName(6)).toBe('Ekosistem');
       expect(getLevelName(12)).toBe('Ekosistem');
     });
   });
